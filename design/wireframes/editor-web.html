@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Editor de la web · C.R.I.S. (wireframes T-M07-01)</title>
+<script>
+/* Tema desat: s'aplica abans de pintar la pàgina (com als altres wireframes) */
+(function () { try { var t = localStorage.getItem('cris-tema'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();
+</script>
+<!-- Tokens, components i recursos: les mateixes còpies de static/ que fa servir la plataforma -->
+<link rel="stylesheet" href="../../static/css/fonts.css">
+<link rel="stylesheet" href="../../static/css/tokens.css">
+<link rel="stylesheet" href="../../static/css/comptes.css">
+<link rel="stylesheet" href="../../static/css/tramite.css">
+<link rel="stylesheet" href="../../static/css/probador.css">
+<link rel="stylesheet" href="../../static/css/pregon.css">
+<link rel="stylesheet" href="../../static/css/fototeca.css">
+<link rel="stylesheet" href="../../static/css/expositor.css">
+<style>
+/* Només la disposició d'aquests wireframes; tot amb tokens (cap color, mida ni espai escrits a mà). */
+body { margin: 0; background: var(--c-fons); color: var(--c-text); }
+.wf-cap { padding: var(--e-5) var(--e-5) var(--e-3); border-bottom: var(--v-fina) solid var(--c-linia); }
+.wf-cap h1 { margin: 0; }
+.wf-cap p { margin: var(--e-2) 0 0; max-width: var(--amplada-text); color: var(--c-text-2); }
+.wf-cos { display: grid; gap: var(--e-5); padding: var(--e-5); }
+.wf-index ol { display: flex; flex-wrap: wrap; gap: var(--e-2); margin: 0; padding: 0; list-style: none; }
+.wf-index a { display: inline-flex; align-items: center; min-height: var(--tactil); padding: 0 var(--e-3); border-radius: var(--r-pastilla); border: var(--v-fina) solid var(--c-linia); color: var(--c-text); text-decoration: none; font-size: var(--t-s); }
+.wf-index a[aria-current="page"] { background: var(--c-zona-fons); color: var(--c-zona-text); border-color: transparent; font-weight: var(--p-semi); }
+.vista { display: grid; gap: var(--e-4); }
+/* Cap graella no s'eixampla més que la pantalla (320 px): les columnes poden encongir-se */
+.wf-cos, .vista, .editor-partit, .editor-esquerra, .llista-blocs { grid-template-columns: minmax(0, 1fr); }
+.vista > h2 { margin: 0; }
+.vista-capcalera { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-3); }
+.vista-capcalera p { margin: 0; color: var(--c-text-2); }
+.js .vista:not(.es-visible) { display: none; }
+[data-estat]:not([data-estat="normal"]) { display: none; }
+.vista[data-mostra="error"] [data-estat="error"],
+.vista[data-mostra="denegat"] [data-estat="denegat"],
+.vista[data-mostra="caducada"] [data-estat="caducada"] { display: block; }
+.vista[data-mostra="denegat"] [data-estat="normal"], .vista[data-mostra="caducada"] [data-estat="normal"] { display: none; }
+/* L'editor en pantalla partida: blocs i formulari a l'esquerra, vista prèvia a la dreta (a partir de 1024 px) */
+.editor-partit { display: grid; gap: var(--e-4); }
+@media (min-width: 1024px) { .editor-partit { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: start; } }
+.editor-esquerra { display: grid; gap: var(--e-4); }
+.llista-blocs { display: grid; gap: var(--e-1); margin: 0; padding: 0; list-style: none; }
+.llista-blocs li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2); min-height: var(--tactil); padding: 0 var(--e-2); border-radius: var(--r-m); border: var(--v-fina) solid var(--c-linia); background: var(--c-superficie); }
+.llista-blocs li[aria-current="true"] { border-color: var(--c-zona); box-shadow: inset var(--v-activa) 0 0 var(--c-zona); }
+.llista-blocs .nansa { color: var(--c-text-2); cursor: grab; }
+.llista-blocs .nom-bloc { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.desat { font-size: var(--t-s); color: var(--c-text-2); }
+.biblioteca-grups { display: grid; gap: var(--e-4); }
+.biblioteca-grups ul { display: grid; gap: var(--e-2); grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr)); margin: 0; padding: 0; list-style: none; }
+.tipus-bloc { display: grid; gap: var(--e-1); padding: var(--e-3); border-radius: var(--r-m); border: var(--v-fina) solid var(--c-linia); background: var(--c-superficie); }
+.tipus-bloc p { margin: 0; font-size: var(--t-s); color: var(--c-text-2); }
+.comparador { display: grid; gap: var(--e-2); margin: 0; padding: 0; list-style: none; }
+.comparador li { display: grid; gap: var(--e-1); padding: var(--e-2) var(--e-3); border-radius: var(--r-m); border: var(--v-fina) solid var(--c-linia); }
+.comparador .es-afegit { border-color: var(--c-ok); }
+.comparador .es-tret { border-color: var(--c-error); }
+.comparador .es-canviat { border-color: var(--c-avis); }
+.arbre-menu { display: grid; gap: var(--e-1); margin: 0; padding: 0; list-style: none; }
+.arbre-menu ul { display: grid; gap: var(--e-1); margin: var(--e-1) 0 0; padding-left: var(--e-6); list-style: none; }
+.arbre-menu li > .fila-menu { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2); min-height: var(--tactil); padding: 0 var(--e-2); border-radius: var(--r-m); border: var(--v-fina) solid var(--c-linia); background: var(--c-superficie); }
+.fila-menu .nom-bloc { flex: 1; }
+.punt-focal { position: relative; }
+.punt-focal .marca-focal { position: absolute; left: 62%; top: 38%; inline-size: var(--e-5); block-size: var(--e-5); translate: -50% -50%; border-radius: 50%; border: var(--v-plena) solid var(--c-fons); box-shadow: 0 0 0 var(--v-fina) var(--c-text); }
+.demo label { flex-wrap: wrap; max-width: 100%; }
+.demo select { max-width: 100%; }
+.wf-peu { padding: var(--e-5); color: var(--c-text-2); font-size: var(--t-s); border-top: var(--v-fina) solid var(--c-linia); }
+</style>
+</head>
+<body class="zona-admin">
+<header class="wf-cap">
+  <p class="etiqueta-seccio">Wireframes · mòdul 07 (T-M07-01)</p>
+  <h1>Editor de la web pública</h1>
+  <p>Deu pantalles de l'editor de blocs de la <a href="../../docs/decisions/106-editor-visual-de-la-web-publica.md">decisió 106</a>, amb el catàleg de blocs de l'<a href="../../docs/planning.md#M07-addenda-106">addenda</a>. Qui edita tria contingut i variants d'una llista, mai colors, mides ni tipografies; cap bloc no admet HTML. Les peces marcades «Demostració» i «Al servidor» no són part de la pantalla: la primera mostra els estats (error, accés denegat, sessió caducada) i la segona, el que controla el servidor, que és l'únic control. Amagar un botó aquí és només una simulació.</p>
+</header>
+
+<div class="wf-cos">
+  <nav class="wf-index" aria-label="Pantalles de l'editor">
+    <ol>
+      <li><a href="#pagines">1. Pàgines</a></li>
+      <li><a href="#editor">2. Editor</a></li>
+      <li><a href="#biblioteca">3. Biblioteca de blocs</a></li>
+      <li><a href="#patrons">4. Inserir un patró</a></li>
+      <li><a href="#publicar">5. Revisar i publicar</a></li>
+      <li><a href="#versions">6. Versions</a></li>
+      <li><a href="#menu">7. Menú</a></li>
+      <li><a href="#capcalera">8. Capçalera i peu</a></li>
+      <li><a href="#fotos">9. Biblioteca de fotos</a></li>
+      <li><a href="#destacades">10. Activitats destacades</a></li>
+    </ol>
+  </nav>
+
+  <!-- ==================== 1. Llista de pàgines ==================== -->
+  <section id="pagines" class="vista" aria-labelledby="pagines-h">
+    <div class="vista-capcalera">
+      <div><p class="etiqueta-seccio">Web</p><h2 id="pagines-h">Pàgines</h2></div>
+      <div class="accions" data-estat="normal"><button type="button" class="boto boto-principal">Pàgina nova…</button></div>
+    </div>
+    <div class="avis avis-error" role="alert" data-estat="error"><strong>No s'ha pogut crear la pàgina</strong>Ja hi ha una pàgina amb l'adreça «/sortides». Tria'n una altra.</div>
+    <div class="avis avis-error" role="alert" data-estat="denegat"><strong>No trobat</strong>Aquesta pàgina no existeix o no tens permís per veure-la.</div>
+    <div class="avis avis-avis" role="alert" data-estat="caducada"><strong>La sessió ha caducat</strong>Torna a entrar. No s'ha desat res.</div>
+    <div data-estat="normal">
+      <form class="formulari barra-filtres" role="search" aria-label="Filtra les pàgines">
+        <fieldset class="filtres"><legend>Filtres</legend>
+          <div class="camp"><label for="pag-cerca">Cerca</label><input id="pag-cerca" type="search" placeholder="Títol o adreça"></div>
+          <div class="camp"><label for="pag-estat">Estat</label><select id="pag-estat"><option>Totes</option><option>Publicades</option><option>Amb canvis sense publicar</option><option>Programades</option><option>Retirades</option></select></div>
+        </fieldset>
+      </form>
+      <table class="taula">
+        <caption>5 pàgines, per ordre del menú</caption>
+        <thead><tr><th scope="col">Pàgina</th><th scope="col">Plantilla</th><th scope="col">Estat</th><th scope="col">Últim canvi</th><th scope="col"><span class="visualment-amagat">Accions</span></th></tr></thead>
+        <tbody>
+          <tr><th scope="row" class="cel-nom">Portada <span class="codi">/</span></th><td data-etiqueta="Plantilla">Portada</td><td data-etiqueta="Estat"><span class="estat estat-avis"><span aria-hidden="true">!</span> Canvis sense publicar</span></td><td data-etiqueta="Últim canvi"><time datetime="2026-11-24">24/11/2026</time></td><td class="cel-accions"><a class="boto boto-petit" href="#editor">Edita<span class="visualment-amagat">: Portada</span></a></td></tr>
+          <tr><th scope="row" class="cel-nom">Sortides <span class="codi">/sortides</span></th><td data-etiqueta="Plantilla">Secció</td><td data-etiqueta="Estat"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Publicada</span></td><td data-etiqueta="Últim canvi"><time datetime="2026-11-20">20/11/2026</time></td><td class="cel-accions"><a class="boto boto-petit" href="#editor">Edita<span class="visualment-amagat">: Sortides</span></a></td></tr>
+          <tr><th scope="row" class="cel-nom">Projecte Posidònia <span class="codi">/projectes/posidonia</span></th><td data-etiqueta="Plantilla">Projecte</td><td data-etiqueta="Estat"><span class="estat estat-info"><span aria-hidden="true">◷</span> Programada: 01/12/2026 09:00</span></td><td data-etiqueta="Últim canvi"><time datetime="2026-11-23">23/11/2026</time></td><td class="cel-accions"><a class="boto boto-petit" href="#editor">Edita<span class="visualment-amagat">: Projecte Posidònia</span></a></td></tr>
+          <tr><th scope="row" class="cel-nom">Fes-te soci <span class="codi">/fes-te-soci</span></th><td data-etiqueta="Plantilla">Captació</td><td data-etiqueta="Estat"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Publicada</span></td><td data-etiqueta="Últim canvi"><time datetime="2026-11-18">18/11/2026</time></td><td class="cel-accions"><a class="boto boto-petit" href="#editor">Edita<span class="visualment-amagat">: Fes-te soci</span></a></td></tr>
+          <tr><th scope="row" class="cel-nom">Festa d'estiu 2026 <span class="codi">/festa-2026</span></th><td data-etiqueta="Plantilla">Article</td><td data-etiqueta="Estat"><span class="estat estat-neutre"><span aria-hidden="true">■</span> Retirada</span></td><td data-etiqueta="Últim canvi"><time datetime="2026-09-02">02/09/2026</time></td><td class="cel-accions"><a class="boto boto-petit" href="#versions">Versions<span class="visualment-amagat">: Festa d'estiu 2026</span></a></td></tr>
+        </tbody>
+      </table>
+      <details class="targeta">
+        <summary>Pàgina nova…</summary>
+        <form class="formulari">
+          <fieldset><legend>Plantilla (llista tancada)</legend><div class="segmentat">
+            <label><input class="visualment-amagat" type="radio" name="plantilla" checked><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>Secció</span></label>
+            <label><input class="visualment-amagat" type="radio" name="plantilla"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>Article</span></label>
+            <label><input class="visualment-amagat" type="radio" name="plantilla"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>Projecte</span></label>
+            <label><input class="visualment-amagat" type="radio" name="plantilla"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>Galeria</span></label>
+            <label><input class="visualment-amagat" type="radio" name="plantilla"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>Captació</span></label>
+          </div></fieldset>
+          <div class="camp"><label for="pag-titol">Títol</label><input id="pag-titol" type="text"></div>
+          <div class="camp"><label for="pag-slug">Adreça</label><input id="pag-slug" type="text" placeholder="/sortides"><p class="ajuda">Només lletres minúscules, xifres i guions. Si la canvies quan ja és publicada, l'adreça antiga redirigeix a la nova.</p></div>
+          <div class="accions"><button type="button" class="boto boto-principal">Crea l'esborrany</button></div>
+        </form>
+      </details>
+    </div>
+    <div class="demo" role="group" aria-label="Demostració: estat de la pantalla de pàgines"><span class="demo-titol">Demostració</span><label>Estat: <select data-demo-estat><option value="normal">Normal</option><option value="error">Error en crear</option><option value="denegat">Accés denegat</option><option value="caducada">Sessió caducada</option></select></label></div>
+    <aside class="demo nota-servidor" aria-label="Notes per a la implementació"><span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+      <ul>
+        <li>WP1a amb abast «tot» o «per pàgina» (<code>own_pages</code>): la llista només porta les pàgines que el compte pot editar; una altra, «no trobat» i registre (CA-M07-29). Amagar files aquí és una simulació.</li>
+        <li>L'adreça es valida al servidor: única, sense coincidir amb cap ruta de l'app; canviar-la quan és publicada crea una redirecció 301 (RN-M07-18, CA-M07-27).</li>
+        <li>La plantilla és una llista tancada al codi (Portada, Secció, Article, Projecte, Galeria, Captació).</li>
+        <li>Sessió caducada o permís retirat: no es crea res i la resposta no diu quines pàgines hi ha.</li>
+        <li>Crear, programar, publicar i retirar queden al registre d'activitat amb el compte.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <!-- ==================== 2. Editor en pantalla partida ==================== -->
+  <section id="editor" class="vista" aria-labelledby="editor-h">
+    <div class="vista-capcalera">
+      <div><p class="etiqueta-seccio">Pàgines · Portada</p><h2 id="editor-h">Editor: Portada</h2></div>
+      <div class="accions" data-estat="normal"><p class="desat" role="status">Desat fa 5 s</p><a class="boto" href="#versions">Versions</a><a class="boto boto-principal" href="#publicar">Revisa i publica…</a></div>
+    </div>
+    <div class="avis avis-avis" role="status" data-estat="normal"><strong>La Marta també té aquesta pàgina oberta</strong>No es bloqueja: els canvis de cadascú es desen en el mateix esborrany. Si toqueu el mateix bloc, guanya l'últim desat.</div>
+    <div class="avis avis-error" role="alert" data-estat="error"><strong>Aquest bloc no s'ha pogut desar</strong>«Imatge amb text»: falta el títol. La resta de l'esborrany és desat.</div>
+    <div class="avis avis-error" role="alert" data-estat="denegat"><strong>No trobat</strong>Aquesta pàgina no existeix o no tens permís per editar-la.</div>
+    <div class="avis avis-avis" role="alert" data-estat="caducada"><strong>La sessió ha caducat</strong>L'últim canvi no s'ha desat. Torna a entrar i obre la pàgina: l'esborrany té el que s'havia desat fins llavors.</div>
+    <div class="editor-partit" data-estat="normal">
+      <div class="editor-esquerra">
+        <section class="targeta" aria-labelledby="blocs-h">
+          <h3 id="blocs-h">Blocs de la pàgina</h3>
+          <p class="ajuda" id="blocs-ajuda">Arrossega per la nansa, o tria un bloc i fes servir «Amunt» i «Avall».</p>
+          <ol class="llista-blocs" aria-describedby="blocs-ajuda">
+            <li><span class="nansa" aria-hidden="true">⋮⋮</span><span class="nom-bloc">Títol · «Bussejar a la Mediterrània des de 1954»</span></li>
+            <li aria-current="true"><span class="nansa" aria-hidden="true">⋮⋮</span><span class="nom-bloc">Imatge amb text · Qui som</span><button type="button" class="boto boto-petit">Amunt<span class="visualment-amagat">: Imatge amb text</span></button><button type="button" class="boto boto-petit">Avall<span class="visualment-amagat">: Imatge amb text</span></button></li>
+            <li><span class="nansa" aria-hidden="true">⋮⋮</span><span class="nom-bloc">Properes activitats · targetes</span></li>
+            <li><span class="nansa" aria-hidden="true">⋮⋮</span><span class="nom-bloc">Xifres destacades</span></li>
+            <li><span class="nansa" aria-hidden="true">⋮⋮</span><span class="nom-bloc">Crida «Fes-te soci»</span></li>
+          </ol>
+          <div class="accions"><a class="boto" href="#biblioteca">Afegeix un bloc…</a><a class="boto boto-text" href="#patrons">Insereix un patró…</a></div>
+        </section>
+        <section class="targeta" aria-labelledby="bloc-h">
+          <h3 id="bloc-h">Imatge amb text</h3>
+          <form class="formulari">
+            <div class="camp"><span class="etiqueta">Foto</span><p><a href="#fotos">Tria una foto…</a> · <span class="text-2">«Immersió a les Medes» (text alternatiu de la biblioteca)</span></p></div>
+            <div class="camp"><label for="b-titol">Títol</label><input id="b-titol" type="text" value="Qui som"></div>
+            <div class="camp"><label for="b-cos">Text</label><textarea id="b-cos" rows="5">Som un club de busseig de Barcelona des de **1954**…</textarea><p class="ajuda">Negreta, cursiva, enllaços i llistes. Res d'HTML.</p></div>
+            <fieldset><legend>Costat de la foto</legend><div class="segmentat">
+              <label><input class="visualment-amagat" type="radio" name="costat" checked><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>Esquerra</span></label>
+              <label><input class="visualment-amagat" type="radio" name="costat"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>Dreta</span></label>
+            </div></fieldset>
+            <fieldset><legend>Fons</legend><div class="segmentat">
+              <label><input class="visualment-amagat" type="radio" name="fons" checked><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>Cap</span></label>
+              <label><input class="visualment-amagat" type="radio" name="fons"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>Suau</span></label>
+              <label><input class="visualment-amagat" type="radio" name="fons"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>Marí</span></label>
+              <label><input class="visualment-amagat" type="radio" name="fons"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>Accent</span></label>
+            </div></fieldset>
+            <div class="accions"><button type="button" class="boto boto-text">Treu el bloc…</button></div>
+          </form>
+        </section>
+      </div>
+      <section class="probador probador-bloc" aria-labelledby="previa-h">
+        <h3 id="previa-h">Vista prèvia (Probador)</h3>
+        <div class="probador-controls">
+          <fieldset class="probador-grup"><legend>Dispositiu</legend><div class="segmentat">
+            <label><input class="visualment-amagat" type="radio" name="disp"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>Mòbil</span></label>
+            <label><input class="visualment-amagat" type="radio" name="disp"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>Tauleta</span></label>
+            <label><input class="visualment-amagat" type="radio" name="disp" checked><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>Escriptori</span></label>
+          </div></fieldset>
+          <fieldset class="probador-grup"><legend>Tema</legend><div class="segmentat">
+            <label><input class="visualment-amagat" type="radio" name="tema-previ" checked><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>Clar</span></label>
+            <label><input class="visualment-amagat" type="radio" name="tema-previ"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>Fosc</span></label>
+          </div></fieldset>
+        </div>
+        <div class="probador-marc" aria-hidden="true">
+          <div class="probador-barra"><span></span><span></span><span></span><span class="probador-adreca">cris1954.cat · esborrany</span></div>
+          <span class="probador-mini probador-mini-portada es-gran"><span class="pm-cap"></span><span class="pm-heroi"></span><span class="pm-bloc"></span><span class="pm-bloc"></span><span class="pm-bloc"></span></span>
+        </div>
+        <p class="ajuda">La vista prèvia és la plantilla real amb l'esborrany. Sense «Color d'accent» (decisió 106: cap color lliure).</p>
+      </section>
+    </div>
+    <div class="demo" role="group" aria-label="Demostració: estat de l'editor"><span class="demo-titol">Demostració</span><label>Estat: <select data-demo-estat><option value="normal">Normal (amb una altra persona a la pàgina)</option><option value="error">Error en desar un bloc</option><option value="denegat">Accés denegat</option><option value="caducada">Sessió caducada</option></select></label></div>
+    <aside class="demo nota-servidor" aria-label="Notes per a la implementació"><span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+      <ul>
+        <li>Un esborrany per pàgina, desat cada <code>website.autosave_seconds</code> (RN-M07-16); el desat automàtic no esborra la feina d'una altra persona (CA-M07-32). L'avís d'edició simultània surt del servidor, no del navegador.</li>
+        <li>Cada bloc es valida contra l'esquema del catàleg en desar i en publicar: un camp o una variant que no hi són es rebutgen i no es desa res d'aquell bloc (RN-M07-15, CA-M07-23).</li>
+        <li>El text és Markdown restringit, convertit amb l'HTML desactivat i escapat; un enllaç només pot ser <code>https:</code>, <code>mailto:</code>, <code>tel:</code> o una pàgina interna (RN-M07-10, CA-M07-24).</li>
+        <li>La vista prèvia només amb sessió i WP1a, mai per una adreça pública ni compartible (RN-M07-23).</li>
+        <li>Arrossegar (SortableJS a <code>static/vendor/</code>) i «Amunt»/«Avall» envien el mateix ordre; el servidor el desa.</li>
+        <li>Sessió caducada: no es desa res més; en tornar a entrar, l'esborrany té l'últim desat bo.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <!-- ==================== 3. Biblioteca de blocs ==================== -->
+  <section id="biblioteca" class="vista" aria-labelledby="biblioteca-h">
+    <div class="vista-capcalera"><div><p class="etiqueta-seccio">Editor · Portada</p><h2 id="biblioteca-h">Afegeix un bloc</h2></div></div>
+    <div class="avis avis-error" role="alert" data-estat="error"><strong>No s'ha pogut afegir el bloc</strong>Una secció no pot anar dins d'una altra secció.</div>
+    <div class="avis avis-error" role="alert" data-estat="denegat"><strong>No trobat</strong>Aquesta pàgina no existeix o no tens permís per editar-la.</div>
+    <div class="avis avis-avis" role="alert" data-estat="caducada"><strong>La sessió ha caducat</strong>Torna a entrar. No s'ha afegit res.</div>
+    <div class="biblioteca-grups" data-estat="normal">
+      <div class="camp"><label for="bib-cerca">Cerca un bloc</label><input id="bib-cerca" type="search" placeholder="«galeria», «vídeo», «activitats»…"><p class="ajuda">Arrossega un bloc fins a la llista, o prem «Afegeix» per posar-lo després del bloc triat.</p></div>
+      <section aria-labelledby="g-text"><h3 id="g-text">Text</h3><ul>
+        <li class="tipus-bloc"><strong>Títol</strong><p>Un títol de secció (nivell 2 o 3).</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Títol</span></button></li>
+        <li class="tipus-bloc"><strong>Text</strong><p>Paràgrafs amb negreta, enllaços i llistes.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Text</span></button></li>
+        <li class="tipus-bloc"><strong>Cita</strong><p>Una frase destacada i qui la diu.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Cita</span></button></li>
+        <li class="tipus-bloc"><strong>Llista</strong><p>Punts, números o comprovacions.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Llista</span></button></li>
+        <li class="tipus-bloc"><strong>Pregunta desplegable</strong><p>Una pregunta que s'obre.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Pregunta desplegable</span></button></li>
+        <li class="tipus-bloc"><strong>Avís destacat</strong><p>Informació o avís.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Avís destacat</span></button></li>
+      </ul></section>
+      <section aria-labelledby="g-mitjans"><h3 id="g-mitjans">Mitjans</h3><ul>
+        <li class="tipus-bloc"><strong>Imatge</strong><p>Una foto de la biblioteca o d'una activitat.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Imatge</span></button></li>
+        <li class="tipus-bloc"><strong>Galeria</strong><p>De 2 a 24 fotos, en 2 a 4 columnes.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Galeria</span></button></li>
+        <li class="tipus-bloc"><strong>Imatge amb text</strong><p>Foto a un costat i text a l'altre.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Imatge amb text</span></button></li>
+        <li class="tipus-bloc"><strong>Vídeo</strong><p>YouTube, que només es carrega en prémer.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Vídeo</span></button></li>
+        <li class="tipus-bloc"><strong>Fitxer</strong><p>Un PDF per descarregar.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Fitxer</span></button></li>
+      </ul></section>
+      <section aria-labelledby="g-disp"><h3 id="g-disp">Disposició</h3><ul>
+        <li class="tipus-bloc"><strong>Secció</strong><p>D'1 a 3 columnes de blocs.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Secció</span></button></li>
+        <li class="tipus-bloc"><strong>Separador</strong><p>Una línia entre blocs.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Separador</span></button></li>
+        <li class="tipus-bloc"><strong>Espai</strong><p>Petit, mitjà o gran.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Espai</span></button></li>
+      </ul></section>
+      <section aria-labelledby="g-accio"><h3 id="g-accio">Acció</h3><ul>
+        <li class="tipus-bloc"><strong>Botó</strong><p>Principal o secundari; un sol principal per pàgina.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Botó</span></button></li>
+        <li class="tipus-bloc"><strong>Crida «Fes-te soci»</strong><p>Text i el botó cap a l'alta.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Crida «Fes-te soci»</span></button></li>
+        <li class="tipus-bloc"><strong>Subscripció</strong><p>El butlletí (apagat fins que s'activi).</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Subscripció</span></button></li>
+        <li class="tipus-bloc"><strong>Contacte</strong><p>El formulari de contacte (apagat fins que s'activi).</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Contacte</span></button></li>
+      </ul></section>
+      <section aria-labelledby="g-dades"><h3 id="g-dades">Dades del club</h3><ul>
+        <li class="tipus-bloc"><strong>Properes activitats</strong><p>Automàtic, amb filtre per tipus.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Properes activitats</span></button></li>
+        <li class="tipus-bloc"><strong>Activitats destacades</strong><p>Les que tries, en l'ordre que vols.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Activitats destacades</span></button></li>
+        <li class="tipus-bloc"><strong>Activitats fetes</strong><p>Crònica amb foto.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Activitats fetes</span></button></li>
+        <li class="tipus-bloc"><strong>Notícies recents</strong><p>Les últimes publicades.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Notícies recents</span></button></li>
+        <li class="tipus-bloc"><strong>Preguntes d'un tema</strong><p>Les preguntes freqüents d'un tema.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Preguntes d'un tema</span></button></li>
+        <li class="tipus-bloc"><strong>Xifres destacades</strong><p>De 2 a 4 xifres amb la seva etiqueta.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Xifres destacades</span></button></li>
+        <li class="tipus-bloc"><strong>Targetes de projecte</strong><p>D'1 a 6 projectes.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Targetes de projecte</span></button></li>
+        <li class="tipus-bloc"><strong>Sortida destacada</strong><p>Una sortida del calendari.</p><button type="button" class="boto boto-petit">Afegeix<span class="visualment-amagat">: Sortida destacada</span></button></li>
+      </ul></section>
+    </div>
+    <div class="demo" role="group" aria-label="Demostració: estat de la biblioteca"><span class="demo-titol">Demostració</span><label>Estat: <select data-demo-estat><option value="normal">Normal</option><option value="error">Error en afegir</option><option value="denegat">Accés denegat</option><option value="caducada">Sessió caducada</option></select></label></div>
+    <aside class="demo nota-servidor" aria-label="Notes per a la implementació"><span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+      <ul>
+        <li>El catàleg (26 tipus en cinc grups) és codi; la biblioteca només en mostra la llista. Un tipus que no hi és es rebutja (RN-M07-15).</li>
+        <li>Subscripció i contacte surten a la llista però no es mostren a la web mentre <code>website.newsletter_enabled</code> i <code>website.contact_enabled</code> són apagats; el vídeo, mentre <code>website.youtube_enabled</code> és apagat (P-574).</li>
+        <li>Sense seccions dins de seccions: ho comprova el servidor, no l'arrossegament.</li>
+        <li>Afegir sense WP1a per a la pàgina: «no trobat» i registre.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <!-- ==================== 4. Inserir un patró ==================== -->
+  <section id="patrons" class="vista" aria-labelledby="patrons-h">
+    <div class="vista-capcalera"><div><p class="etiqueta-seccio">Editor · Portada</p><h2 id="patrons-h">Insereix un patró</h2></div></div>
+    <div class="avis avis-error" role="alert" data-estat="error"><strong>No s'ha pogut inserir</strong>El patró «Sortida amb galeria» té un bloc d'activitat que ja no és publicada; s'ha inserit sense aquest bloc.</div>
+    <div class="avis avis-error" role="alert" data-estat="denegat"><strong>No trobat</strong>Aquesta pàgina no existeix o no tens permís per editar-la.</div>
+    <div class="avis avis-avis" role="alert" data-estat="caducada"><strong>La sessió ha caducat</strong>Torna a entrar. No s'ha inserit res.</div>
+    <div class="probador" data-estat="normal">
+      <p class="ajuda">Un patró és un grup de blocs que s'insereix d'un cop després del bloc triat («Imatge amb text»). Després, cada bloc s'edita com els altres.</p>
+      <ul class="probador-galeria">
+        <li><button type="button" class="probador-miniatura es-triada" aria-current="true"><span class="probador-mini probador-mini-portada" aria-hidden="true"><span class="pm-cap"></span><span class="pm-heroi"></span><span class="pm-bloc"></span><span class="pm-bloc"></span><span class="pm-bloc"></span></span><span class="probador-nom"><span aria-hidden="true">✓ </span>Presentació amb foto i xifres</span></button></li>
+        <li><button type="button" class="probador-miniatura"><span class="probador-mini probador-mini-llista" aria-hidden="true"><span class="pm-cap"></span><span class="pm-heroi"></span><span class="pm-bloc"></span><span class="pm-bloc"></span><span class="pm-bloc"></span></span><span class="probador-nom">Sortida amb galeria</span></button></li>
+        <li><button type="button" class="probador-miniatura"><span class="probador-mini probador-mini-blog" aria-hidden="true"><span class="pm-cap"></span><span class="pm-heroi"></span><span class="pm-bloc"></span><span class="pm-bloc"></span><span class="pm-bloc"></span></span><span class="probador-nom">Preguntes i crida «Fes-te soci»</span></button></li>
+      </ul>
+      <div class="accions"><button type="button" class="boto boto-principal">Insereix «Presentació amb foto i xifres»</button><a class="boto boto-text" href="#editor">Torna a l'editor</a></div>
+    </div>
+    <div class="demo" role="group" aria-label="Demostració: estat dels patrons"><span class="demo-titol">Demostració</span><label>Estat: <select data-demo-estat><option value="normal">Normal</option><option value="error">Un bloc no s'ha pogut inserir</option><option value="denegat">Accés denegat</option><option value="caducada">Sessió caducada</option></select></label></div>
+    <aside class="demo nota-servidor" aria-label="Notes per a la implementació"><span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+      <ul>
+        <li>Els patrons són dades (<code>Pattern</code>, amb versions); crear-ne o canviar-los demana WP10. Inserir-ne un demana WP1a a la pàgina.</li>
+        <li>Inserir copia els blocs a l'esborrany i els valida un per un amb l'esquema; un bloc que no val no s'insereix i es diu.</li>
+        <li>Un bloc compartit (<code>SharedBlock</code>) no es copia: s'hi enllaça i es canvia en un sol lloc (WP9).</li>
+      </ul>
+    </aside>
+  </section>
+
+  <!-- ==================== 5. Revisar i publicar ==================== -->
+  <section id="publicar" class="vista" aria-labelledby="publicar-h">
+    <div class="vista-capcalera"><div><p class="etiqueta-seccio">Editor · Portada</p><h2 id="publicar-h">Revisa i publica</h2></div></div>
+    <ol class="tramite" aria-label="Passos de la publicació" data-estat="normal">
+      <li class="tramite-pas es-fet"><span class="tramite-marca" aria-hidden="true">✓</span><span>Esborrany<span class="visualment-amagat">: fet</span></span></li>
+      <li class="tramite-pas es-actual" aria-current="step"><span class="tramite-marca" aria-hidden="true">2</span><span>Revisió</span></li>
+      <li class="tramite-pas"><span class="tramite-marca" aria-hidden="true">3</span><span>Publicada</span></li>
+    </ol>
+    <div class="avis avis-error" role="alert" data-estat="error"><strong>No s'ha pogut publicar</strong>El bloc «Galeria» té una foto que s'ha esborrat de la biblioteca. Treu-la o tria'n una altra.</div>
+    <div class="avis avis-error" role="alert" data-estat="denegat"><strong>No pots publicar aquesta pàgina</strong>Pots desar l'esborrany; publicar-lo ho fa algú amb permís de publicació.</div>
+    <div class="avis avis-avis" role="alert" data-estat="caducada"><strong>La sessió ha caducat</strong>No s'ha publicat res. Torna a entrar i torna-ho a provar.</div>
+    <div class="editor-partit" data-estat="normal">
+      <section class="targeta" aria-labelledby="revisor-h">
+        <h3 id="revisor-h">Revisor de qualitat</h3>
+        <p class="ajuda">Avisos, mai bloquejos: pots publicar igualment.</p>
+        <ul>
+          <li><span class="estat estat-avis"><span aria-hidden="true">!</span> Text alternatiu</span> La foto «Neteja del port» no en té a la biblioteca.</li>
+          <li><span class="estat estat-avis"><span aria-hidden="true">!</span> Botó principal</span> La pàgina en té dos («Fes-te soci» i «Apunta't»): un sol principal per pàgina.</li>
+          <li><span class="estat estat-avis"><span aria-hidden="true">!</span> Enllaç</span> «/sortides-2025» no existeix.</li>
+          <li><span class="estat estat-ok"><span aria-hidden="true">✓</span> Títols</span> En ordre (2 i 3).</li>
+        </ul>
+        <fieldset><legend>Quan</legend><div class="segmentat">
+          <label><input class="visualment-amagat" type="radio" name="quan" checked><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>Ara</span></label>
+          <label><input class="visualment-amagat" type="radio" name="quan"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>Programa-la</span></label>
+        </div></fieldset>
+        <div class="camp"><label for="pub-quan">Dia i hora</label><input id="pub-quan" type="datetime-local" value="2026-12-01T09:00"><p class="ajuda">Hora de Barcelona. Es pot anul·lar fins que s'executi.</p></div>
+        <div class="camp"><label for="pub-nota">Nota de la versió (opcional)</label><input id="pub-nota" type="text" placeholder="Què ha canviat"></div>
+        <div class="accions"><button type="button" class="boto boto-principal">Publica ara</button><a class="boto boto-text" href="#editor">Torna a l'editor</a></div>
+      </section>
+      <section class="probador-bloc pregon" aria-labelledby="pregon-h">
+        <h3 id="pregon-h">Vista en compartir (Pregon)</h3>
+        <div class="pregon-editor">
+          <div class="camp"><label for="pregon-titol">Títol per compartir</label><input id="pregon-titol" type="text" value="C.R.I.S. · Club de busseig de Barcelona"><p class="ajuda">Fins a 60 caràcters.</p></div>
+          <div class="camp"><label for="pregon-desc">Descripció</label><textarea id="pregon-desc" rows="2">Cursos, sortides i projectes al mar des de 1954.</textarea><p class="ajuda">Fins a 160 caràcters.</p></div>
+        </div>
+        <ul class="pregon-targetes">
+          <li class="pregon-targeta pregon-xat"><p class="pregon-on">En un xat</p><div class="pregon-bombolla"><svg class="pregon-imatge" viewBox="0 0 120 63" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect class="pi-cel" width="120" height="63"/><circle class="pi-sol" cx="88" cy="20" r="9"/><path class="pi-mar" d="M0 34 Q15 29 30 34 T60 34 T90 34 T120 34 V63 H0Z"/><path class="pi-fons" d="M0 46 Q20 41 40 46 T80 46 T120 46 V63 H0Z"/></svg><p class="pregon-titol">C.R.I.S. · Club de busseig de Barcelona</p><p class="pregon-host">cris1954.cat</p></div></li>
+          <li class="pregon-targeta pregon-correu"><p class="pregon-on">En un correu</p><div class="pregon-fila"><svg class="pregon-imatge" viewBox="0 0 120 63" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect class="pi-cel" width="120" height="63"/><circle class="pi-sol" cx="88" cy="20" r="9"/><path class="pi-mar" d="M0 34 Q15 29 30 34 T60 34 T90 34 T120 34 V63 H0Z"/><path class="pi-fons" d="M0 46 Q20 41 40 46 T80 46 T120 46 V63 H0Z"/></svg><div><p class="pregon-titol">C.R.I.S. · Club de busseig de Barcelona</p><p class="pregon-desc">Cursos, sortides i projectes al mar des de 1954.</p></div></div></li>
+        </ul>
+      </section>
+    </div>
+    <div class="demo" role="group" aria-label="Demostració: estat de la publicació"><span class="demo-titol">Demostració</span><label>Estat: <select data-demo-estat><option value="normal">Normal</option><option value="error">Error en publicar</option><option value="denegat">Sense permís de publicar (WP1a sense WP1b)</option><option value="caducada">Sessió caducada</option></select></label></div>
+    <aside class="demo nota-servidor" aria-label="Notes per a la implementació"><span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+      <ul>
+        <li>Publicar, programar, retirar i restaurar demanen WP1b a la pàgina; sense, «no trobat» i registre. Amb <code>website.review_flow_enabled</code> encès, WP1a envia a revisió i només WP1b publica (RN-M07-24, P-575).</li>
+        <li>El revisor de qualitat el calcula el servidor (T-M07-25): avisa i no bloqueja. Publicar torna a validar tots els blocs amb l'esquema (CA-M07-23).</li>
+        <li>Una publicació programada l'executa la cua una sola vegada, amb el registre a nom de qui la va programar; una d'anul·lada no fa res (RN-M07-17, CA-M07-26).</li>
+        <li>Les etiquetes per compartir es generen al servidor amb el títol i la descripció; la imatge és la de la biblioteca, mai una foto privada.</li>
+        <li>Publicar crea una versió nova (RN-M07-03) amb qui i quan.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <!-- ==================== 6. Versions ==================== -->
+  <section id="versions" class="vista" aria-labelledby="versions-h">
+    <div class="vista-capcalera"><div><p class="etiqueta-seccio">Pàgines · Portada</p><h2 id="versions-h">Versions</h2></div></div>
+    <div class="avis avis-error" role="alert" data-estat="error"><strong>No s'ha pogut restaurar</strong>La versió 12 té un bloc d'un tipus que ja no hi és; restaura-la i treu-lo abans de publicar.</div>
+    <div class="avis avis-error" role="alert" data-estat="denegat"><strong>No trobat</strong>Aquesta pàgina no existeix o no tens permís per veure'n les versions.</div>
+    <div class="avis avis-avis" role="alert" data-estat="caducada"><strong>La sessió ha caducat</strong>Torna a entrar. No s'ha restaurat res.</div>
+    <div class="editor-partit" data-estat="normal">
+      <table class="taula">
+        <caption>Versions publicades de la portada, la més recent primer</caption>
+        <thead><tr><th scope="col">Versió</th><th scope="col">Publicada</th><th scope="col">Per</th><th scope="col"><span class="visualment-amagat">Accions</span></th></tr></thead>
+        <tbody>
+          <tr><th scope="row" class="cel-nom">14 · actual</th><td data-etiqueta="Publicada"><time datetime="2026-11-20T18:02">20/11/2026 18:02</time></td><td data-etiqueta="Per">Administració</td><td class="cel-accions"></td></tr>
+          <tr><th scope="row" class="cel-nom">13</th><td data-etiqueta="Publicada"><time datetime="2026-11-12T10:15">12/11/2026 10:15</time></td><td data-etiqueta="Per">Comunicació</td><td class="cel-accions"><button type="button" class="boto boto-petit">Compara amb l'actual<span class="visualment-amagat">: versió 13</span></button></td></tr>
+          <tr><th scope="row" class="cel-nom">12</th><td data-etiqueta="Publicada"><time datetime="2026-10-30T09:40">30/10/2026 09:40</time></td><td data-etiqueta="Per">Administració</td><td class="cel-accions"><button type="button" class="boto boto-petit">Compara amb l'actual<span class="visualment-amagat">: versió 12</span></button></td></tr>
+        </tbody>
+      </table>
+      <section class="targeta" aria-labelledby="compara-h">
+        <h3 id="compara-h">Versió 13 i actual, bloc per bloc</h3>
+        <ul class="comparador">
+          <li class="es-canviat"><span class="estat estat-avis"><span aria-hidden="true">~</span> Canviat</span><strong>Imatge amb text · Qui som</strong><span class="text-2">Text: «des de 1954» → «des de **1954**»</span></li>
+          <li class="es-afegit"><span class="estat estat-ok"><span aria-hidden="true">+</span> Afegit</span><strong>Xifres destacades</strong></li>
+          <li class="es-tret"><span class="estat estat-error"><span aria-hidden="true">−</span> Tret</span><strong>Notícies recents</strong></li>
+          <li><span class="estat estat-neutre"><span aria-hidden="true">=</span> Igual</span><strong>Títol, Properes activitats, Crida «Fes-te soci»</strong></li>
+        </ul>
+        <div class="accions"><button type="button" class="boto">Restaura la versió 13 a l'esborrany…</button></div>
+        <p class="ajuda">Restaurar no publica: posa la versió a l'esborrany, i després es revisa i es publica.</p>
+      </section>
+    </div>
+    <div class="demo" role="group" aria-label="Demostració: estat de les versions"><span class="demo-titol">Demostració</span><label>Estat: <select data-demo-estat><option value="normal">Normal</option><option value="error">Error en restaurar</option><option value="denegat">Accés denegat</option><option value="caducada">Sessió caducada</option></select></label></div>
+    <aside class="demo nota-servidor" aria-label="Notes per a la implementació"><span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+      <ul>
+        <li>Les versions no s'editen ni s'esborren; restaurar-ne una copia els seus blocs a l'esborrany (WP1b) i queda al registre.</li>
+        <li>El comparador el calcula el servidor bloc per bloc (T-M07-22).</li>
+        <li>Veure versions sense WP1a a la pàgina: «no trobat».</li>
+      </ul>
+    </aside>
+  </section>
+
+  <!-- ==================== 7. Editor de menú ==================== -->
+  <section id="menu" class="vista" aria-labelledby="menu-h">
+    <div class="vista-capcalera"><div><p class="etiqueta-seccio">Web</p><h2 id="menu-h">Menú principal</h2></div><div class="accions" data-estat="normal"><button type="button" class="boto boto-principal">Desa el menú</button></div></div>
+    <div class="avis avis-error" role="alert" data-estat="error"><strong>No s'ha desat el menú</strong>«Botiga» porta a «http://…»: un enllaç extern ha de començar per «https://».</div>
+    <div class="avis avis-error" role="alert" data-estat="denegat"><strong>No trobat</strong>No tens permís per canviar el menú.</div>
+    <div class="avis avis-avis" role="alert" data-estat="caducada"><strong>La sessió ha caducat</strong>Torna a entrar. El menú no ha canviat.</div>
+    <div data-estat="normal">
+      <p class="ajuda" id="menu-ajuda">Sis enllaços es veuen sempre; la resta va a «Més» (decisió 034). Un submenú, d'un sol nivell. Arrossega per la nansa o fes servir «Amunt» i «Avall».</p>
+      <ol class="arbre-menu" aria-describedby="menu-ajuda">
+        <li><div class="fila-menu"><span class="nansa" aria-hidden="true">⋮⋮</span><span class="nom-bloc">1 · Inici <span class="codi">/</span></span></div></li>
+        <li><div class="fila-menu"><span class="nansa" aria-hidden="true">⋮⋮</span><span class="nom-bloc">2 · Activitats <span class="codi">/activitats</span></span><button type="button" class="boto boto-petit">Amunt<span class="visualment-amagat">: Activitats</span></button><button type="button" class="boto boto-petit">Avall<span class="visualment-amagat">: Activitats</span></button></div>
+          <ul><li><div class="fila-menu"><span class="nansa" aria-hidden="true">⋮⋮</span><span class="nom-bloc">Cursos <span class="codi">/cursos</span></span></div></li><li><div class="fila-menu"><span class="nansa" aria-hidden="true">⋮⋮</span><span class="nom-bloc">Sortides <span class="codi">/sortides</span></span></div></li></ul></li>
+        <li><div class="fila-menu"><span class="nansa" aria-hidden="true">⋮⋮</span><span class="nom-bloc">3 · Projectes <span class="codi">/projectes</span></span></div></li>
+        <li><div class="fila-menu"><span class="nansa" aria-hidden="true">⋮⋮</span><span class="nom-bloc">4 · Història <span class="codi">/historia</span></span></div></li>
+        <li><div class="fila-menu"><span class="nansa" aria-hidden="true">⋮⋮</span><span class="nom-bloc">5 · Fes-te soci <span class="codi">/fes-te-soci</span></span></div></li>
+        <li><div class="fila-menu"><span class="nansa" aria-hidden="true">⋮⋮</span><span class="nom-bloc">6 · Contacte <span class="codi">/contacte</span></span></div></li>
+        <li><div class="fila-menu"><span class="nansa" aria-hidden="true">⋮⋮</span><span class="nom-bloc">Més: Preguntes freqüents, Llicències, Federació <span class="xip">extern</span></span></div></li>
+      </ol>
+      <details class="targeta"><summary>Afegeix un enllaç…</summary>
+        <form class="formulari">
+          <div class="camp"><label for="m-text">Text</label><input id="m-text" type="text"></div>
+          <fieldset><legend>Porta a</legend><div class="segmentat">
+            <label><input class="visualment-amagat" type="radio" name="desti" checked><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>Una pàgina de la web</span></label>
+            <label><input class="visualment-amagat" type="radio" name="desti"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>Una adreça externa</span></label>
+          </div></fieldset>
+          <div class="camp"><label for="m-url">Adreça externa</label><input id="m-url" type="url" placeholder="https://"><p class="ajuda">Només «https://». S'obre a la mateixa finestra.</p></div>
+          <div class="accions"><button type="button" class="boto">Afegeix al menú</button></div>
+        </form>
+      </details>
+    </div>
+    <div class="demo" role="group" aria-label="Demostració: estat del menú"><span class="demo-titol">Demostració</span><label>Estat: <select data-demo-estat><option value="normal">Normal</option><option value="error">Enllaç extern no vàlid</option><option value="denegat">Accés denegat</option><option value="caducada">Sessió caducada</option></select></label></div>
+    <aside class="demo nota-servidor" aria-label="Notes per a la implementació"><span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+      <ul>
+        <li>WP9 (menús, capçalera, peu i blocs compartits); sense, «no trobat» i registre.</li>
+        <li><code>Menu</code> i <code>MenuItem</code>: sis visibles i la resta a «Més»; submenús d'un nivell; un enllaç extern només <code>https:</code>, validat al servidor (T-M07-21).</li>
+        <li>Un enllaç a una pàgina retirada no surt a la web i el revisor ho avisa.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <!-- ==================== 8. Capçalera i peu ==================== -->
+  <section id="capcalera" class="vista" aria-labelledby="capcalera-h">
+    <div class="vista-capcalera"><div><p class="etiqueta-seccio">Web</p><h2 id="capcalera-h">Capçalera i peu</h2></div><div class="accions" data-estat="normal"><button type="button" class="boto boto-principal">Desa i publica…</button></div></div>
+    <div class="avis avis-error" role="alert" data-estat="error"><strong>No s'ha desat</strong>El peu ha de tenir l'enllaç a la política de privacitat.</div>
+    <div class="avis avis-error" role="alert" data-estat="denegat"><strong>No trobat</strong>No tens permís per canviar la capçalera ni el peu.</div>
+    <div class="avis avis-avis" role="alert" data-estat="caducada"><strong>La sessió ha caducat</strong>Torna a entrar. No ha canviat res.</div>
+    <div class="editor-partit" data-estat="normal">
+      <form class="formulari targeta" aria-labelledby="cap-h">
+        <h3 id="cap-h">Capçalera</h3>
+        <p class="ajuda">El logotip és el del club (assets/marca); no es puja ni es canvia aquí.</p>
+        <div class="camp"><label for="cap-boto">Text del botó de la capçalera</label><input id="cap-boto" type="text" value="Fes-te soci"><p class="ajuda">Porta a l'alta. És l'únic botó principal de la capçalera.</p></div>
+        <h3>Peu</h3>
+        <div class="camp"><label for="peu-adreca">Adreça del club</label><input id="peu-adreca" type="text" value="(adreça del local)"></div>
+        <div class="camp"><label for="peu-correu">Correu de contacte</label><input id="peu-correu" type="email" value="cris@cris.es"></div>
+        <div class="camp"><label for="peu-xarxes">Xarxes (una per línia, «https://»)</label><textarea id="peu-xarxes" rows="3"></textarea></div>
+        <p class="ajuda">L'avís legal, la política de privacitat i les galetes surten sempre al peu (textos legals del 00); no es poden treure.</p>
+      </form>
+      <section class="probador-bloc" aria-labelledby="cap-previa-h"><h3 id="cap-previa-h">Vista prèvia</h3><div class="probador-marc" aria-hidden="true"><div class="probador-barra"><span></span><span></span><span></span><span class="probador-adreca">cris1954.cat</span></div><span class="probador-mini probador-mini-portada es-gran"><span class="pm-cap"></span><span class="pm-heroi"></span><span class="pm-bloc"></span><span class="pm-bloc"></span><span class="pm-bloc"></span></span></div></section>
+    </div>
+    <div class="demo" role="group" aria-label="Demostració: estat de la capçalera i el peu"><span class="demo-titol">Demostració</span><label>Estat: <select data-demo-estat><option value="normal">Normal</option><option value="error">Falta un enllaç obligatori</option><option value="denegat">Accés denegat</option><option value="caducada">Sessió caducada</option></select></label></div>
+    <aside class="demo nota-servidor" aria-label="Notes per a la implementació"><span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+      <ul>
+        <li><code>SiteChrome</code> amb versions, WP9. Els enllaços legals els posa la plantilla, no es desen com a dada que es pugui treure.</li>
+        <li>Correu i xarxes es validen al servidor; les xarxes, només <code>https:</code>. Cap telèfon ni correu personal (només del club).</li>
+      </ul>
+    </aside>
+  </section>
+
+  <!-- ==================== 9. Biblioteca de fotos ==================== -->
+  <section id="fotos" class="vista" aria-labelledby="fotos-h">
+    <div class="vista-capcalera"><div><p class="etiqueta-seccio">Web</p><h2 id="fotos-h">Tria una foto</h2></div></div>
+    <div class="pestanyes" role="tablist" aria-label="D'on surt la foto" data-estat="normal">
+      <button type="button" role="tab" aria-selected="true" class="pestanya">Biblioteca de la web</button>
+      <button type="button" role="tab" aria-selected="false" class="pestanya">Fotos d'activitats</button>
+    </div>
+    <div class="avis avis-error" role="alert" data-estat="error"><strong>No s'ha pogut pujar</strong>«posidonia.svg»: només JPEG, PNG o WebP, de 10 MB com a màxim.</div>
+    <div class="avis avis-error" role="alert" data-estat="denegat"><strong>No trobat</strong>No tens permís per pujar fotos a la web.</div>
+    <div class="avis avis-avis" role="alert" data-estat="caducada"><strong>La sessió ha caducat</strong>Torna a entrar. No s'ha pujat res.</div>
+    <div class="fototeca-app" data-estat="normal">
+      <nav class="fototeca-lateral" aria-label="Carpetes">
+        <p class="fototeca-seccio">Carpetes</p>
+        <ul class="fototeca-carpetes">
+          <li><button type="button" class="fototeca-carpeta" aria-current="true"><span class="fototeca-icona" aria-hidden="true"></span>Totes</button></li>
+          <li><button type="button" class="fototeca-carpeta"><span class="fototeca-icona" aria-hidden="true"></span>Portada</button></li>
+          <li><button type="button" class="fototeca-carpeta"><span class="fototeca-icona" aria-hidden="true"></span>Projectes</button></li>
+          <li><button type="button" class="fototeca-carpeta"><span class="fototeca-icona" aria-hidden="true"></span>Cursos i batejos</button></li>
+        </ul>
+      </nav>
+      <div class="fototeca-principal">
+        <ul class="fototeca-graella" aria-label="Fotos de la biblioteca">
+          <li><label class="fototeca-foto"><input class="visualment-amagat" type="radio" name="foto" checked><span class="fototeca-imatge fotos-to-1" aria-hidden="true"></span><span class="fototeca-marca" aria-hidden="true">✓</span><span class="fototeca-nom">Immersió a les Medes</span></label></li>
+          <li><label class="fototeca-foto"><input class="visualment-amagat" type="radio" name="foto"><span class="fototeca-imatge fotos-to-2" aria-hidden="true"></span><span class="fototeca-marca" aria-hidden="true">✓</span><span class="fototeca-nom">Bateig a la piscina</span></label></li>
+          <li><label class="fototeca-foto"><input class="visualment-amagat" type="radio" name="foto"><span class="fototeca-imatge fotos-to-3" aria-hidden="true"></span><span class="fototeca-marca" aria-hidden="true">✓</span><span class="fototeca-nom">Neteja del port</span></label></li>
+          <li><label class="fototeca-foto"><input class="visualment-amagat" type="radio" name="foto"><span class="fototeca-imatge fotos-to-4" aria-hidden="true"></span><span class="fototeca-marca" aria-hidden="true">✓</span><span class="fototeca-nom">Posidònia</span></label></li>
+        </ul>
+        <div class="zona-magnetica expositor-zona"><div class="camp"><label for="f-puja">Puja una foto</label><input id="f-puja" type="file" accept=".jpg,.jpeg,.png,.webp"><p class="ajuda">JPEG, PNG o WebP. Se'n treuen les dades amagades (EXIF i GPS).</p></div></div>
+      </div>
+      <aside class="fototeca-detall" aria-labelledby="f-detall-h">
+        <h3 id="f-detall-h">Detalls</h3>
+        <span class="punt-focal"><span class="fototeca-imatge fotos-to-1" aria-hidden="true"></span><span class="marca-focal" aria-hidden="true"></span></span>
+        <p class="ajuda">Toca la foto per triar el punt focal: és el que no es retalla mai.</p>
+        <div class="camp"><label for="f-alt">Text alternatiu (obligatori)</label><input id="f-alt" type="text" value="Dos bussejadors sobre un camp de posidònia"><p class="ajuda">Què es veu, per a qui no la pot veure.</p></div>
+        <div class="camp"><label for="f-autor">Autor</label><input id="f-autor" type="text" value="C.R.I.S."></div>
+        <div class="camp"><label for="f-permis">Permís</label><select id="f-permis"><option>Del club</option><option>Cedida per l'autor</option></select></div>
+        <div class="camp"><span class="etiqueta">Persones</span><label class="casella"><input type="checkbox" checked> <span>Hi surten persones que es poden reconèixer, i tenen el consentiment d'imatge signat</span></label></div>
+        <div class="accions"><button type="button" class="boto boto-principal">Fes servir aquesta foto</button></div>
+      </aside>
+    </div>
+    <p class="ajuda" data-estat="normal">A «Fotos d'activitats» només hi surten les que el 02 dona com a publicables amb consentiment, mai un carnet, un avatar ni un document.</p>
+    <div class="demo" role="group" aria-label="Demostració: estat de les fotos"><span class="demo-titol">Demostració</span><label>Estat: <select data-demo-estat><option value="normal">Normal</option><option value="error">Fitxer no admès</option><option value="denegat">Accés denegat</option><option value="caducada">Sessió caducada</option></select></label></div>
+    <aside class="demo nota-servidor" aria-label="Notes per a la implementació"><span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+      <ul>
+        <li>Pujades: només JPEG, PNG i WebP (cap SVG), fins a <code>website.upload_max_mb</code>; es comprova el contingut i es tornen a codificar (Pillow), cosa que en treu l'EXIF i el GPS (RN-M07-19, CA-M07-28). La zona d'arrossegament és ajuda, no control.</li>
+        <li>«Fotos d'activitats»: <code>activities.publishable_photos</code> (RN-M07-22, RP-M07-02), només les publicables amb consentiment; mai fotos privades (CA-M07-31).</li>
+        <li>Persones reconeixibles: només amb consentiment d'imatge (decisió 107; P-41). Sense la casella marcada, la foto no es pot fer servir en un bloc públic.</li>
+        <li>Fotos a Scaleway (París, UE); el text alternatiu és obligatori en pujar-la i el revisor avisa si en falta.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <!-- ==================== 10. Activitats destacades ==================== -->
+  <section id="destacades" class="vista" aria-labelledby="destacades-h">
+    <div class="vista-capcalera"><div><p class="etiqueta-seccio">Web · Portada</p><h2 id="destacades-h">Activitats destacades</h2></div><div class="accions" data-estat="normal"><button type="button" class="boto boto-principal">Desa l'ordre</button></div></div>
+    <div class="avis avis-error" role="alert" data-estat="error"><strong>No s'ha desat</strong>«Visible fins al» ha de ser després de «Visible des del».</div>
+    <div class="avis avis-error" role="alert" data-estat="denegat"><strong>No trobat</strong>No tens permís per triar activitats destacades.</div>
+    <div class="avis avis-avis" role="alert" data-estat="caducada"><strong>La sessió ha caducat</strong>Torna a entrar. L'ordre no ha canviat.</div>
+    <div data-estat="normal">
+      <p class="ajuda" id="dest-ajuda">Tria activitats publicades al calendari i posa-les en ordre. Arrossega per la nansa o fes servir «Amunt» i «Avall».</p>
+      <ol class="llista-blocs" aria-describedby="dest-ajuda">
+        <li aria-current="true"><span class="nansa" aria-hidden="true">⋮⋮</span><span class="nom-bloc">Sortida a les Medes · 14/06/2027</span><button type="button" class="boto boto-petit">Amunt<span class="visualment-amagat">: Sortida a les Medes</span></button><button type="button" class="boto boto-petit">Avall<span class="visualment-amagat">: Sortida a les Medes</span></button></li>
+        <li><span class="nansa" aria-hidden="true">⋮⋮</span><span class="nom-bloc">Curs Open Water de primavera · 05/04/2027</span></li>
+        <li><span class="nansa" aria-hidden="true">⋮⋮</span><span class="nom-bloc">Neteja del port · 22/05/2027</span></li>
+      </ol>
+      <form class="formulari targeta" aria-labelledby="dest-dates-h">
+        <h3 id="dest-dates-h">Sortida a les Medes: quan es veu</h3>
+        <div class="camp"><label for="d-des">Visible des del</label><input id="d-des" type="date" value="2026-12-01"></div>
+        <div class="camp"><label for="d-fins">Visible fins al</label><input id="d-fins" type="date" value="2027-06-14"><p class="ajuda">Si el 02 la retira o es fa, deixa de sortir encara que la data no hagi arribat.</p></div>
+      </form>
+      <details class="targeta"><summary>Afegeix una activitat…</summary><div class="camp"><label for="d-cerca">Cerca al calendari</label><input id="d-cerca" type="search" placeholder="Títol de l'activitat"></div></details>
+    </div>
+    <div class="demo" role="group" aria-label="Demostració: estat de les destacades"><span class="demo-titol">Demostració</span><label>Estat: <select data-demo-estat><option value="normal">Normal</option><option value="error">Dates no vàlides</option><option value="denegat">Accés denegat</option><option value="caducada">Sessió caducada</option></select></label></div>
+    <aside class="demo nota-servidor" aria-label="Notes per a la implementació"><span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+      <ul>
+        <li><code>FeaturedActivity</code> desa només la referència, l'ordre i les dates de visibilitat: cap còpia de dades del 02 (RN-M07-21).</li>
+        <li>Una activitat retirada al 02 desapareix a la petició següent (CA-M07-30). Cap nom de persona (RN-M07-04).</li>
+        <li>Triar-les demana WP1a (portada); el cercador només mostra activitats publicades.</li>
+      </ul>
+    </aside>
+  </section>
+</div>
+
+<footer class="wf-peu">
+  <p>Wireframes de la T-M07-01 (24/11/2026). Disseny i components: <a href="../../docs/design-system.md">sistema de disseny</a> (§15: regles B, C i D). Encàrrec: <a href="../encarrecs/editor-web-07.md">editor-web-07.md</a>. Dades d'exemple, inventades.</p>
+</footer>
+
+<script>
+/* Una pantalla cada vegada segons l'àncora, i el selector «Demostració» de cada pantalla. Sense
+   JavaScript, totes les pantalles es veuen una sota l'altra. */
+(function () {
+  'use strict';
+  document.documentElement.classList.add('js');
+  const vistes = Array.from(document.querySelectorAll('.vista'));
+  const enllacos = Array.from(document.querySelectorAll('.wf-index a'));
+  function mostra() {
+    const id = (location.hash || '#pagines').slice(1);
+    const vista = vistes.find(v => v.id === id) || vistes[0];
+    vistes.forEach(v => v.classList.toggle('es-visible', v === vista));
+    enllacos.forEach(a => { if (a.getAttribute('href') === '#' + vista.id) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+  }
+  window.addEventListener('hashchange', mostra);
+  mostra();
+  document.querySelectorAll('[data-demo-estat]').forEach(sel => {
+    sel.addEventListener('change', () => { sel.closest('.vista').dataset.mostra = sel.value; });
+  });
+})();
+</script>
+</body>
+</html>
