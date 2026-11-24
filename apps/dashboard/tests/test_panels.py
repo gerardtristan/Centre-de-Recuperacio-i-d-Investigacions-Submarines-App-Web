@@ -61,7 +61,7 @@ def services(monkeypatch):
     )
     monkeypatch.setattr(panels.campaigns, "open_campaign_now", lambda: None)
     real_get = panels.business_settings.get
-    monkeypatch.setattr(panels.activity_stats, "low_occupancy_count", lambda pct: pct // 10)
+    monkeypatch.setattr(panels.activity_stats, "low_occupancy_count", lambda pct, today: pct // 10)
     values = {panels.TO_RENEW_DAYS: 30, panels.DEADLINE_DAYS: [30, 14, 7], panels.LOW_OCCUPANCY: 50}
     monkeypatch.setattr(
         panels.business_settings, "get", lambda key, at=None: values.get(key) or real_get(key, at)

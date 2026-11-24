@@ -17,10 +17,6 @@ from .models import DashboardLayout
 VIEW = "dashboard.view"  # DB1
 
 
-def _visible_codes(account) -> set:
-    return set(CATALOG) if has_perm(account, VIEW, write=False) else set()
-
-
 def _clean(codes, visible) -> list:
     if not isinstance(codes, list) or not all(isinstance(code, str) for code in codes):
         raise Http404
@@ -30,7 +26,9 @@ def _clean(codes, visible) -> list:
 
 
 def save(account, order, hidden) -> DashboardLayout:
-    visible = _visible_codes(account)
+    if not has_perm(account, VIEW, write=False):
+        raise Http404  # sense DB1, ni tan sols una preferència buida
+    visible = set(CATALOG)
     layout, _ = DashboardLayout.objects.update_or_create(
         account=account,
         defaults={"order": _clean(order, visible), "hidden": _clean(hidden, visible)},

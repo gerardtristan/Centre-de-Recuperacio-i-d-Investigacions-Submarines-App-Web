@@ -118,11 +118,13 @@ def stats(starts_on: datetime.date, ends_on: datetime.date, now=None) -> Activit
     )  # fmt: skip
 
 
-def low_occupancy_count(percent: int) -> int:
-    """Per al dashboard (08; RN-M08-07): activitats obertes amb l'ocupació (confirmades / places,
-    RN-M08-10) per sota de `percent`. Només el recompte, sense permís: el permís DB1 el comprova
-    la vista del dashboard (T-M08-09)."""
-    rows = Activity.objects.filter(status=A.OPEN, max_places__gt=0).annotate(
+def low_occupancy_count(percent: int, today=None) -> int:
+    """Per al dashboard (08; RN-M08-07): activitats obertes que comencen després d'avui (com les
+    places lliures) amb l'ocupació (confirmades / places, RN-M08-10) per sota de `percent`.
+    Només el recompte, sense permís: el permís DB1 el comprova la vista del dashboard
+    (T-M08-09)."""
+    today = today or timezone.localdate()
+    rows = Activity.objects.filter(status=A.OPEN, starts_on__gt=today, max_places__gt=0).annotate(
         confirmed=Count("enrolments", filter=Q(enrolments__status=E.CONFIRMED))
     )
     return sum(1 for row in rows if 100 * row.confirmed < percent * row.max_places)

@@ -178,7 +178,8 @@ def free_places(r):
 
 
 def low_occupancy(r):
-    return activity_stats.low_occupancy_count(business_settings.get(LOW_OCCUPANCY, r.today))
+    percent = business_settings.get(LOW_OCCUPANCY, r.today)
+    return activity_stats.low_occupancy_count(percent, today=r.today)
 
 
 def licences_to_renew(r):
