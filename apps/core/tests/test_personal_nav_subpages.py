@@ -32,6 +32,7 @@ PAGES = [
     (("members:export_data",), "members:profile"),
     (("members:card_renew",), "members:card"),
     (("accounts:totp_enrol",), "accounts:security"),
+    (("activities:my_certification_photo", 1), "activities:my_certifications"),  # T-DX-117
 ]
 
 

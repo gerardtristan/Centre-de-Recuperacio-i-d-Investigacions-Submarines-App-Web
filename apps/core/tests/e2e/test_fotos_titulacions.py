@@ -47,7 +47,18 @@ def test_member_and_secretary_upload_the_card_photos(
     page.get_by_role("link", name="Foto del carnet").click()
     expect(page.get_by_text("No hi pugis cap document de salut.")).to_be_visible()
     review("foto-carnet-soci")
+    # T-DX-117: la zona per arrossegar-hi la foto (zona-magnetica.js) diu el fitxer triat i rebutja
+    # el que no és una foto ni un PDF abans d'enviar-lo (el servidor ho torna a comprovar).
+    zone = page.locator("[data-zona-magnetica]")
+    note = tmp_path / "nota.txt"
+    note.write_text("no és una foto")
+    page.get_by_label("Foto o PDF").set_input_files(note)
+    expect(zone).to_have_class(re.compile("te-error"))
+    expect(zone.locator(".zm-error")).to_contain_text("no és una foto ni un PDF")
     page.get_by_label("Foto o PDF").set_input_files(photo)
+    expect(zone).to_have_class(re.compile("te-fitxer"))
+    expect(zone.locator(".zm-resum")).to_contain_text("carnet.jpg")
+    review("foto-carnet-soci-triada")
     page.get_by_role("button", name="Desa la foto").click()
     expect(page.get_by_text("Foto desada, xifrada")).to_be_visible()
 
