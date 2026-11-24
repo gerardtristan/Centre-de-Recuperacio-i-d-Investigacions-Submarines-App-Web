@@ -566,6 +566,7 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-06c4](T-M02-06c4.md) | Canviar l'horari, el lloc i els instructors d'una sessió existent des de la fitxa (carril B4) | 24/11/2026 03:53 | (vegeu la PR) | 2 noves i 1 e2e ampliada | [A comprovar] |
 | [T-DX-101](T-DX-101.md) | Sessions de la fitxa: «Cancel·la…» plegat, amb l'etiqueta del motiu visible | 24/11/2026 07:09 | b0ae37b0 | 1 nova | [A comprovar] |
 | [T-DX-102](T-DX-102.md) | Revisió del 02 (informes, resultats, reforç, certificat) i del 03 i el calendari d'ajuts | 24/11/2026 10:27 | 74b45d07 | 3 noves | [A comprovar] |
+| [T-DX-109](T-DX-109.md) | Convite a la fitxa pública i a les inscripcions d'una activitat (02) | 24/11/2026 16:33 | 754fda85 | 1 nova | [A comprovar] |
 | [T-DX-104](T-DX-104.md) | Inventari dels 38 recursos externs i tasques T-DX-105 a T-DX-115 | 24/11/2026 14:42 | cb274d4c | cap | [A comprovar] |
 | [T-M07-03](T-M07-03.md) | App `website` i ajustos del 07, amb el butlletí i el contacte apagats | 24/11/2026 10:57 | 90f1821e | 25 noves | [A comprovar] |
 | [T-M07-04](T-M07-04.md) | Pàgines, versions i blocs; publicar i tornar a una versió | 24/11/2026 11:42 | 6cbb8859 | 17 noves | [A comprovar] |
