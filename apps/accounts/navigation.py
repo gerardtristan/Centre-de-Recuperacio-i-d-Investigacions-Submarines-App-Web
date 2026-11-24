@@ -87,6 +87,7 @@ ENTRIES = (
         _("Llistat de socis"),
         (
             "administration:member_detail",
+            "administration:person_certifications",  # T-M02-52b: des de la fitxa del soci
             "administration:member_edit",
             "administration:member_join_date",
             "administration:licence_add",
