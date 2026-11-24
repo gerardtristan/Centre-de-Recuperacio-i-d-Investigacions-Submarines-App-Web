@@ -62,7 +62,12 @@ def test_ca_m07_06_the_screen_says_the_same_for_new_confirmed_and_unsubscribed(
         assert email.lower() not in page
         pages.add(page)
     assert len(pages) == 1 and "Revisa el correu" in pages.pop()
-    states = dict(NewsletterSubscription.objects.values_list("email", "status"))
+    # La baixa d'abans en deixa només la traça (T-M07-15): la fila nova és la del correu.
+    states = dict(
+        NewsletterSubscription.objects.filter(email__endswith="@example.com").values_list(
+            "email", "status"
+        )
+    )
     assert states == {
         "nou@example.com": S.PENDING,
         "confirmat@example.com": S.CONFIRMED,

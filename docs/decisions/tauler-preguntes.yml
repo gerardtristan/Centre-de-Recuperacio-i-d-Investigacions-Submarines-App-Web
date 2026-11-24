@@ -1343,6 +1343,18 @@ opcions:
       del botó del programa de correu (el que demanen avui Gmail i Yahoo per als enviaments en massa).
     data: 2026-11-24
 
+  P-623:
+    opcions:
+      A: "Anonimitzar: nom a la referència, correu anonimitzat, text i resposta buits; el missatge es tanca i la purga l'esborra passat el termini."
+      B: "Esborrar els missatges al moment, amb una entrada al registre sense el contingut."
+      C: "Treure només el nom i el correu (el que diu CA-M07-21) i conservar el text fins a la purga."
+      D: "Anonimitzar com a A, però conservar la resposta del club."
+    recomanada: A
+    perque: >-
+      Treu tot el que pot identificar la persona (també el que hagi escrit al text) i manté la traça del registre lligada a un objecte
+      que existeix fins al final del termini, com la resta de la plataforma; B perdria aquesta traça abans d'hora.
+    data: 2026-11-24
+
 noves:
   P-412:
     opcions:

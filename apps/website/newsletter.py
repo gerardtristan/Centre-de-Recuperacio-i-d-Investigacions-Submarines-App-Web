@@ -6,7 +6,8 @@ no s'encén a producció sense la P-42).
   ni rep res; un de nou, un de pendent o un de baixa queda pendent amb un enllaç nou.
 - `confirm`: d'un sol ús en efecte (obrir-lo dues vegades deixa una sola subscripció confirmada);
   passades `website.newsletter_confirm_hours`, no subscriu.
-- `unsubscribe`: immediata, sense sessió, i tornar-la a obrir no canvia res.
+- `unsubscribe`: immediata, sense sessió, i tornar-la a obrir no canvia res. En queda només la
+  traça (M07-12, T-M07-15): el correu se substitueix (`forget`).
 
 Falta (torn del nucli): enviar el correu de confirmació; la plantilla es declara a
 `core.mail.TEMPLATE_PRIORITIES`. Vegeu `docs/estat/M07.md`.
@@ -19,6 +20,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.core import business_settings
+from apps.core.persons import ANONYMOUS_EMAIL_DOMAIN
 
 from .models import NewsletterEvent, NewsletterSubscription
 
@@ -81,12 +83,19 @@ def confirm(token: str, *, now=None) -> NewsletterSubscription | None:
 def unsubscribe(token: str, *, now=None) -> None:
     """Immediata; sense resposta diferent si l'enllaç no existeix (RN-M07-08)."""
     subscription = _by_token(token)
-    if subscription is None or subscription.status == Status.UNSUBSCRIBED:
-        return
-    subscription.status = Status.UNSUBSCRIBED
-    subscription.unsubscribed_at = now or timezone.now()
-    subscription.save(update_fields=["status", "unsubscribed_at"])
-    NewsletterEvent.objects.create(subscription=subscription, kind=Kind.UNSUBSCRIBED)
+    if subscription is not None:
+        forget(subscription, now=now)
+
+
+def forget(subscription: NewsletterSubscription, *, now=None) -> None:
+    """La baixa, de la persona o de l'esborrat RGPD (T-M07-15): en queda només la traça (M07-12):
+    l'estat, la versió del text, les dates i els esdeveniments; el correu se substitueix."""
+    if subscription.status != Status.UNSUBSCRIBED:
+        subscription.status = Status.UNSUBSCRIBED
+        subscription.unsubscribed_at = now or timezone.now()
+        NewsletterEvent.objects.create(subscription=subscription, kind=Kind.UNSUBSCRIBED)
+    subscription.email = f"baixa-{subscription.pk}@{ANONYMOUS_EMAIL_DOMAIN}"
+    subscription.save(update_fields=["status", "unsubscribed_at", "email"])
 
 
 def recipients():
