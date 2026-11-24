@@ -576,3 +576,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-25b](T-M09-25b.md) | Documents de justificació d'una despesa xifrats, còpia emmascarada a mà i marca «il·legible» amb activador (expenses/0009; carril X) | 24/11/2026 11:15 | (vegeu la PR) | 15 noves | [A comprovar] |
 | [T-M08-03](T-M08-03.md) | Dashboard: supressió de grups petits i ajust de la mida mínima (carril Y) | 24/11/2026 12:04 | cbc9f950 | 12 noves | [A comprovar] |
 | [T-M02-42b](T-M02-42b.md) | Pantalles per pujar la foto del carnet (àrea personal i fitxa de l'homologació), només amb VC-56 encès (carril X) | 24/11/2026 13:04 | (vegeu la PR) | 5 noves i 1 e2e | [A comprovar] |
+| [T-M02-43](T-M02-43.md) | Veure i esborrar les fotos dels carnets; amb VC-56 apagat no s'obren ni per l'adreça directa (2 funcions al nucli; carril X) | 24/11/2026 14:07 | (vegeu la PR) | 7 noves, 2 del nucli i 1 e2e ampliada | [A comprovar] |
