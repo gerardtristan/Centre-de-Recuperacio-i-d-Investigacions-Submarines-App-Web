@@ -556,3 +556,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-06c2](T-M02-06c2.md) | Sessions i programa del dia des de la fitxa (apilada sobre la T-M02-06c1; carril B4) | 23/11/2026 23:32 | (vegeu la PR) | 4 noves i 1 e2e | [A comprovar] |
 | [T-M02-06c3](T-M02-06c3.md) | Duplicar una activitat des de la fitxa (apilada sobre la T-M02-06c2; carril B4) | 24/11/2026 00:07 | (vegeu la PR) | 3 noves i 1 e2e | [A comprovar] |
 | [T-DX-98](T-DX-98.md) | «Llicències per confirmar»: «Confirma…» a la cel·la d'accions | 24/11/2026 03:05 | aa350611 | 1 nova | [A comprovar] |
+| [T-M02-21b](T-M02-21b.md) | Avisos de la inscripció, del canvi de programa i del missatge de l'organitzador (activities/0024; carril C7) | 24/11/2026 02:19 | (vegeu la PR) | 6 noves | [A comprovar] |
