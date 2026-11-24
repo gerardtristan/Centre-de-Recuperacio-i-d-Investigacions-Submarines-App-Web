@@ -846,6 +846,13 @@ img { max-width: 100%; display: block; }
 .zm-accions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--e-2); margin-top: var(--e-3); }
 .zm-error { margin: var(--e-3) 0 0; max-width: 28ch; color: var(--c-error-text); font-size: var(--t-s); font-weight: var(--p-semi); }
 .zm-resum { margin: var(--e-2) 0 0; font-size: var(--t-s); color: var(--c-text); }
+/* Vista prèvia del fitxer triat, només al navegador (T-DX-116, RN-M09-25): la imatge sencera o el PDF */
+.zm-vista {
+  display: block; width: 100%; max-height: calc(var(--e-8) * 6); margin-top: var(--e-3);
+  border: var(--v-fina) solid var(--c-linia); border-radius: var(--r-l); background: var(--c-superficie);
+  object-fit: contain;
+}
+iframe.zm-vista { height: calc(var(--e-8) * 6); }
 
 /* ==========================================================================
    Impressora de justificants
