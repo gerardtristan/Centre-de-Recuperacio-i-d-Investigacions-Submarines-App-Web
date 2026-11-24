@@ -360,10 +360,10 @@ GROUPS = (
         (
             "administration:activities",
             "administration:attendance_sessions",
-            "administration:activity_reports",  # T-M02-24b: DISSENY
             "administration:filings",
             "administration:places",
             "administration:catalogue",
+            "administration:activity_reports",  # T-M02-24b: DISSENY
             "administration:equipment_reports",  # 03: DISSENY
         ),
     ),

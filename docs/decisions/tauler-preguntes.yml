@@ -1627,3 +1627,13 @@ noves:
       Compleix «inicial, Meteocat» sense inventar una adreça que podria no existir, i és un valor dels
       ajustos: canviar-lo no demana tocar codi ni desplegar.
     data: 2026-11-23
+  P-545:
+    opcions:
+      A: "Cap canvi ara: la junta no hi arriba fins que la junta decideixi (els resultats es veuen des de les activitats)."
+      B: "Una llista pròpia «Resultats ambientals» al menú per a qui té AC14 (també la junta)."
+      C: "Un enllaç als resultats ambientals des d'«Informes d'activitats», si la junta també té AC20."
+    recomanada: B
+    perque: >-
+      Si la junta ha de consultar els resultats (AC14), necessita un camí que no passi per la gestió de
+      les activitats; és una pantalla de només lectura i no dona accés a dades personals.
+    data: 2026-11-24
