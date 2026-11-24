@@ -602,3 +602,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-26c](T-M09-26c.md) | La durada dels períodes (CA-M09-35), provada des de la pantalla d'ajustos i «Períodes» (carril X) | 24/11/2026 16:20 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [T-M09-26c](T-M09-26c.md) | La durada dels períodes (CA-M09-35), provada des de la pantalla d'ajustos i «Períodes» (carril X) | 24/11/2026 16:09 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [T-M09A-10c](T-M09A-10c.md) | Pantalla «Justificació de l'ajut»: generar, descarregar i enviar el paquet | 24/11/2026 17:54 | 97427b29 | 8 noves i 1 e2e | [A comprovar] |
+| [T-M02-52b](T-M02-52b.md) | Titulacions: carregar-les i verificar-les des de la fitxa del soci (AC29; P-572; carril Y) | 24/11/2026 17:46 | 81ed8984 | 8 noves i 1 e2e | [A comprovar] |
