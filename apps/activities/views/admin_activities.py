@@ -14,6 +14,7 @@ import datetime
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
@@ -266,7 +267,7 @@ def _moment(value):
         raise ValidationError(_("Escriu el dia i l'hora de la data límit.")) from error
 
 
-SCHEDULE_KEYS = ("sessio_nova", "cancel_sessio", "bloc_nou", "treu_bloc")
+SCHEDULE_KEYS = ("sessio_nova", "edita_sessio", "cancel_sessio", "bloc_nou", "treu_bloc")
 
 
 def _blocks_data(activity) -> list[dict]:
@@ -277,8 +278,9 @@ def _blocks_data(activity) -> list[dict]:
 
 
 def _edit_schedule(request, activity):
-    """T-M02-06c2: afegir o cancel·lar una sessió i afegir o treure un bloc del programa (AC7;
-    els serveis de `sessions` tornen a comprovar el permís i les regles)."""
+    """T-M02-06c2: afegir o cancel·lar una sessió i afegir o treure un bloc del programa;
+    T-M02-06c4: canviar una sessió (AC7; els serveis de `sessions` tornen a comprovar el permís
+    i les regles)."""
     who, post = {"by": request.user, "request": request}, request.POST
     session_form = block_form = None
     try:
@@ -287,6 +289,16 @@ def _edit_schedule(request, activity):
             if not session_form.is_valid():
                 return _detail(request, activity, session_form=session_form)
             sessions.add_session(activity, **session_form.cleaned_data, **who)
+        elif "edita_sessio" in post:
+            session = get_object_or_404(activity.sessions, pk=post.get("edita_sessio"))
+            session_form = SessionForm(post, session=session)
+            if not session_form.is_valid():
+                return _detail(request, activity, session_form=session_form)
+            data = dict(session_form.cleaned_data)
+            people = data.pop("instructors")
+            with transaction.atomic():  # o tot o res: els requisits dels instructors poden fallar
+                sessions.update_session(session, **data, **who)
+                sessions.set_instructors(session, people, **who)
         elif "cancel_sessio" in post:
             session = get_object_or_404(activity.sessions, pk=post.get("cancel_sessio"))
             sessions.cancel_session(session, reason=post.get("motiu", ""), **who)
@@ -321,14 +333,19 @@ def _detail(
         .filter(activity=activity)
         .values_list("pk", flat=True)
     )
-    session_rows = [
-        {
+    editable = states.is_editable(activity) and has_perm(request.user, MANAGE, write=True)
+    edited = session_form if session_form is not None and session_form.prefix != "sessio" else None
+    session_rows = []
+    for session in activity.sessions.select_related("place").prefetch_related("instructors"):
+        row = {
             "session": session,
             "instructors": list(session.instructors.all()),
             "needs_instructor": session.pk in without_instructor,
         }
-        for session in activity.sessions.select_related("place").prefetch_related("instructors")
-    ]
+        if editable and not session.cancelled:  # T-M02-06c4
+            mine = edited is not None and edited.prefix == f"sessio-{session.pk}"
+            row["form"] = edited if mine else SessionForm(session=session)
+        session_rows.append(row)
     context = {
         "activity": activity,
         "price_member": euros(activity.price_member_cents),
@@ -351,9 +368,8 @@ def _detail(
         "desk_form": desk_form or _desk_form(request, activity),
         "state_actions": _state_actions(request, activity),
         "can_duplicate": has_perm(request.user, MANAGE, write=True),
-        "schedule_editable": states.is_editable(activity)
-        and has_perm(request.user, MANAGE, write=True),
-        "session_form": session_form or SessionForm(),
+        "schedule_editable": editable,
+        "session_form": SessionForm() if session_form is None or edited else session_form,
         "block_form": block_form or BlockForm(),
         "can_cancel": S.CANCELLED in states.allowed_targets(activity)
         and has_perm(request.user, MANAGE, write=True),

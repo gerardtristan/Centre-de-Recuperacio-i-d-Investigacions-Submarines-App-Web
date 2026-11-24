@@ -5,6 +5,7 @@ ofereixen el que es pot triar, mai tot el cens."""
 import re
 
 from django import forms
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -458,8 +459,10 @@ class _PersonChoices(forms.ModelMultipleChoiceField):
 
 
 class SessionForm(forms.Form):
-    """Una sessió nova (T-M02-06c2; CA-M02-47): classe, horari, un lloc actiu i instructors. Les
-    regles (lloc obligatori i actiu, horari, requisits dels instructors) són de `sessions`."""
+    """Una sessió nova (T-M02-06c2; CA-M02-47) o una que ja existeix (`session`, T-M02-06c4):
+    classe, horari, un lloc actiu i instructors. Les regles (lloc obligatori i actiu, horari,
+    requisits dels instructors) són de `sessions`. Una sessió conserva el seu lloc encara que
+    s'hagi desactivat (P-455)."""
 
     kind = forms.ChoiceField(label=_("Classe"), choices=Session.Kind.choices)
     starts_at = moment_field(_("Comença"))
@@ -471,10 +474,18 @@ class SessionForm(forms.Form):
         widget=forms.CheckboxSelectMultiple,
     )  # fmt: skip
 
-    def __init__(self, data=None):
-        super().__init__(data, prefix="sessio")
-        self.fields["place"].queryset = Place.objects.filter(active=True).order_by("name")
-        self.fields["instructors"].queryset = sessions.instructor_people().order_by(
+    def __init__(self, data=None, *, session=None):
+        initial, places, people = None, Q(active=True), Q(pk__in=sessions.instructor_people())
+        if session is not None:
+            initial = {name: getattr(session, name) for name in ("kind", "starts_at", "ends_at",
+                       "place", "is_practice")}  # fmt: skip
+            initial["instructors"] = list(session.instructors.all())
+            places |= Q(pk=session.place_id)
+            people |= Q(pk__in=[person.pk for person in initial["instructors"]])
+        prefix = f"sessio-{session.pk}" if session is not None else "sessio"
+        super().__init__(data, prefix=prefix, initial=initial)
+        self.fields["place"].queryset = Place.objects.filter(places).order_by("name")
+        self.fields["instructors"].queryset = Person.objects.filter(people).order_by(
             "first_name", "last_name"
         )
 

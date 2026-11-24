@@ -1,0 +1,6 @@
+{% load i18n %}
+{# T-M02-06c2 i 06c4: els camps d'una sessió (nova o existent). `form` és un SessionForm. #}
+{% include "_errata.html" %}
+{% for field in form %}{% if field.name == "instructors" %}
+  <fieldset><legend>{{ field.label }}</legend>{% for box in field %}<label class="casella" for="{{ box.id_for_label }}">{{ box.tag }} <span>{{ box.choice_label }}</span></label>{% empty %}<p class="text-2">{% translate "Encara no hi ha cap instructor." %}</p>{% endfor %}{{ field.errors }}</fieldset>
+{% else %}{% include "accounts/_camp.html" %}{% endif %}{% endfor %}
