@@ -36,6 +36,7 @@ urlpatterns = [
     path("", include("apps.grants.admin_urls")),  # 09: ajuts (T-M09A-05)
     path("", include("apps.equipment.admin_urls")),  # 03: informes i cost d'ús (T-M03-19 i 22)
     path("", include("apps.website.admin_urls")),  # 07: safata i motius de contacte (WP5, WP8)
+    path("", include("apps.dashboard.admin_urls")),  # 08: dashboard (T-M08-09)
     # Les pantalles «En construcció» també aquí (T-DX-50): a producció només les veu un compte
     # d'administrador amb el permís DX1 (P-90), i a /en-construccio/ seria a la zona de socis (401).
     path("en-construccio/", include("apps.previews.urls")),

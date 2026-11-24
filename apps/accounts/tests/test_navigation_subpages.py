@@ -14,7 +14,7 @@ STANDALONE = {
     "administration:treasury_structure",
     "administration:treasury_structure_create",
     "administration:treasury_structure_edit",
-    # T-M07-11 (WP5 i WP8): fins que DISSENY hi posi les entrades del menú (DX.md).
+    # T-M07-11 (WP5 i WP8) i T-M08-09: fins que DISSENY hi posi les entrades del menú (DX.md).
     "administration:website_contact",
     "administration:website_contact_message",
     "administration:website_contact_reply",
@@ -22,6 +22,8 @@ STANDALONE = {
     "administration:website_contact_reasons",
     "administration:website_contact_reason_add",
     "administration:website_contact_reason_edit",
+    "administration:dashboard",
+    "administration:dashboard_panel",
     "administration:login",
     "administration:login_totp",
     "administration:logout",

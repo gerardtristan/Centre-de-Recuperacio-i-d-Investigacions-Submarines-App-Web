@@ -1632,3 +1632,23 @@ noves:
       És una preferència personal sense cap dada de negoci; amb C, un bloc que torna a sortir (per exemple,
       els mandats en obrir una campanya) perdria la posició triada.
     data: 2026-11-24
+  P-660:
+    opcions:
+      A: "El període que conté avui: mes, trimestre i any en curs, i els darrers 12 mesos sencers."
+      B: "Com A, i a més triar un mes, un trimestre o un any passat (selector d'any)."
+      C: "Dues dates lliures (des de i fins a), amb mesos sencers."
+    recomanada: A
+    perque: >-
+      És el que demana el dia a dia de la junta i no obliga cap servei a calcular dates arbitràries;
+      B s'hi pot afegir sense tocar dades si cal comparar amb anys anteriors.
+    data: 2026-11-24
+  P-661:
+    opcions:
+      A: "L'enllaç porta a la pantalla del mòdul tal com és, sense període."
+      B: "Cada pantalla de detall accepta ?periode= (mateixos codis) i l'enllaç l'hi passa."
+      C: "Sense enllaços fins que totes les pantalles tinguin el filtre de període."
+    recomanada: A
+    perque: >-
+      Les pantalles de detall ja tenen els seus filtres; B obliga a tocar sis mòduls per un detall
+      de comoditat i es pot fer després, mòdul per mòdul.
+    data: 2026-11-24
