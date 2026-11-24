@@ -6,7 +6,10 @@
    comprovar tot (tipus pel contingut, mida, permís).
    Amb data-vista-previa (T-DX-116, RN-M09-25): una vista prèvia de la imatge o del PDF triat, només
    al navegador: un URL blob: en memòria, que es revoca en canviar de fitxer o en sortir. El fitxer
-   no s'envia fins que es prem «Desa» i no es desa enlloc (ni memòria cau ni emmagatzematge). */
+   no s'envia fins que es prem «Desa» i no es desa enlloc (ni memòria cau ni emmagatzematge).
+   Amb data-tria (T-DX-120): un botó del sistema amb aquest text («Tria un fitxer») al lloc del botó
+   natiu, que surt en la llengua del navegador. El camp continua a sobre, transparent: el clic, el
+   teclat i el nom accessible són els seus. */
 (function () {
   "use strict";
 
@@ -28,6 +31,16 @@
   function prepara(zona) {
     const input = zona.querySelector('input[type="file"]');
     if (!input) return;
+    if (zona.dataset.tria) {
+      const tria = document.createElement("span");
+      const boto = document.createElement("span");
+      tria.className = "zm-tria-fitxer";
+      boto.className = "boto boto-petit";
+      boto.setAttribute("aria-hidden", "true");
+      boto.textContent = zona.dataset.tria;
+      input.before(tria);
+      tria.append(boto, input);
+    }
     const estat = document.createElement("p");
     estat.className = "zm-resum";
     estat.setAttribute("role", "status");
