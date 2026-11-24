@@ -571,6 +571,7 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-105](T-DX-105.md) | Vigencia al llistat de llicències de l'administració (06) | 24/11/2026 15:45 | 7d26d6ef | 1 nova | [A comprovar] |
 | [T-DX-106](T-DX-106.md) | Gastos al marge d'una activitat (09) | 24/11/2026 15:42 | f877d4cd | 2 noves | [A comprovar] |
 | [T-DX-109](T-DX-109.md) | Convite a la fitxa pública i a les inscripcions d'una activitat (02) | 24/11/2026 16:33 | 754fda85 | 1 nova | [A comprovar] |
+| [T-DX-110](T-DX-110.md) | Camilla: els passos d'apuntar-se a una activitat (02) | 24/11/2026 17:33 | b31b7914 | 1 nova | [A comprovar] |
 | [T-M07-03](T-M07-03.md) | App `website` i ajustos del 07, amb el butlletí i el contacte apagats | 24/11/2026 10:57 | 90f1821e | 25 noves | [A comprovar] |
 | [T-M07-04](T-M07-04.md) | Pàgines, versions i blocs; publicar i tornar a una versió | 24/11/2026 11:42 | 6cbb8859 | 17 noves | [A comprovar] |
 | [spec-07-08](spec-07-08.md) | Especificació d'una pàgina del 07 (web pública i ajuda) i del 08 (dashboard) (carril C3) | 21/11/2026 10:18 | (vegeu la PR) | cap (document) | [A comprovar] |
