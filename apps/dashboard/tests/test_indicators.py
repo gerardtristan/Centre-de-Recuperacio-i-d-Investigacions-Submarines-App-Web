@@ -1,6 +1,5 @@
 """Catàleg d'indicadors del dashboard (T-M08-02; CA-M08-05; RN-M08-03; P-488)."""
 
-
 import pytest
 from django.urls import reverse
 

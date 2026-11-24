@@ -1576,3 +1576,33 @@ noves:
       És l'opció conservadora: amb el període d'un mes, la xifra sola i el percentatge repeteixen el grup
       petit que el desglossament amaga. B es pot activar després sense tocar dades si la junta ho vol.
     data: 2026-11-24
+  P-645:
+    opcions:
+      A: "Mentrestant, només l'administrador; el torn del nucli afegeix els permisos propis amb el nom i hi posa el RCS."
+      B: "Com A, però el RCS també pot canviar el període per defecte."
+      C: "Només l'administrador, també després (el RCS ho demana)."
+    recomanada: A
+    perque: >-
+      És el que diu M08-6, i mentre falta el permís propi ningú que no sigui administrador pot canviar res;
+      afegir un permís és torn del nucli i no es pot fer des del carril del 08.
+    data: 2026-11-24
+  P-646:
+    opcions:
+      A: "Un indicador nou al panell general: activitats obertes amb l'ocupació per sota del llindar (recompte d'activitats)."
+      B: "Com A, però amb la llista de títols de les activitats (sense cap persona)."
+      C: "L'avís només com a marca dins del bloc d'ocupació del panell d'activitat."
+    recomanada: A
+    perque: >-
+      És el mínim que compleix CA-M08-07 amb el que ja hi ha; la llista de títols (B) demana una pantalla
+      i es pot afegir quan la T-M08-09 enllaci al llistat d'ocupació del 02.
+    data: 2026-11-24
+  P-647:
+    opcions:
+      A: "Amb DB1, qualsevol codi del catàleg; sense DB1, cap; sense registre d'activitat; s'esborra amb el compte."
+      B: "Com A, però amb registre d'activitat de cada canvi."
+      C: "Només els codis dels blocs que surten avui al panell."
+    recomanada: A
+    perque: >-
+      És una preferència personal sense cap dada de negoci; amb C, un bloc que torna a sortir (per exemple,
+      els mandats en obrir una campanya) perdria la posició triada.
+    data: 2026-11-24

@@ -6,27 +6,39 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('dashboard', '0003_settings'),
+        ("dashboard", "0003_settings"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='DashboardLayout',
+            name="DashboardLayout",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('order', models.JSONField(default=list, verbose_name='ordre dels blocs')),
-                ('hidden', models.JSONField(default=list, verbose_name='blocs amagats')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='actualitzat el')),
-                ('account', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='compte')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("order", models.JSONField(default=list, verbose_name="ordre dels blocs")),
+                ("hidden", models.JSONField(default=list, verbose_name="blocs amagats")),
+                ("updated_at", models.DateTimeField(auto_now=True, verbose_name="actualitzat el")),
+                (
+                    "account",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="compte",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'ordre del dashboard',
-                'verbose_name_plural': 'ordres del dashboard',
+                "verbose_name": "ordre del dashboard",
+                "verbose_name_plural": "ordres del dashboard",
             },
         ),
     ]

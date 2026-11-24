@@ -61,7 +61,8 @@ def services(monkeypatch):
     )
     monkeypatch.setattr(panels.campaigns, "open_campaign_now", lambda: None)
     real_get = panels.business_settings.get
-    values = {panels.TO_RENEW_DAYS: 30, panels.DEADLINE_DAYS: [30, 14, 7]}
+    monkeypatch.setattr(panels.activity_stats, "low_occupancy_count", lambda pct: pct // 10)
+    values = {panels.TO_RENEW_DAYS: 30, panels.DEADLINE_DAYS: [30, 14, 7], panels.LOW_OCCUPANCY: 50}
     monkeypatch.setattr(
         panels.business_settings, "get", lambda key, at=None: values.get(key) or real_get(key, at)
     )
@@ -88,6 +89,7 @@ def test_ca_m08_04_general_panel_reads_each_service(services):
         "new_members": 4 + 3 + 2,  # altes de gener, febrer i març fins avui
         "unpaid_members": 6,
         "free_places": 7,  # activities.stats
+        "low_occupancy": 5,  # activities.low_occupancy_count amb el llindar de l'ajust
         "licences_to_renew": 30,  # licences.expiring amb els dies de VC-41
         "equipment_to_review": 4,  # equipment.reviews.due_items
         "grants_closing": 30,  # grants.calendar d'avui al tram més llarg de VC-36

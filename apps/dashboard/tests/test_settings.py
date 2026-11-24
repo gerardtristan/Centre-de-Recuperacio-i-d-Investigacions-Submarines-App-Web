@@ -35,10 +35,10 @@ def test_m08_6_the_settings_with_their_ranges():
 def test_ca_m08_07_low_occupancy_follows_the_setting(make_admin):  # noqa: F811
     admin = make_admin(Role.Code.ADMINISTRATOR)
     place = a_place(make_admin(Role.Code.COURSES_MANAGER), prices=None)
+    day = datetime.date(2027, 6, 14)
     open_one = Activity.objects.create(
-        **outing_data(place, starts_on=datetime.date(2027, 6, 14), ends_on=datetime.date(2027, 6, 14),
-                      max_places=20, status=Activity.Status.OPEN)
-    )  # fmt: skip
+        **outing_data(place, starts_on=day, ends_on=day, max_places=20, status=Activity.Status.OPEN)
+    )
     for n in range(11):  # 11 de 20: el 55 %
         Enrolment.objects.create(
             activity=open_one, person=a_person(f"Inscrita{n}"), status=Enrolment.Status.CONFIRMED,

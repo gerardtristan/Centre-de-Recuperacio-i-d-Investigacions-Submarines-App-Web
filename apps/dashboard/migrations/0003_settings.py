@@ -18,7 +18,11 @@ SETTINGS = {
         "min_value": 0,
         "max_value": 100,
     },
-    "dashboard.default_period": {"value_type": "choice", "initial_value": "year", "choices": PERIODS},
+    "dashboard.default_period": {
+        "value_type": "choice",
+        "initial_value": "year",
+        "choices": PERIODS,
+    },
 }
 
 
