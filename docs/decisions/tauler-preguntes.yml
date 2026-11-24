@@ -1257,6 +1257,18 @@ opcions:
       És el termini més curt que encara deixa respondre i fer seguiment; tots dos valors són ajustos i una llista que
       l'administrador pot canviar sense tocar codi quan la junta reparteixi els motius.
     data: 2026-11-21
+  P-590:
+    opcions:
+      A: "Quatre plantilles (Bàsica i les tres de l'editor) i vuit pàgines inicials de text; Inici és la portada i Notícies, Fer-se soci, Contacte, Preguntes freqüents, Tutorials i Butlletí tenen pantalla pròpia."
+      B: "Només les tres plantilles de l'editor (Portada, Activitats i Notícies), i les pàgines de text fan servir «Portada»."
+      C: "Totes les pàgines de F §8.2 com a pàgines de blocs, també les que tenen pantalla pròpia."
+      D: "Cap pàgina inicial: les crea qui edita la web quan tingui el contingut (P-40)."
+    recomanada: A
+    perque: >-
+      Una pàgina de text no és una portada, i duplicar com a pàgina de blocs les que ja tenen pantalla pròpia
+      faria dues adreces per a la mateixa cosa; tot és reversible (pàgines sense contingut ni publicar).
+    data: 2026-11-24
+
 noves:
   P-412:
     opcions:
