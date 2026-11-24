@@ -595,3 +595,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-21b](T-M09-21b.md) | Descarregar el PDF a «Les meves factures» | 24/11/2026 16:00 | ecdde67d | 1 nova i 1 e2e ampliada | [A comprovar] |
 | [T-M09-19c](T-M09-19c.md) | El PDF de la factura emesa, desat xifrat | 24/11/2026 15:36 | d8fd8cc3 | 5 noves | [A comprovar] |
 | [T-M09-21b](T-M09-21b.md) | Descarregar el PDF a «Les meves factures» | 24/11/2026 16:00 | 1fa10d6a | 1 nova i 1 e2e ampliada | [A comprovar] |
+| [T-M02-08c](T-M02-08c.md) | Places lliures a les dades públiques d'una activitat, sense cap nom (carril X) | 24/11/2026 17:19 | (vegeu la PR) | 1 nova | [A comprovar] |
