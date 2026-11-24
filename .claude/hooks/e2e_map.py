@@ -200,6 +200,12 @@ MAP = {
         "apps/activities/forms.py",
         "templates/activities/place*.html",
     ),
+    "test_meu_progres.py": (
+        "apps/activities/views/my_activities.py",
+        "apps/activities/assessment.py",
+        "templates/activities/my_progress.html",
+        "templates/activities/my_activities.html",
+    ),
     "test_meves_titulacions.py": (
         "apps/activities/views/member_certifications.py",
         "templates/activities/my_certifications.html",
