@@ -10,6 +10,7 @@
     <p>{% translate "Res no s'esborra: el que ja no es fa servir es desactiva. Cada canvi queda al registre, amb el valor anterior." %}</p>
   </header>
   {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+  {# T-DX-118 (revisió B, C i D): cap «Crea…» és el principal (D19); els dos formularis de la 00, al costat (graella-2). #}
 
   {% if can.departament or can.centre %}
     <section aria-labelledby="departaments-titol">
@@ -42,12 +43,13 @@
           {% endwith %}{% endfor %}
         </tbody>
       </table>
+      <div class="graella-2">
       {% if forms.departament %}
         <form class="formulari" method="post" action="{% url 'administration:treasury_structure_create' 'departament' %}" novalidate>
           {% csrf_token %}
           <h3>{% translate "Departament nou" %}</h3>
           {% with form=forms.departament %}{% include "_errata.html" %}{% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}{% endwith %}
-          <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Crea el departament" %}</button></div>
+          <div class="accions"><button class="boto" type="submit">{% translate "Crea el departament" %}</button></div>
         </form>
       {% endif %}
       {% if forms.centre %}
@@ -55,9 +57,10 @@
           {% csrf_token %}
           <h3>{% translate "Centre de cost nou" %}</h3>
           {% with form=forms.centre %}{% include "_errata.html" %}{% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}{% endwith %}
-          <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Crea el centre de cost" %}</button></div>
+          <div class="accions"><button class="boto" type="submit">{% translate "Crea el centre de cost" %}</button></div>
         </form>
       {% endif %}
+      </div>
     </section>
   {% endif %}
 
@@ -88,7 +91,7 @@
         {% csrf_token %}
         <h3>{% translate "Compte nou" %}</h3>
         {% with form=forms.compte %}{% include "_errata.html" %}{% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}{% endwith %}
-        <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Crea el compte" %}</button></div>
+        <div class="accions"><button class="boto" type="submit">{% translate "Crea el compte" %}</button></div>
       </form>
     </section>
   {% endif %}
