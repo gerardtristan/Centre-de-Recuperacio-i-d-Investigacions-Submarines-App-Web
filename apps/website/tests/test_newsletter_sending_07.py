@@ -134,3 +134,23 @@ def test_the_newsletter_subject_is_not_html_escaped():
         context={"subject": "Cursos & sortides", "body": "b", "unsubscribe_url": "u"},
     )  # fmt: skip
     assert email.subject == "Cursos & sortides"
+
+
+def test_saving_a_stale_draft_after_sending_fails_and_keeps_it_sent(three, president):
+    draft = _draft(president)
+    stale = Newsletter.objects.get(pk=draft.pk)  # una altra pestanya, encara en esborrany
+    newsletter.send(draft, actor=president)
+    with pytest.raises(ValidationError):
+        newsletter.save_draft(actor=president, subject="Canvi", body="x", newsletter=stale)
+    draft.refresh_from_db()
+    assert (draft.status, draft.subject) == (Newsletter.Status.SENT, "Sortides de desembre")
+    assert draft.sent_at and draft.sent_by == president
+
+
+def test_two_drafts_created_at_once_get_different_numbers(enabled, president, monkeypatch):
+    first = _draft(president)
+    real = newsletter._next_number
+    taken = iter([first.number])  # la primera vegada, el número que ja té l'altre
+    monkeypatch.setattr(newsletter, "_next_number", lambda: next(taken, None) or real())
+    second = _draft(president)
+    assert second.number == first.number + 1

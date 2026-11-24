@@ -19,7 +19,7 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import Max
 from django.http import Http404
 from django.urls import reverse
@@ -149,17 +149,34 @@ def _require(actor):
         raise Http404
 
 
+def _next_number() -> int:
+    return (Newsletter.objects.aggregate(last=Max("number"))["last"] or 0) + 1
+
+
 def save_draft(*, actor, subject: str, body: str, newsletter: Newsletter | None = None):
-    """Crea o canvia un esborrany. Un butlletí enviat no es canvia."""
+    """Crea o canvia un esborrany. Un butlletí enviat no es canvia: es mira amb la fila bloquejada
+    i només es desen l'assumpte i el text, perquè un desar simultani amb l'enviament no el torni a
+    esborrany."""
     _require(actor)
-    if newsletter is None:
-        last = Newsletter.objects.aggregate(last=Max("number"))["last"] or 0
-        newsletter = Newsletter(number=last + 1, created_by=actor)
-    elif newsletter.status != Newsletter.Status.DRAFT:
-        raise ValidationError(_("Un butlletí enviat no es pot canviar."))
-    newsletter.subject, newsletter.body = subject.strip(), body.strip()
-    newsletter.full_clean(exclude=["created_by"])
-    newsletter.save()
+    subject, body = subject.strip(), body.strip()
+    if newsletter is not None:
+        with transaction.atomic():
+            newsletter = Newsletter.objects.select_for_update().get(pk=newsletter.pk)
+            if newsletter.status != Newsletter.Status.DRAFT:
+                raise ValidationError(_("Un butlletí enviat no es pot canviar."))
+            newsletter.subject, newsletter.body = subject, body
+            newsletter.full_clean(exclude=["created_by"])
+            newsletter.save(update_fields=["subject", "body"])
+        return newsletter
+    newsletter = Newsletter(number=_next_number(), created_by=actor, subject=subject, body=body)
+    newsletter.full_clean(exclude=["created_by", "number"])
+    try:
+        with transaction.atomic():
+            newsletter.save()
+    except IntegrityError:  # dues creacions alhora amb el mateix número: un sol reintent
+        newsletter.pk, newsletter.number = None, _next_number()
+        with transaction.atomic():
+            newsletter.save()
     return newsletter
 
 
