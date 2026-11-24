@@ -53,3 +53,9 @@ def test_blocks_missing_from_the_panel_are_skipped(make_admin):  # noqa: F811
     treasurer = make_admin(R.TREASURER)
     layout.save(treasurer, ["treasury_balances", "free_places"], ["conference_attendees"])
     assert list(layout.arrange(treasurer, BLOCKS))[0] == "free_places"
+
+
+def test_without_db1_even_an_empty_layout_is_rejected(make_admin):  # noqa: F811
+    with pytest.raises(Http404):
+        layout.save(make_admin(R.INSTRUCTOR), [], [])
+    assert not DashboardLayout.objects.exists()
