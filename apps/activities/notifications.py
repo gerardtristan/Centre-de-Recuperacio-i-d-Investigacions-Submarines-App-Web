@@ -14,12 +14,17 @@ s'envia res. Cap dada d'altres persones; mai dades de salut ni adjunts. La safat
 
 import datetime
 
+from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
-from apps.core import business_settings, charges, mail
+from apps.core import audit, business_settings, charges, mail
 from apps.members import recipients
 
+from . import permissions
 from .models import Activity, Enrolment, ReminderSent, Session
 
 REMINDER_DAYS = "activities.reminder_days_before"  # VC-23
@@ -27,6 +32,7 @@ REMINDER = "recordatori-activitat"
 OUTCOME = "resultat-curs"
 CERTIFICATE = "certificat-emes"
 REINFORCEMENT = "reforc-confirmat"
+MESSAGE_SENT = "activities.message.sent"
 LIVE = (Activity.Status.OPEN, Activity.Status.REGISTRATION_CLOSED, Activity.Status.IN_PROGRESS)
 
 
@@ -114,3 +120,103 @@ def notify_reinforcement(proposal, sessions) -> bool:
     amount = charges.euros(proposal.price_cents) if proposal.price_cents else ""
     context = {"title": enrolment.activity.title, "sessions": items, "amount": amount}
     return _send(REINFORCEMENT, enrolment.person, context)
+
+
+# --- T-M02-21b: inscripció, programa i missatge ------------------------------------------------
+
+CONFIRMED = "confirmacio-inscripcio"
+PAYMENT = "termini-pagament"
+OFFER = "oferta-placa"
+CANCELLED = "cancellacio-inscripcio"
+CHANGE = "canvi-programa"
+MESSAGE = "missatge-activitat"
+MAX_SUBJECT = 120
+MAX_BODY = 4000
+
+
+def _once(enrolment, kind, template, context) -> bool:
+    """Un avís del cicle de la inscripció un sol cop (com el recordatori): la fila de
+    `ReminderSent` i el correu van junts; si ja hi és, no s'envia res."""
+    to = recipients.email_for(enrolment.person)
+    if not to:
+        return False
+    try:
+        with transaction.atomic():
+            ReminderSent.objects.create(enrolment=enrolment, session=None, kind=kind)
+            mail.queue_email(template, to=to, person=enrolment.person, context=context)
+    except IntegrityError:
+        return False
+    return True
+
+
+def on_confirmed(sender, enrolment, **kwargs) -> None:
+    """Subscriptor de `extensions.enrolment_confirmed`: pagada, gratuïta o oferta acceptada."""
+    activity = enrolment.activity
+    context = {"title": activity.title, "starts_on": activity.starts_on}
+    _once(enrolment, ReminderSent.Kind.CONFIRMED, CONFIRMED, context)
+
+
+def notify_payment(enrolment) -> bool:
+    """La plaça reservada i el termini per pagar-la. Un convidat ja rep l'enllaç per pagar."""
+    if enrolment.channel == Enrolment.Channel.GUEST or not enrolment.charge_id:
+        return False
+    link = settings.PUBLIC_SITE_URL + reverse("payments:charge", args=[enrolment.charge_id])
+    context = {
+        "title": enrolment.activity.title, "amount": charges.euros(enrolment.price_cents),
+        "due_at": timezone.localtime(enrolment.payment_due_at), "link": link,
+    }  # fmt: skip
+    return _once(enrolment, ReminderSent.Kind.PAYMENT, PAYMENT, context)
+
+
+def notify_offer(enrolment) -> bool:
+    context = {"title": enrolment.activity.title,
+               "expires_at": timezone.localtime(enrolment.offer_expires_at)}  # fmt: skip
+    return _once(enrolment, ReminderSent.Kind.OFFER, OFFER, context)
+
+
+def notify_cancelled(enrolment, *, by_club, reason="") -> bool:
+    context = {"title": enrolment.activity.title, "by_club": by_club,
+               "reason": reason if by_club else ""}  # fmt: skip
+    return _once(enrolment, ReminderSent.Kind.CANCELLED, CANCELLED, context)
+
+
+def _live_rows(activity, session=None):
+    if session is not None and session.reinforcement_for_id:
+        return [session.reinforcement_for]
+    return Enrolment.objects.filter(activity=activity, status__in=Enrolment.LIVE).select_related(
+        "person"
+    )
+
+
+def notify_change(session) -> int:
+    """CA-M02-20: un canvi d'horari o de lloc d'una sessió (o una sessió cancel·lada) d'una
+    activitat oberta, a tots els inscrits vius. Cada canvi és un avís nou."""
+    activity = session.activity
+    if activity.status not in LIVE:
+        return 0
+    context = {
+        "title": activity.title, "day": timezone.localdate(session.starts_at),
+        "time": timezone.localtime(session.starts_at).strftime("%H:%M"),
+        "place": session.place.name, "cancelled": session.cancelled,
+    }  # fmt: skip
+    return sum(_send(CHANGE, row.person, context) for row in _live_rows(activity, session))
+
+
+def send_message(activity, *, by, subject, body, request=None) -> int:
+    """AC15: un missatge de l'organitzador a tots els inscrits vius de l'activitat. Queda al
+    registre sense el text."""
+    permissions.require(by, permissions.MESSAGE, activity, request=request)
+    subject, body = (subject or "").strip(), (body or "").strip()
+    if not subject or not body:
+        raise ValidationError(_("Cal l'assumpte i el text del missatge."))
+    if len(subject) > MAX_SUBJECT or len(body) > MAX_BODY:
+        raise ValidationError(
+            _("L'assumpte té %(s)s caràcters com a màxim i el text, %(b)s.")
+            % {"s": MAX_SUBJECT, "b": MAX_BODY}
+        )
+    context = {"title": activity.title, "subject": subject, "body": body,
+               "sender": str(by.person)}  # fmt: skip
+    sent = sum(_send(MESSAGE, row.person, context) for row in _live_rows(activity))
+    audit.record(MESSAGE_SENT, actor=by, target=activity, details={"emails": sent},
+                 request=request)  # fmt: skip
+    return sent

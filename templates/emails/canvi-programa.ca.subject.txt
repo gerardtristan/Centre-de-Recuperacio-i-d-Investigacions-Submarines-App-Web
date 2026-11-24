@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M02-21b (RN-M02-18, CA-M02-20): TEXT PROVISIONAL [A validar: responsable de cursos i sortides]. #}{% blocktranslate %}Canvi a «{{ title }}»{% endblocktranslate %}

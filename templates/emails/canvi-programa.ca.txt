@@ -1,0 +1,7 @@
+{% load i18n %}{# T-M02-21b (RN-M02-18, CA-M02-20): canvi d'horari o de lloc d'una sessió, o sessió cancel·lada, d'una activitat oberta. TEXT PROVISIONAL [A validar: responsable de cursos i sortides]. #}{% autoescape off %}{% translate "Hola," %}
+
+{% if cancelled %}{% blocktranslate with day=day|date:"d/m/Y" %}S'ha cancel·lat la sessió del {{ day }} de «{{ title }}».{% endblocktranslate %}{% else %}{% blocktranslate with day=day|date:"d/m/Y" %}Ha canviat la sessió de «{{ title }}»: ara és el {{ day }} a les {{ time }}{% endblocktranslate %}{% if place %}, {{ place }}{% endif %}.{% endif %}
+{% translate "Trobaràs l'horari al dia a «Les meves activitats», a la plataforma del club." %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}

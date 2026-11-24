@@ -1049,6 +1049,10 @@ class ReminderSent(AppendOnlyModel):
 
     class Kind(models.TextChoices):
         REMINDER = "reminder", _("Recordatori")
+        CONFIRMED = "confirmed", _("Inscripció confirmada")  # T-M02-21b
+        PAYMENT = "payment", _("Termini de pagament")
+        OFFER = "offer", _("Plaça oferta")
+        CANCELLED = "cancelled", _("Inscripció cancel·lada")
 
     enrolment = models.ForeignKey(
         Enrolment, on_delete=models.PROTECT, related_name="+", verbose_name=_("inscripció")

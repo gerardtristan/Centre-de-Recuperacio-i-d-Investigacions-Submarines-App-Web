@@ -1,0 +1,6 @@
+{% load i18n %}{# T-M02-21b (RN-M02-09, RN-M02-19): s'ofereix una plaça a qui era a la llista d'espera. TEXT PROVISIONAL [A validar: secretaria]. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate with until=expires_at|date:"d/m/Y H:i" %}S'ha alliberat una plaça a «{{ title }}» i és per a tu. Si la vols, accepta-la a «Les meves activitats», a la plataforma del club, abans del {{ until }}; si no, passarà a la persona següent de la llista d'espera.{% endblocktranslate %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}

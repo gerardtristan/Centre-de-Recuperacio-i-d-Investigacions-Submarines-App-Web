@@ -50,6 +50,13 @@ class ActivitiesConfig(AppConfig):
 
         post_save.connect(_on_role_saved, sender=AccountRole, dispatch_uid="activities.role_saved")
 
+        # T-M02-21b: l'avís de la inscripció confirmada (pagada, gratuïta o oferta acceptada).
+        from . import extensions, notifications
+
+        extensions.enrolment_confirmed.connect(
+            notifications.on_confirmed, dispatch_uid="activities.notifications.confirmed"
+        )
+
         core_privacy.register(
             "activitats",
             core_privacy.Module(

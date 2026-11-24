@@ -36,7 +36,7 @@ from apps.licences import services as licences
 from apps.licences.models import LicenceType
 from apps.members import services as members
 
-from . import permissions, states
+from . import notifications, permissions, states
 from .models import Activity, Place, ProgrammeBlock, Session
 
 SESSION_ADDED = "activities.session.added"
@@ -243,6 +243,8 @@ def update_session(session, *, by, request=None, **fields) -> list[str]:
         setattr(session, name, fields[name])
     locked.save(update_fields=changed)
     audit.record_changes(SESSION_UPDATED, actor=by, target=locked, changes=changes, request=request)
+    if {"starts_at", "ends_at", "place"} & set(changed):
+        notifications.notify_change(locked)  # CA-M02-20 (T-M02-21b)
     return sorted(changes)
 
 
@@ -284,6 +286,7 @@ def cancel_session(session, *, by, reason, request=None) -> Session:
     locked.save(update_fields=["cancelled", "cancellation_reason"])
     session.cancelled, session.cancellation_reason = True, reason
     audit.record(SESSION_CANCELLED, actor=by, target=locked, reason=reason, request=request)
+    notifications.notify_change(locked)  # T-M02-21b
     return session
 
 

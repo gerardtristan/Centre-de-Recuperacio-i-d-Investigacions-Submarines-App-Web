@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M02-21b (AC15): l'assumpte l'escriu l'organitzador. #}{% autoescape off %}{{ subject }}{% endautoescape %}

@@ -42,7 +42,7 @@ from apps.core.models import Charge
 from apps.payments import checkout
 
 from . import enrolment as enrolments
-from . import extensions, permissions
+from . import extensions, notifications, permissions
 from .models import Activity, Enrolment
 
 S = Enrolment.Status
@@ -77,6 +77,7 @@ def offer_free_places(activity, *, now) -> list[Enrolment]:
         row.waitlist_position = None
         row.offer_expires_at = offer_deadline(activity, now)
         row.save(update_fields=["status", "waitlist_position", "offer_expires_at", "updated_at"])
+        notifications.notify_offer(row)  # T-M02-21b
     if offered:
         renumber(activity)
     return offered
@@ -118,6 +119,8 @@ def accept_offer(enrolment, *, actor, now=None, request=None) -> Enrolment:
         guest_links.create(row.person, row.charge, by=SYSTEM, request=request)
     if row.status == S.CONFIRMED:
         extensions.enrolment_confirmed.send(sender=Enrolment, enrolment=row)
+    elif row.status == S.PENDING_PAYMENT:
+        notifications.notify_payment(row)  # T-M02-21b
     return row
 
 

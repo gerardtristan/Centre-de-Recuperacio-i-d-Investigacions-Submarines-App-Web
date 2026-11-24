@@ -1,0 +1,7 @@
+{% load i18n %}{# T-M02-21b (RN-M02-19, RN-M02-08): la plaça està reservada fins al termini de pagament. TEXT PROVISIONAL [A validar: secretaria]. L'enllaç porta a la pantalla de pagament, amb sessió. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate with due=due_at|date:"d/m/Y H:i" %}Tens una plaça a «{{ title }}». Per confirmar-la, paga {{ amount }} abans del {{ due }}; si no, la plaça passarà a una altra persona.{% endblocktranslate %}
+{% blocktranslate %}Paga-la aquí: {{ link }}{% endblocktranslate %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}
