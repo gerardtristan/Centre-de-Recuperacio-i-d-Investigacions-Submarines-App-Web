@@ -134,28 +134,34 @@ CATALOG = _catalog(
        "grants.calendar", "count", "other", GRANTS),
     # Econòmic
     _i("activity_margin", ("economic",), _("Marge de les activitats realitzades"),
-       _("Suma dels marges (ingressos − despeses − cost de material) de les activitats "
-         "acabades dins del període."),
-       "margins.activity_margin", "cents", "money"),
+       _("Suma dels marges congelats (ingressos − despeses − cost de material) de les "
+         "activitats tancades econòmicament dins del període, de tots els departaments, com a "
+         "l'informe per departament."),
+       "margins.department_report", "cents", "money"),
     _i("department_income", ("economic",), _("Ingressos per departament"),
-       _("Ingressos de cada departament dins del període; la suma dels departaments és el "
-         "total."),
+       _("Ajuts cobrats i altres ingressos sense activitat de cada departament dins del "
+         "període, com a l'informe per departament (els de les activitats són dins del marge); "
+         "la suma dels departaments és el total."),
        "margins.department_report", "cents", "money"),
     _i("department_expenses", ("economic",), _("Despeses per departament"),
-       _("Despeses de cada departament dins del període; la suma dels departaments és el "
-         "total."),
+       _("Despeses pagades sense activitat de cada departament dins del període, com a "
+         "l'informe per departament (les repartides a activitats són dins del marge); la suma "
+         "dels departaments és el total."),
        "margins.department_report", "cents", "money"),
     _i("grants_granted", ("economic",), _("Ajuts concedits per departament"),
-       _("Import concedit dels ajuts resolts dins del període, per departament."),
+       _("Import concedit de les sol·licituds d'ajut resoltes dins del període (sense les "
+         "denegades), per departament."),
        "grants.granted_by_department", "cents", "money", GRANTS),
     _i("expenses_without_invoice", ("economic",), _("Despeses sense factura"),
-       _("Nombre de despeses del període que encara no tenen factura."),
-       "expenses.expenses_for", "count", "other", WITHOUT_INVOICE),
+       _("Nombre de despeses sense factura (o amb la factura il·legible) amb la data de la "
+         "factura dins del període."),
+       "expenses.without_invoice_totals", "count", "other", WITHOUT_INVOICE),
     _i("expenses_without_invoice_amount", ("economic",), _("Import de les despeses sense factura"),
-       _("Suma de les despeses del període que encara no tenen factura."),
-       "expenses.expenses_for", "cents", "money", WITHOUT_INVOICE),
+       _("Suma de les despeses sense factura (o amb la factura il·legible) amb la data de la "
+         "factura dins del període."),
+       "expenses.without_invoice_totals", "cents", "money", WITHOUT_INVOICE),
     _i("treasury_balances", ("economic",), _("Saldos de tresoreria"),
-       _("Saldo de cada compte el darrer dia del període."),
+       _("Saldo de cada compte el darrer dia del període; un compte inactiu a zero no surt."),
        "treasury.balance", "cents", "money", TREASURY),
     # Activitat
     _i("occupancy", ("activity",), _("Ocupació de cursos i sortides"),

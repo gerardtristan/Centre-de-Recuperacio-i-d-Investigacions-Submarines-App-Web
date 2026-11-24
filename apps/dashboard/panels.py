@@ -1,4 +1,5 @@
-"""Dades dels panells del dashboard (T-M08-05 general i socis; T-M08-07 activitat; M08-6).
+"""Dades dels panells del dashboard (T-M08-05 general i socis; T-M08-06 econòmic; T-M08-07
+activitat; M08-6).
 
 Cada panell és un diccionari {codi de l'indicador: `Block`}, en l'ordre del catàleg. Cada xifra
 és la que torna el servei de lectura del mòdul (RN-M08-04): aquí només es tria la data, se sumen
@@ -9,6 +10,8 @@ percentatges i imports.
 - **Mòdul absent o que falla** (RN-M08-11): sense servei, el bloc no surt (les conferències,
   fins que existeixi l'11; els mandats, sense campanya oberta); si el servei falla, el bloc porta
   `error` i la resta del panell es calcula igual.
+- **Imports** (RN-M08-04): en cèntims fins a `text`, que els mostra en euros amb dos decimals;
+  la suma dels departaments (o dels comptes) és el total. Els imports no amaguen res.
 - **Període** (RN-M08-08): de `starts_on` a `ends_on`, dates incloses; el selector és de la
   T-M08-09. «El darrer dia del període» és avui si el període encara no s'ha acabat.
 
@@ -24,14 +27,20 @@ from django.utils import timezone
 
 from apps.activities import stats as activity_stats
 from apps.core import business_settings
+from apps.core.charges import euros
+from apps.core.models import Department
 from apps.equipment import reviews as equipment_reviews
 from apps.equipment import stock as equipment_stock
+from apps.expenses import services as expenses
 from apps.grants import calendar as grants_calendar
+from apps.grants import totals as grants_totals
 from apps.grants.reminders import DEADLINE_DAYS
 from apps.licences.listing import TO_RENEW_DAYS, expiring
+from apps.margins.reports import department_report
 from apps.members import services as members
 from apps.members.models import Member
 from apps.payments import campaigns
+from apps.treasury import balances as treasury
 
 from . import privacy
 from .indicators import CATALOG
@@ -105,6 +114,19 @@ class Reads:
         return self._once(
             "activities",
             lambda: activity_stats.stats(self.starts_on, self.ends_on, now=self.now),
+        )
+
+    def departments(self):
+        """{departament: `margins.department_report` del període}, l'informe del 09 (HU-M08-02)."""
+        return self._once("departments", lambda: {
+            department.name: department_report(department, self.starts_on, self.ends_on)
+            for department in Department.objects.order_by("name")
+        })  # fmt: skip
+
+    def without_invoice(self):
+        return self._once(
+            "without_invoice",
+            lambda: expenses.without_invoice_totals(self.starts_on, self.ends_on),
         )
 
     def breakdown(self, code, counts, label=""):
@@ -201,6 +223,49 @@ def equipment_in_use(r):
     return equipment_stock.in_use_count(r.last_day)
 
 
+def activity_margin(r):
+    return sum(report.margins_total_cents for report in r.departments().values())
+
+
+def _by_department(r, code, cents_of):
+    cents = {name: cents_of(report) for name, report in r.departments().items()}
+    return (r.breakdown(code, {name: value for name, value in cents.items() if value}),)
+
+
+def department_income(r):
+    """Ajuts i altres ingressos sense activitat (els de les activitats són dins del marge)."""
+    return _by_department(
+        r, "department_income", lambda report: report.grants_cents + report.other_income_cents
+    )
+
+
+def department_expenses(r):
+    """Despeses pagades sense activitat (les repartides a activitats són dins del marge)."""
+    return _by_department(
+        r, "department_expenses", lambda report: report.expenses_without_activity_cents
+    )
+
+
+def grants_granted(r):
+    granted = grants_totals.granted_by_department(r.starts_on, r.ends_on)
+    return (r.breakdown("grants_granted", granted),)
+
+
+def expenses_without_invoice(r):
+    return r.without_invoice()[0]
+
+
+def expenses_without_invoice_amount(r):
+    return r.without_invoice()[1]
+
+
+def treasury_balances(r):
+    """Saldo de cada compte el darrer dia del període; un compte inactiu a zero no surt."""
+    accounts = treasury.balances(r.last_day)
+    cents = {a.name: a.balance_cents for a in accounts if a.active or a.balance_cents}
+    return (r.breakdown("treasury_balances", cents),)
+
+
 READS = {
     "active_members": active_members,
     "new_members": new_members,
@@ -217,6 +282,13 @@ READS = {
     "attendance": attendance,
     "weekly_enrolments": weekly_enrolments,
     "equipment_in_use": equipment_in_use,
+    "activity_margin": activity_margin,
+    "department_income": department_income,
+    "department_expenses": department_expenses,
+    "grants_granted": grants_granted,
+    "expenses_without_invoice": expenses_without_invoice,
+    "expenses_without_invoice_amount": expenses_without_invoice_amount,
+    "treasury_balances": treasury_balances,
 }
 
 
@@ -246,3 +318,18 @@ def panel(name, starts_on, ends_on, now=None) -> dict[str, Block]:
             if block is not None:
                 blocks[code] = block
     return blocks
+
+
+def text(code, value, min_size) -> str:
+    """Una xifra o una cel·la, per mostrar-la: imports en euros amb dos decimals (RN-M08-04),
+    percentatges amb «%» i les cel·les amagades com diu `privacy.Cell.label`."""
+    if isinstance(value, privacy.Cell):
+        if value.state != privacy.SHOWN:
+            return value.label(min_size)
+        value = value.value
+    if value is None:
+        return "—"
+    unit = CATALOG[code].unit
+    if unit == "cents":
+        return euros(value)
+    return f"{value} %" if unit == "percent" else str(value)

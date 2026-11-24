@@ -218,3 +218,17 @@ def test_ca_m09_01_el_tresorer_rep_un_sol_avis_sense_dades_del_proveidor(
     assert boat.name not in sent.get().body_text
     services.update_expense(expense, by=treasurer, amount_cents=26000)
     assert sent.count() == 1  # corregir-la no torna a avisar
+
+
+def test_without_invoice_totals_for_the_dashboard_count_the_period(treasurer, boat):
+    """T-M08-06: recompte i suma de les «sense factura» per la data de la factura (08)."""
+    services.record_expense(by=treasurer, **data(boat, amount_cents=12345))
+    services.record_expense(by=treasurer, **data(boat, invoice_number="F-2", amount_cents=655))
+    services.record_expense(
+        by=treasurer, **data(boat, invoice_number="F-3", invoice_date=date(2026, 11, 1))
+    )
+    with_invoice = services.record_expense(by=treasurer, **data(boat, invoice_number="F-4"))
+    Expense.objects.filter(pk=with_invoice.pk).update(invoice_file=invoice(treasurer.person))
+    october = (date(2026, 10, 1), date(2026, 10, 31))
+    assert services.without_invoice_totals(*october) == (2, 13000)
+    assert services.without_invoice_totals(date(2026, 9, 1), date(2026, 9, 30)) == (0, 0)

@@ -1494,3 +1494,14 @@ noves:
       És de només lectura i no demana cap camp nou; un reforç només és d'alguns inscrits i barrejar-lo
       faria baixar l'assistència sense motiu. Es pot canviar més endavant sense tocar dades.
     data: 2026-11-24
+  P-643:
+    opcions:
+      A: "Tot de l'informe per departament del 09: marge de les activitats tancades, ingressos i despeses sense activitat; la suma dona el total de l'informe."
+      B: "Ingressos i despeses bruts dels moviments de tresoreria per departament (entrades i sortides), encara que no quadrin amb l'informe del 09."
+      C: "Només el total de cada departament (el de l'informe), sense separar ingressos i despeses."
+      D: "Com A, però el marge per departament en lloc d'una sola suma."
+    recomanada: A
+    perque: >-
+      HU-M08-02 vol que el tresorer vegi el mateix import que a l'informe del 09; amb els moviments bruts,
+      una anul·lació (contramoviment) sortiria com a despesa i la xifra no quadraria amb cap pantalla.
+    data: 2026-11-24

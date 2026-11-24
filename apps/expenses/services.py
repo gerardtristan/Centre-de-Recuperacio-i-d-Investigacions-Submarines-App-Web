@@ -5,7 +5,7 @@ Cada servei que escriu comprova el permís del rol (T-M09-30) i, sense, respon �
 
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, models, transaction
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Count, Exists, OuterRef, Q, Sum
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 
@@ -241,3 +241,14 @@ def without_invoice():
     return Expense.objects.exclude(status=Expense.Status.ANNULLED).filter(
         Q(invoice_file__isnull=True) | Exists(open_marks(DocumentIllegibleMark.Document.INVOICE))
     )
+
+
+def without_invoice_totals(starts_on, ends_on) -> tuple[int, int]:
+    """Per al dashboard (08; T-M08-06): quantes despeses «sense factura» tenen la data de la
+    factura dins del període (dates incloses) i quant sumen, en cèntims. Només el recompte."""
+    totals = (
+        without_invoice()
+        .filter(invoice_date__range=(starts_on, ends_on))
+        .aggregate(n=Count("id"), cents=Sum("amount_cents"))
+    )
+    return totals["n"], totals["cents"] or 0
