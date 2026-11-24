@@ -11,6 +11,7 @@
       <strong>{% translate "Missatge enviat" %}</strong>
       {% translate "Gràcies. Si les dades són correctes, el club et respondrà al correu que has escrit." %}
     </div>
+    <p class="enllacos"><a href="{% url 'core:home' %}">{% translate "Torna a la portada" %}</a></p>
   {% elif not text %}
     <div class="avis avis-avis" role="status">{% translate "Ara mateix no es pot escriure al club des d'aquí. Torna-ho a provar més tard." %}</div>
   {% else %}
