@@ -1,0 +1,35 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-20b (AC14; CA-M02-21; RN-M02-23): fitxa d'un projecte de medi ambient amb les seves sortides, la suma de residus i les espècies de totes. Només dades del projecte i de les sortides: cap persona. No es publica res. Les factures i l'ajut hi aniran amb el 09. #}
+{% block title %}{{ project.name }} · {% translate "Projectes" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Projecte de medi ambient" %}</p>
+    <h1>{{ project.name }}</h1>
+    <p>{{ project.objective }}</p>
+  </header>
+  <dl class="dades-soci">
+    <div><dt>{% translate "Estat" %}</dt><dd>{{ project.get_status_display }}</dd></div>
+    <div><dt>{% translate "Departament" %}</dt><dd>{{ project.department.name }}</dd></div>
+    <div><dt>{% translate "Residus recollits" %}</dt><dd>{{ summary.total_kilos }}</dd></div>
+    <div><dt>{% translate "Sortides amb resultats" %}</dt><dd>{{ summary.with_results }} / {{ summary.outings|length }}</dd></div>
+    <div><dt>{% translate "Espècies observades" %}</dt><dd>{{ summary.species|join:", "|default:"—" }}</dd></div>
+  </dl>
+  <table class="taula">
+    <caption>{% translate "Sortides del projecte" %}</caption>
+    <thead><tr><th scope="col">{% translate "Sortida" %}</th><th scope="col">{% translate "Data" %}</th><th scope="col">{% translate "Estat" %}</th><th scope="col">{% translate "Resultats" %}</th></tr></thead>
+    <tbody>
+      {% for activity, result in summary.outings %}
+        <tr>
+          <th scope="row" class="cel-nom"><a href="{% url 'administration:activity_environment' activity.pk %}">{{ activity.title }}</a></th>
+          <td data-etiqueta="{% translate "Data" %}"><time datetime="{{ activity.starts_on|date:'Y-m-d' }}">{{ activity.starts_on|date:"d/m/Y" }}</time></td>
+          <td data-etiqueta="{% translate "Estat" %}">{{ activity.get_status_display }}</td>
+          <td data-etiqueta="{% translate "Resultats" %}">{% if result %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Registrats" %}</span>{% else %}<span class="estat estat-neutre">{% translate "Pendents" %}</span>{% endif %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4">{% translate "Aquest projecte encara no té cap sortida." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

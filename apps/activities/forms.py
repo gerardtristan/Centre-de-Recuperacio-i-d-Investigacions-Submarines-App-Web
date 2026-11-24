@@ -503,3 +503,27 @@ class BlockForm(forms.Form):
     def __init__(self, data=None):
         super().__init__(data, prefix="bloc")
         self.fields["place"].queryset = Place.objects.filter(active=True).order_by("name")
+
+
+class EnvironmentalResultForm(forms.Form):
+    """Resultats d'una sortida de medi ambient (T-M02-20b; S-M02-14). Els quilos, amb fins a tres
+    decimals, es desen en grams; `environment.record_results` ho torna a comprovar."""
+
+    kilos = forms.DecimalField(
+        label=_("Residus recollits (kg)"), required=False, min_value=0, max_digits=9,
+        decimal_places=3, localize=True,
+    )  # fmt: skip
+    species = forms.CharField(
+        label=_("Espècies observades"), required=False, help_text=_("Una per línia."),
+        widget=forms.Textarea(attrs={"rows": 4}),
+    )  # fmt: skip
+    observations = forms.CharField(
+        label=_("Observacions"), required=False, help_text=_("Cap dada de salut."),
+        widget=forms.Textarea(attrs={"rows": 3}),
+    )  # fmt: skip
+
+    def service_data(self) -> dict:
+        kilos = self.cleaned_data["kilos"]
+        grams = None if kilos is None else int(kilos * 1000)
+        return {"waste_grams": grams, "species": self.cleaned_data["species"],
+                "observations": self.cleaned_data["observations"]}  # fmt: skip

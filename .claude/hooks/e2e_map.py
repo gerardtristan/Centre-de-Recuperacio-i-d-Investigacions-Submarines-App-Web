@@ -185,6 +185,11 @@ MAP = {
         "apps/activities/reports.py",
         "templates/activities/report*.html",
     ),
+    "test_activitats_medi_ambient.py": (
+        "apps/activities/views/environment.py",
+        "templates/activities/environment_results.html",
+        "templates/activities/project_detail.html",
+    ),
     "test_activitats_cataleg.py": (
         "apps/activities/views/admin_catalogue.py",
         "apps/activities/forms.py",

@@ -119,7 +119,7 @@
     <tbody>
       {% for project in projects %}
         <tr>
-          <th scope="row" class="cel-nom">{{ project.name }}</th>
+          <th scope="row" class="cel-nom"><a href="{% url 'administration:environmental_project' project.pk %}">{{ project.name }}</a></th>
           <td data-etiqueta="{% translate 'Objectiu' %}">{{ project.objective }}</td>
           <td data-etiqueta="{% translate 'Departament' %}">{{ project.department.name }}</td>
           <td data-etiqueta="{% translate 'Estat' %}">{{ project.get_status_display }}</td>
