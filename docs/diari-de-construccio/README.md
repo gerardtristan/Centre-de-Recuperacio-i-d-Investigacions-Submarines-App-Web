@@ -597,3 +597,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-21b](T-M09-21b.md) | Descarregar el PDF a «Les meves factures» | 24/11/2026 16:00 | 1fa10d6a | 1 nova i 1 e2e ampliada | [A comprovar] |
 | [T-M02-08c](T-M02-08c.md) | Places lliures a les dades públiques d'una activitat, sense cap nom (carril X) | 24/11/2026 17:19 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [T-M09A-10a](T-M09A-10a.md) | Paquet de justificació d'un ajut: ZIP xifrat, excloses amb el motiu i còpies emmascarades | 24/11/2026 17:20 | 850c30f1 | 10 noves | [A comprovar] |
+| [T-M09A-10b](T-M09A-10b.md) | Enviar el paquet de justificació, versions amb requeriment i avisos | 24/11/2026 17:32 | aa38f4dd | 11 noves | [A comprovar] |
