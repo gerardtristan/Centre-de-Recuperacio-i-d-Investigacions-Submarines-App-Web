@@ -161,12 +161,16 @@
               <td data-etiqueta="{% translate 'Lloc' %}">{{ row.session.place.name|default:"—" }}</td>
               <td data-etiqueta="{% translate 'Instructors' %}"><span>{% for person in row.instructors %}{{ person }}{% if not forloop.last %}, {% endif %}{% empty %}{% if row.needs_instructor %}<span class="estat estat-avis"><span aria-hidden="true">!</span> {% translate "Sense instructor" %}</span>{% else %}—{% endif %}{% endfor %}</span></td>
               {% if schedule_editable %}<td class="cel-accions">{% if not row.session.cancelled %}
-                <form method="post" class="accions" novalidate>
-                  {% csrf_token %}
-                  <div class="camp"><label class="visualment-amagat" for="motiu-sessio-{{ row.session.pk }}">{% translate "Motiu de la cancel·lació de la sessió" %}</label>
-                  <input id="motiu-sessio-{{ row.session.pk }}" name="motiu" placeholder="{% translate 'Motiu' %}" required></div>
-                  <button class="boto boto-petit" type="submit" name="cancel_sessio" value="{{ row.session.pk }}">{% translate "Cancel·la" %}<span class="visualment-amagat">: {{ row.session.get_kind_display }} {{ row.session.starts_at|date:"d/m/Y H:i" }}</span></button>
-                </form>{% endif %}</td>{% endif %}
+                {# T-DX-101: rar i no es desfà: plegat, amb l'etiqueta visible (com «Cancel·la l'activitat…»). #}
+                <details>
+                  <summary>{% translate "Cancel·la…" %}<span class="visualment-amagat"> {{ row.session.get_kind_display }} {{ row.session.starts_at|date:"d/m/Y H:i" }}</span></summary>
+                  <form method="post" class="formulari" novalidate>
+                    {% csrf_token %}
+                    <div class="camp"><label for="motiu-sessio-{{ row.session.pk }}">{% translate "Motiu de la cancel·lació de la sessió" %}</label>
+                    <input id="motiu-sessio-{{ row.session.pk }}" name="motiu" required></div>
+                    <div class="accions"><button class="boto boto-petit" type="submit" name="cancel_sessio" value="{{ row.session.pk }}">{% translate "Cancel·la la sessió" %}<span class="visualment-amagat">: {{ row.session.get_kind_display }} {{ row.session.starts_at|date:"d/m/Y H:i" }}</span></button></div>
+                  </form>
+                </details>{% endif %}</td>{% endif %}
             </tr>
           {% endfor %}
         </tbody>
