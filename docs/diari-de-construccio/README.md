@@ -606,3 +606,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-45b](T-M02-45b.md) | «Titulacions i llicències per tramitar»: primera estrella, «Cal llicència» i «Demana la primera llicència» (carril X) | 24/11/2026 17:32 | (vegeu la PR) | 3 noves i 1 e2e | [A comprovar] |
 | [T-M02-17b](T-M02-17b.md) | «El meu progrés» a l'àrea personal, des de «Les meves activitats» (carril X) | 24/11/2026 17:55 | (vegeu la PR) | 2 noves i 1 e2e | [A comprovar] |
 | [T-M02-17b](T-M02-17b.md) | «El meu progrés» a l'àrea personal, des de «Les meves activitats» (carril X) | 24/11/2026 18:01 | (vegeu la PR) | 2 noves i 1 e2e | [A comprovar] |
+| [T-M02-17c](T-M02-17c.md) | «El meu progrés» a l'àrea personal, des de «Les meves activitats» (carril X) | 24/11/2026 18:01 | (vegeu la PR) | 2 noves i 1 e2e | [A comprovar] |
