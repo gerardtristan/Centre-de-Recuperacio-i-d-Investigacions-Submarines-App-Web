@@ -9,4 +9,5 @@ from . import views
 urlpatterns = [
     path("despeses/nova/", views.new_view, name="expense_new"),
     path("despeses/sense-factura/", views.without_invoice_view, name="expenses_without_invoice"),
+    path("despeses/<int:pk>/documents/", views.documents_view, name="expense_documents"),
 ]
