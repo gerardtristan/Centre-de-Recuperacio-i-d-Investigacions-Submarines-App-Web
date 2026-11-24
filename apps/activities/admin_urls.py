@@ -5,6 +5,7 @@ from django.urls import path
 
 from .views import admin_activities as activities
 from .views import admin_catalogue as entries
+from .views import admin_certifications as certifications
 from .views import admin_filings as filings
 from .views import admin_places as places
 from .views import (
@@ -36,6 +37,12 @@ urlpatterns = [
     path("homologacions/", filings.filings_view, name="filings"),
     path("homologacions/csv/", filings.filings_csv_view, name="filings_csv"),
     path("homologacions/demana/", filings.filing_request_view, name="filing_request"),
+    # T-M02-52b (AC29): les titulacions d'una persona, des de la fitxa del soci.
+    path(
+        "titulacions/persona/<int:person_id>/",
+        certifications.person_certifications_view,
+        name="person_certifications",
+    ),
     path("homologacions/<int:pk>/", filings.filing_detail_view, name="filing_detail"),
     path("homologacions/<int:pk>/tramitada/", filings.filing_filed_view, name="filing_filed"),
     path("homologacions/<int:pk>/feta/", filings.filing_done_view, name="filing_done"),

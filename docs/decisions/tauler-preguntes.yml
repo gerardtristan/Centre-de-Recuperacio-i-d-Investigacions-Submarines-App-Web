@@ -1462,3 +1462,13 @@ noves:
       Amagar «2 equips per revisar» com a «menys de 3» no protegeix ningú i fa inútil l'avís; el que compta
       persones (inscripcions, ocupació, assistència) continua amb la supressió, que és el cas conservador.
     data: 2026-11-24
+  P-572:
+    opcions:
+      A: "Només des de la fitxa del soci, fins que hi hagi una fitxa de persona a l'administració."
+      B: "Des de la llista d'alumnes d'una activitat (participants), per als no socis."
+      C: "Un cercador de persones a la pantalla de titulacions."
+    recomanada: A
+    perque: >-
+      Les titulacions inicials que es carreguen a mà són sobretot les dels socis que venen de Cluber; un
+      cercador de persones exposaria noms a qui no els necessita, i B depèn de quina fitxa tindran els alumnes.
+    data: 2026-11-24
