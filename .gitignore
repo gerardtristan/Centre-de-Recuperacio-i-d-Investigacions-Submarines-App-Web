@@ -44,3 +44,7 @@ var/
 
 # Línia cronològica generada en local sense xifrar: no es puja (tools/linia-cronologica/README.md)
 CRIS_linia_cronologica.html
+
+# Cobertura local de pytest-cov: mai al repositori
+.coverage
+.coverage.*

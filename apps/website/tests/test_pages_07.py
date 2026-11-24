@@ -2,13 +2,11 @@
 catàleg del nucli (T-M07-02): aquí es declara només per a la prova. Només dades inventades."""
 
 import pytest
-from django.core.exceptions import ImproperlyConfigured, ValidationError
+from django.core.exceptions import ValidationError
 from django.db import Error, connection, transaction
 from django.http import Http404
 
-from apps.core import permissions
-from apps.core.models import AppendOnlyError, AuditEntry, Role, RolePermission
-from apps.core.permission_catalog import CATALOG, Permission
+from apps.core.models import AppendOnlyError, AuditEntry, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.website import pages
 from apps.website.models import Page, PageVersion
@@ -20,17 +18,7 @@ TEXT = [{"kind": "text", "title": "Benvinguts", "text": "Text inventat."}]
 
 
 @pytest.fixture
-def wp1(monkeypatch):
-    extra = Permission(code=pages.PERMISSION, ref="WP1", description="Pàgines de la web")
-    monkeypatch.setattr(permissions, "CATALOG", {**CATALOG, pages.PERMISSION: extra})
-    for role in (R.ADMINISTRATOR, R.PRESIDENT):  # M07-4
-        RolePermission.objects.create(
-            role=Role.objects.get(code=role), permission_code=pages.PERMISSION, scope="all"
-        )
-
-
-@pytest.fixture
-def editor(wp1, make_admin):  # noqa: F811
+def editor(make_admin):  # noqa: F811
     return make_admin(R.ADMINISTRATOR)
 
 
@@ -130,7 +118,7 @@ def test_text_is_stored_as_written(page, editor):
     assert pages.publish_page(page, blocks, editor).blocks == blocks
 
 
-def test_a_role_without_wp1_gets_not_found_and_nothing_is_saved(wp1, page, make_admin):  # noqa: F811
+def test_a_role_without_wp1_gets_not_found_and_nothing_is_saved(page, make_admin):  # noqa: F811
     secretary = make_admin(R.SECRETARY)
     with pytest.raises(Http404):
         pages.save_page(None, actor=secretary, slug="nova", title="Nova")
@@ -138,9 +126,3 @@ def test_a_role_without_wp1_gets_not_found_and_nothing_is_saved(wp1, page, make_
         pages.publish_page(page, TEXT, secretary)
     assert not Page.objects.filter(slug="nova").exists()
     assert not PageVersion.objects.exists()
-
-
-def test_until_t_m07_02_nobody_can_publish(make_admin):  # noqa: F811
-    """Sense WP1 al catàleg, el servei s'atura (cap accés per defecte)."""
-    with pytest.raises(ImproperlyConfigured):
-        pages.save_page(None, actor=make_admin(R.ADMINISTRATOR), slug="nova", title="Nova")
