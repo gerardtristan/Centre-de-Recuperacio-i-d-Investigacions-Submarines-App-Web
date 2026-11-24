@@ -566,7 +566,10 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-06c4](T-M02-06c4.md) | Canviar l'horari, el lloc i els instructors d'una sessió existent des de la fitxa (carril B4) | 24/11/2026 03:53 | (vegeu la PR) | 2 noves i 1 e2e ampliada | [A comprovar] |
 | [T-DX-101](T-DX-101.md) | Sessions de la fitxa: «Cancel·la…» plegat, amb l'etiqueta del motiu visible | 24/11/2026 07:09 | b0ae37b0 | 1 nova | [A comprovar] |
 | [T-DX-102](T-DX-102.md) | Revisió del 02 (informes, resultats, reforç, certificat) i del 03 i el calendari d'ajuts | 24/11/2026 10:27 | 74b45d07 | 3 noves | [A comprovar] |
+| [T-M07-03](T-M07-03.md) | App `website` i ajustos del 07, amb el butlletí i el contacte apagats | 24/11/2026 10:57 | 90f1821e | 25 noves | [A comprovar] |
 | [spec-07-08](spec-07-08.md) | Especificació d'una pàgina del 07 (web pública i ajuda) i del 08 (dashboard) (carril C3) | 21/11/2026 10:18 | (vegeu la PR) | cap (document) | [A comprovar] |
 | [T-M09-25a](T-M09-25a.md) | Fitxers privats xifrats a l'aplicació: clau pròpia, sis tipus nous (core/0077) i vista que desxifra amb permís i registre (carril X, nucli) | 24/11/2026 10:27 | (vegeu la PR) | 21 noves | [A comprovar] |
 | [T-M02-42a](T-M02-42a.md) | Fotos dels carnets de titulació: pujada xifrada i sense metadades, sense reduir (activities/0025; carril X) | 24/11/2026 12:07 | (vegeu la PR) | 9 noves | [A comprovar] |
+| [T-M06-28](T-M06-28.md) | Llicències: una sol·licitud nova renova la vigent de qualsevol tipus (P-442, decisió 105; carril Y) | 24/11/2026 10:28 | ec75cd03 | 2 noves | [A comprovar] |
+| [T-M08-02](T-M08-02.md) | Dashboard: l'app i el catàleg d'indicadors, amb un text d'ajuda editable per indicador (carril Y) | 24/11/2026 11:15 | d0e01d60 | 21 noves | [A comprovar] |
 | [T-M09-25b](T-M09-25b.md) | Documents de justificació d'una despesa xifrats, còpia emmascarada a mà i marca «il·legible» amb activador (expenses/0009; carril X) | 24/11/2026 11:15 | (vegeu la PR) | 15 noves | [A comprovar] |

@@ -8,7 +8,7 @@ from django.http import Http404
 
 from apps.accounts.models import Account
 from apps.core.models import AuditEntry, Charge
-from apps.licences import prices, services
+from apps.licences import prices, reminders, services
 from apps.licences.models import Licence, LicenceType, ValidityRule
 from apps.licences.services import (
     AlreadyInProgress,
@@ -132,6 +132,26 @@ def test_ca_m06_25_next_year(options, soci, annual, priced, make_licence):
     assert options["is_member_calls"][-1] == D(2027, 12, 1)  # soci el dia que la demana
 
 
+def test_p442_a_new_type_renews_the_licence_of_any_type_that_expires_latest(
+    options, soci, annual, priced, make_licence
+):
+    """P-442 (105, opció B): passar d'aficionat a tècnic també renova l'anterior, i els avisos
+    de l'anterior s'aturen."""
+    current = make_licence(person=soci.person, status="active", starts_on=D(2027, 1, 10))
+    make_licence(person=soci.person, status="active", starts_on=D(2026, 1, 1),
+                 expires_on=D(2026, 12, 31))  # caducada: no es renova  # fmt: skip
+    technical = LicenceType.objects.create(
+        name="Tècnic anual (inventat)",
+        category=LicenceType.Category.TECHNICAL,
+        validity_rule=ValidityRule.CALENDAR_YEAR,
+    )
+    priced(technical, start=D(2028, 1, 1))
+    assert reminders.due(D(2027, 12, 1))[30] == [current]  # 30 dies abans del venciment
+    licence = ask(soci, technical, D(2028, 1, 1), today=D(2027, 12, 1))
+    assert licence.renewal_of == current
+    assert reminders.due(D(2027, 12, 1))[30] == []  # els avisos de l'anterior s'aturen
+
+
 def test_the_opening_day_is_the_setting(options, soci, annual, priced):
     options[services.NEXT_YEAR_OPENS_ON] = "10-15"
     licence = ask(soci, annual, D(2028, 1, 1), today=D(2027, 10, 15))
@@ -178,6 +198,18 @@ def single_day(priced):
 def test_ca_m06_21_no_single_day_licence_while_disabled(options, soci, single_day):
     with pytest.raises(DayLicencesDisabled):
         ask(soci, single_day, D(2027, 5, 10))
+
+
+def test_p442_a_single_day_licence_renews_nothing(options, soci, single_day, annual, make_licence):
+    """Les d'un dia no s'avisen: ni renoven la vigent (que deixaria de rebre els avisos) ni es
+    renoven."""
+    options[services.DAY_ENABLED] = True
+    current = make_licence(person=soci.person, status="active", starts_on=D(2027, 1, 10))
+    day = ask(soci, single_day, D(2027, 12, 31))
+    assert day.renewal_of is None
+    Licence.objects.filter(pk=current.pk).update(status="cancelled", cancellation_reason="Prova")
+    Licence.objects.filter(pk=day.pk).update(status=Licence.Status.ACTIVE)
+    assert ask(soci, annual).renewal_of is None
 
 
 def test_ca_m06_22_single_day_licences_per_date(options, soci, single_day, annual, priced):
