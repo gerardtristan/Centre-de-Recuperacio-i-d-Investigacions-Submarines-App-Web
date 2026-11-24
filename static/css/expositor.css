@@ -3,7 +3,7 @@
    «Fer portada» i el recompte de fotos llestes. Sense JavaScript: no es reordena ni es puja res. */
 .expositor { display: grid; gap: var(--e-3); margin-block-start: var(--e-5); }
 .expositor h2 { margin: 0; font-size: var(--t-l); }
-.expositor-regles { margin: 0; padding-inline-start: var(--e-5); display: grid; gap: var(--e-1); color: var(--c-text-2); }
+.expositor-regles { max-inline-size: var(--amplada-formulari); margin: 0; padding-inline-start: var(--e-5); display: grid; gap: var(--e-1); color: var(--c-text-2); }
 .expositor-cos { display: grid; gap: var(--e-3); min-inline-size: 0; margin: 0; padding: 0; border: 0; }
 .expositor-zona { min-height: auto; padding: var(--e-4); }
 .expositor-graella { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-3); grid-template-columns: repeat(2, minmax(0, 1fr)); }

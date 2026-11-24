@@ -34,7 +34,7 @@
           {% csrf_token %}
           <input type="hidden" name="document" value="{{ row.code }}">
           <input type="hidden" name="action" value="attach">
-          <div class="zona-magnetica" data-zona-magnetica data-vista-previa data-vista-titol="{% translate 'Vista prèvia del fitxer triat' %}" data-error-tipus="{% translate 'Aquest fitxer no és un PDF ni una imatge. Tria un PDF, un JPG o un PNG.' %}"><div class="camp">
+          <div class="zona-magnetica" data-zona-magnetica data-tria="{% translate 'Tria un fitxer' %}" data-vista-previa data-vista-titol="{% translate 'Vista prèvia del fitxer triat' %}" data-error-tipus="{% translate 'Aquest fitxer no és un PDF ni una imatge. Tria un PDF, un JPG o un PNG.' %}"><div class="camp">
             <label for="fitxer-{{ row.code }}">{% if row.illegible %}{% translate "Puja'l de nou (PDF, JPG o PNG)" %}{% else %}{% translate "Fitxer (PDF, JPG o PNG)" %}{% endif %}</label>
             <input type="file" id="fitxer-{{ row.code }}" name="fitxer" accept="{{ accept }}" required aria-describedby="ajuda-{{ row.code }}">
             <p class="ajuda" id="ajuda-{{ row.code }}">{% translate "Si fas la foto amb la càmera, queda a la galeria del telèfon i es pot copiar a un núvol fora de la UE. Esborra-la de la galeria (i de la paperera) després de pujar-la." %}</p>
@@ -48,7 +48,7 @@
             {% csrf_token %}
             <input type="hidden" name="document" value="{{ row.code }}">
             <input type="hidden" name="action" value="masked">
-            <div class="zona-magnetica" data-zona-magnetica data-vista-previa data-vista-titol="{% translate 'Vista prèvia del fitxer triat' %}" data-error-tipus="{% translate 'Aquest fitxer no és un PDF ni una imatge. Tria un PDF, un JPG o un PNG.' %}"><div class="camp">
+            <div class="zona-magnetica" data-zona-magnetica data-tria="{% translate 'Tria un fitxer' %}" data-vista-previa data-vista-titol="{% translate 'Vista prèvia del fitxer triat' %}" data-error-tipus="{% translate 'Aquest fitxer no és un PDF ni una imatge. Tria un PDF, un JPG o un PNG.' %}"><div class="camp">
               <label for="emmascarada-{{ row.code }}">{% translate "Còpia amb l'IBAN tapat" %}</label>
               <input type="file" id="emmascarada-{{ row.code }}" name="fitxer" accept="{{ accept }}" required aria-describedby="ajuda-emmascarada-{{ row.code }}">
               <p class="ajuda" id="ajuda-emmascarada-{{ row.code }}">{% translate "La plataforma encara no troba l'IBAN sola: puja una còpia on no es vegi. És la que es podrà compartir." %}</p>

@@ -577,6 +577,7 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-107](T-DX-107.md) | Gastos a «Despeses sense factura»: l'anell per departament, el filtre i el total | 24/11/2026 20:10 | c59b5991 | 1 + e2e | [A comprovar] |
 | [T-DX-116](T-DX-116.md) | Vista prèvia dels documents d'una despesa, només al navegador | 24/11/2026 20:34 | a53fc77e | e2e | [A comprovar] |
 | [T-DX-118](T-DX-118.md) | «Departaments, centres de cost i comptes» al menú, i revisió de l'estructura | 24/11/2026 21:01 | 716b5fbe | 1 + e2e | [A comprovar] |
+| [T-DX-120](T-DX-120.md) | Revisió de la T-M02-49: fotos del carnet, homologació i primera estrella | 24/11/2026 23:05 | 14af7085 | e2e | [A comprovar] |
 | [T-M07-03](T-M07-03.md) | App `website` i ajustos del 07, amb el butlletí i el contacte apagats | 24/11/2026 10:57 | 90f1821e | 25 noves | [A comprovar] |
 | [T-M07-04](T-M07-04.md) | Pàgines, versions i blocs; publicar i tornar a una versió | 24/11/2026 11:42 | 6cbb8859 | 17 noves | [A comprovar] |
 | [T-M07-07](T-M07-07.md) | Fotos de la web: models i servei, sense rutes | 24/11/2026 12:39 | 66704ddb | 15 noves | [A comprovar] |

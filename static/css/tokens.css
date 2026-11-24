@@ -853,6 +853,11 @@ img { max-width: 100%; display: block; }
   object-fit: contain;
 }
 iframe.zm-vista { height: calc(var(--e-8) * 6); }
+/* «Tria un fitxer» (T-DX-120): el botó del sistema i, a sobre, el camp natiu transparent, que rep el
+   clic i el teclat; el focus es veu al botó */
+.zm-tria-fitxer { position: relative; display: inline-grid; justify-self: center; }
+.zm-tria-fitxer input[type="file"] { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; min-block-size: 0; padding: 0; opacity: 0; cursor: pointer; }
+.zm-tria-fitxer:focus-within .boto { outline: var(--v-focus) solid var(--c-focus); outline-offset: var(--e-1); }
 
 /* ==========================================================================
    Impressora de justificants

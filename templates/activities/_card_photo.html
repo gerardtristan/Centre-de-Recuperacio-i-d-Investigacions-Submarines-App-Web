@@ -7,7 +7,7 @@
 <section class="expositor" aria-labelledby="expositor-h">
   <h2 id="expositor-h">{% translate "Abans de pujar-la" %}</h2>
   <ol class="expositor-regles">
-    <li>{% translate "La foto serveix per comprovar la titulació i, si demanes l'homologació, per enviar-la a la federació a petició teva." %}</li>
+    <li>{% if secretaria %}{% translate "La foto serveix per comprovar la titulació i, si la persona demana l'homologació, per enviar-la a la federació a petició seva." %}{% else %}{% translate "La foto serveix per comprovar la titulació i, si demanes l'homologació, per enviar-la a la federació a petició teva." %}{% endif %}</li>
     <li>{% blocktranslate count months=months %}Es conserva {{ months }} mes després de comprovar-la o de tancar l'homologació, i després s'esborra.{% plural %}Es conserva {{ months }} mesos després de comprovar-la o de tancar l'homologació, i després s'esborra.{% endblocktranslate %}</li>
     <li>{% translate "No hi pugis cap document de salut." %}</li>
     <li>{% translate "Una foto per cara: l'anvers i, si cal, el revers." %}</li>
@@ -21,7 +21,7 @@
         <span class="estat estat-ok"><span aria-hidden="true">✓</span> {% blocktranslate with day=photo.uploaded_at|date:"d/m/Y" %}Foto pujada el {{ day }}{% endblocktranslate %}</span>
       </p>
       <a href="{% url file_route photo.file_id %}">{% translate "Veure-la" %}<span class="visualment-amagat">: {{ photo.get_side_display }}</span></a>
-      <form method="post">{% csrf_token %}<button class="boto boto-text boto-petit" type="submit" name="esborra" value="{{ photo.pk }}">{% translate "Esborra-la" %}<span class="visualment-amagat">: {{ photo.get_side_display }}</span></button></form>
+      <form method="post">{% csrf_token %}<button class="boto boto-petit" type="submit" name="esborra" value="{{ photo.pk }}">{% translate "Esborra-la" %}<span class="visualment-amagat">: {{ photo.get_side_display }}</span></button></form>
     </li>
     {% endfor %}
   </ul>
@@ -31,7 +31,7 @@
     {% include "_errata.html" %}
     {% for field in form %}{% if field.field.widget.input_type == "file" %}
       {# T-DX-117: el camp dins de la zona per arrossegar-hi la foto (zona-magnetica.js); sense JavaScript, el camp de sempre #}
-      <div class="zona-magnetica expositor-zona" data-zona-magnetica data-error-tipus="{% translate 'Aquest fitxer no és una foto ni un PDF. Tria un JPG, un PNG o un PDF.' %}">{% include "accounts/_camp.html" %}</div>
+      <div class="zona-magnetica expositor-zona" data-zona-magnetica data-tria="{% translate 'Tria un fitxer' %}" data-error-tipus="{% translate 'Aquest fitxer no és una foto ni un PDF. Tria un JPG, un PNG o un PDF.' %}">{% include "accounts/_camp.html" %}</div>
     {% else %}{% include "accounts/_camp.html" %}{% endif %}{% endfor %}
     <div class="expositor-accions">
       <p class="expositor-estat">{% blocktranslate count n=sides|length %}{{ n }} cara amb foto{% plural %}{{ n }} cares amb foto{% endblocktranslate %}</p>
