@@ -73,7 +73,9 @@ class Module:
     entrades del registre se substitueixen); `describe(persona)` torna frases sense dades
     personals per al resum de qui aprova; `blockers(persona)`, per què no es pot executar;
     `notes(persona)`, els textos lliures que l'administració ha escrit sobre la persona (amb
-    `note`), per a l'exportació amb les notes revisades (085, A-1)."""
+    `note`), per a l'exportació amb les notes revisades (085, A-1). Amb `addresses`, `anonymise`
+    rep també `known_addresses`: el correu de contacte i els dels comptes, presos abans de buidar
+    la persona, per a les files del mòdul lligades només a una adreça (el butlletí del 07)."""
 
     export: Callable
     anonymise: Callable
@@ -81,6 +83,7 @@ class Module:
     describe: Callable = _nothing
     blockers: Callable = _nothing
     notes: Callable = _nothing
+    addresses: bool = False
 
 
 _MODULES: dict[str, Module] = {}
@@ -407,7 +410,8 @@ def anonymise_person(person, *, by, request=None) -> Person:
         # 2. Els mòduls, amb la persona ja anonimitzada (els seus disparadors ho exigeixen).
         targets = {"core.person": [locked.pk]}
         for module in _MODULES.values():
-            module.anonymise(locked, by=by, request=request)
+            extra = {"known_addresses": frozenset(known_addresses)} if module.addresses else {}
+            module.anonymise(locked, by=by, request=request, **extra)
             for label, ids in module.audit_targets(locked).items():
                 targets.setdefault(label, []).extend(ids)
 
