@@ -20,6 +20,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 
 from apps.accounts import limits
 from apps.core import audit, business_settings
@@ -38,20 +39,32 @@ ACTION_DELETED = "website.contact_deleted"
 MIN_SECONDS = 3
 MAX_AGE = 24 * 3600
 _SALT = "website.contact.started"
+# El motiu del tancament queda al registre després d'esborrar el missatge (CA-M07-12): la
+# pantalla de la safata (torn del nucli) el mostra com a ajuda del camp.
+CLOSE_REASON_HELP = gettext_lazy("No hi escriguis dades del visitant.")
 
 
 def started_token() -> str:
     return signing.dumps(time.time(), salt=_SALT)
 
 
-def looks_like_a_robot(honeypot: str, started: str) -> bool:
-    if honeypot:
-        return True
+def _started_at(started: str) -> float | None:
+    """L'hora d'obertura si la signatura és bona i té menys d'un dia; si no, `None`."""
     try:
-        since = signing.loads(started, salt=_SALT, max_age=MAX_AGE)
-    except (signing.BadSignature, TypeError):
-        return True
-    return time.time() - float(since) < MIN_SECONDS
+        return float(signing.loads(started, salt=_SALT, max_age=MAX_AGE))
+    except (signing.BadSignature, TypeError, ValueError):
+        return None
+
+
+def keep_started(started: str) -> str:
+    """En tornar el formulari amb errors, la mateixa hora d'obertura si és vàlida: qui corregeix
+    un error de pressa no és un robot (revisió de la #580)."""
+    return started if _started_at(started) is not None else started_token()
+
+
+def looks_like_a_robot(honeypot: str, started: str) -> bool:
+    since = _started_at(started)
+    return bool(honeypot) or since is None or time.time() - since < MIN_SECONDS
 
 
 @transaction.atomic
