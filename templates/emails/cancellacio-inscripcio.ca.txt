@@ -1,0 +1,9 @@
+{% load i18n %}{# T-M02-21b (RN-M02-12, RN-M02-13, RN-M02-19): la inscripció s'ha cancel·lat, per la persona o perquè el club ha cancel·lat l'activitat. TEXT PROVISIONAL [A validar: secretaria]. Amb el motiu només si l'ha cancel·lat el club. #}{% autoescape off %}{% translate "Hola," %}
+
+{% if by_club %}{% blocktranslate %}El club ha cancel·lat «{{ title }}».{% endblocktranslate %}{% if reason %}
+{% blocktranslate %}Motiu: {{ reason }}{% endblocktranslate %}{% endif %}
+{% translate "Si ja l'havies pagada, el tresorer et farà la devolució." %}{% else %}{% blocktranslate %}La teva inscripció a «{{ title }}» s'ha cancel·lat.{% endblocktranslate %}
+{% translate "Si ja l'havies pagada, el club revisarà la devolució segons les condicions de l'activitat." %}{% endif %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}

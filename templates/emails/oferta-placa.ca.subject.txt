@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M02-21b (RN-M02-09): TEXT PROVISIONAL [A validar: secretaria]. #}{% blocktranslate %}Hi ha una plaça per a tu: {{ title }}{% endblocktranslate %}

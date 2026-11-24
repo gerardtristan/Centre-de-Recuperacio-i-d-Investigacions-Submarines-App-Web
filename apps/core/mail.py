@@ -92,6 +92,12 @@ TEMPLATE_PRIORITIES = {
     "avis-salt-serie-factures": _Priority.CONFIRMATION,  # CA-M09-17, al tresorer (T-M09-19)
     "avis-marge-baix": _Priority.CONFIRMATION,  # CA-M09-12, al responsable i al tresorer (T-M09-13)
     "avis-reobertura-periode": _Priority.CONFIRMATION,  # S-M09-13, al tresorer i a la junta
+    "confirmacio-inscripcio": _Priority.CONFIRMATION,  # RN-M02-19 (T-M02-21b)
+    "termini-pagament": _Priority.CONFIRMATION,  # RN-M02-08 i 19 (T-M02-21b)
+    "oferta-placa": _Priority.CONFIRMATION,  # RN-M02-09 i 19 (T-M02-21b)
+    "cancellacio-inscripcio": _Priority.CONFIRMATION,  # RN-M02-12, 13 i 19 (T-M02-21b)
+    "canvi-programa": _Priority.CONFIRMATION,  # RN-M02-18, CA-M02-20 (T-M02-21b)
+    "missatge-activitat": _Priority.CONFIRMATION,  # AC15, als inscrits (T-M02-21b)
     "resultat-curs": _Priority.CONFIRMATION,  # P-M02-F pas 5, a l'alumne (T-M02-21)
     "certificat-emes": _Priority.CONFIRMATION,  # P-M02-F pas 6, RN-M02-16 (T-M02-21)
     "reforc-confirmat": _Priority.CONFIRMATION,  # P-M02-F pas 4, dates i preu (T-M02-21)

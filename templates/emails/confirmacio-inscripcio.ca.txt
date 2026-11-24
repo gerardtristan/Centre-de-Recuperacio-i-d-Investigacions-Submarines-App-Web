@@ -1,0 +1,7 @@
+{% load i18n %}{# T-M02-21b (RN-M02-19): la inscripció és confirmada (pagada o gratuïta). TEXT PROVISIONAL [A validar: secretaria]. Només l'activitat i les dates. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate with day=starts_on|date:"d/m/Y" %}La teva inscripció a «{{ title }}» és confirmada. Comença el {{ day }}.{% endblocktranslate %}
+{% translate "Trobaràs l'horari i el detall a «Les meves activitats», a la plataforma del club." %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}

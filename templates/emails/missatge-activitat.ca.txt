@@ -1,0 +1,6 @@
+{% load i18n %}{# T-M02-21b (AC15; RN-M02-19): missatge de l'organitzador als inscrits d'una activitat. El text l'escriu qui té AC15; sense dades d'altres inscrits. #}{% autoescape off %}{% blocktranslate %}Missatge sobre «{{ title }}»:{% endblocktranslate %}
+
+{{ body }}
+
+{% blocktranslate %}— {{ sender }}, de part del club{% endblocktranslate %}
+{% endautoescape %}
