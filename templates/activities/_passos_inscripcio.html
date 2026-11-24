@@ -1,0 +1,11 @@
+{% load i18n %}{% comment %}Camilla (T-DX-110; P-94 A; design-system §6.26): els passos d'apuntar-se a una activitat, amb la
+línia de Tramite (§6.13). `step` és el pas actual (2 o 3; 4 = tot fet) i `data_label`, el nom del pas
+2. Només diu on és: la inscripció i el pagament els fa el servidor.{% endcomment %}
+<ol class="tramite" aria-label="{% translate 'Passos de la inscripció' %}">
+  <li class="tramite-pas es-fet"><span class="tramite-marca" aria-hidden="true">✓</span><span>{% translate "Activitat" %}<span class="visualment-amagat">: {% translate "fet" %}</span></span></li>
+  {% if step > 2 %}<li class="tramite-pas es-fet"><span class="tramite-marca" aria-hidden="true">✓</span><span>{{ data_label }}<span class="visualment-amagat">: {% translate "fet" %}</span></span></li>
+  {% else %}<li class="tramite-pas es-actual" aria-current="step"><span class="tramite-marca" aria-hidden="true">2</span><span>{{ data_label }}</span></li>{% endif %}
+  {% if step > 3 %}<li class="tramite-pas es-fet"><span class="tramite-marca" aria-hidden="true">✓</span><span>{% translate "Confirmació" %}<span class="visualment-amagat">: {% translate "fet" %}</span></span></li>
+  {% elif step == 3 %}<li class="tramite-pas es-actual" aria-current="step"><span class="tramite-marca" aria-hidden="true">3</span><span>{% translate "Confirmació" %}</span></li>
+  {% else %}<li class="tramite-pas"><span class="tramite-marca" aria-hidden="true">3</span><span>{% translate "Confirmació" %}</span></li>{% endif %}
+</ol>

@@ -646,6 +646,17 @@ Del recurs Convite (P-99, A): la peça de la pantalla en construcció de la T-DX
 - **Peça:** `static/css/convite.css` (al bloc `estils`). `convite convite-targeta` amb `convite-cap` (el full de calendari `convite-full`, `aria-hidden`, amb el mes, el dia i el dia de la setmana; al costat, l'avantítol amb el tipus i el subtipus, el títol `h1` de la pàgina i la descripció), `convite-dades` (dates, lloc amb el punt de trobada en `small`, preu de soci amb el de no soci en `small`) i `convite-accions` (la inscripció com a soci, `boto-principal boto-gran`, centrada i a tota l'amplada al mòbil; la de convidat, si l'activitat és oberta a no socis).
 - **Dades:** les de `public.py`, sense cap canvi: mai cap nom de participant, ni les notes del lloc ni el cost de material (RN-M02-45). Els detalls que no són a la capçalera (places, termini, nivell, especialitats, edat, llicència, previsió) van a sota, a «Detalls».
 - **Encara no:** la barra de places de Convite (`convite-places`), fins que `public.py` doni les places lliures (T-M02-12; demanat al pilot); «Afegeix al calendari» i el recordatori, perquè el calendari només és de qui ja s'ha inscrit (RN-M02-25).
+### 6.25 Horario: l'agenda per dies (T-DX-112)
+Del recurs Horario: la peça de la pantalla en construcció del calendari (T-DX-23, §16), en el format d'agenda per dies, a «Les meves activitats» (C16, «horari»).
+- **Peça:** `static/css/horario.css` (al bloc `estils`). `horario` (la targeta), `horario-dies` (una entrada per dia, amb el dia en `h3`: «Dimarts, 01/12/2026»), `horario-actes` i `horario-acte` (l'activitat en `strong` i, a `horario-dades`, l'hora d'inici i de final, la classe i el lloc). La graella setmanal amb el regle d'hores només s'aplica dins de `horario-graella` (la pantalla en construcció); fora, és una agenda a totes les mides.
+- **Dades (servidor):** les sessions no cancel·lades que encara no han acabat de les inscripcions amb plaça (no la llista d'espera), agrupades per la data local. De cada inscripció, les del grup i els reforços d'aquell alumne, mai els d'un altre (RN-M02-25, T-M02-18): la mateixa selecció que el calendari `.ics` de la inscripció.
+- **Del recurs no s'hi fa:** la graella setmanal, l'avís d'encavalcament abans d'apuntar-se (el pla no té cap regla d'encavalcaments) ni triar grups.
+
+### 6.26 Camilla: els passos d'apuntar-se (T-DX-110)
+Del recurs Camilla (P-94, A): el flux d'inscripció per passos, amb la línia de passos de Tramite (§6.13) i sense cap peça nova.
+- **Peça:** `templates/activities/_passos_inscripcio.html` amb la `tramite` de tres passos: «Activitat» (fet), el pas de dades i «Confirmació». `step` diu quin és l'actual (`aria-current="step"`): el 2 abans d'inscriure's, el 3 amb el pagament pendent (o el correu del convidat enviat) i tots fets amb la inscripció confirmada. `data_label`: «Requisits» (soci) o «Les teves dades» (convidat).
+- **On:** sota la capçalera de Convite (§6.24) a la inscripció del soci i a la del convidat.
+- **Del recurs no s'hi fa:** triar sessió i opcions (Comanda), que el pla no té; els passos només indiquen on és, i la inscripció i el pagament els fa el servidor.
 
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.

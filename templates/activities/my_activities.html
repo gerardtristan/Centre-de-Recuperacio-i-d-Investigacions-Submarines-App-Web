@@ -1,11 +1,30 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {# T-M02-22b (C16; RN-M02-25 i 45): «Les meves activitats». Només les inscripcions de la persona del compte: estat, pagament pendent, calendari (.ics sense cap persona), certificat emès, blocs d'altres mòduls (el material del 03) i l'historial d'assistència. Cap dada d'altres participants. #}
 {% block title %}{% translate "Les meves activitats" %} · C.R.I.S.{% endblock %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/horario.css' %}">{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Activitats" %}</p>
   <h1>{% translate "Les meves activitats" %}</h1>
   {% include "activities/_missatges.html" %}
+  {% if agenda %}
+    {# T-DX-112 Horario (C16; design-system §6.25): les properes sessions on té plaça, per dia; només les seves (RN-M02-25). #}
+    <section class="horario" aria-labelledby="titol-horari">
+      <h2 id="titol-horari">{% translate "Horari" %}</h2>
+      <ol class="horario-dies">
+        {% for day, sessions in agenda %}
+          <li class="horario-dia">
+            <h3><time datetime="{{ day|date:'Y-m-d' }}">{{ day|date:"l"|capfirst }}, {{ day|date:"d/m/Y" }}</time></h3>
+            <ul class="horario-actes">
+              {% for session in sessions %}
+                <li class="horario-acte"><strong>{{ session.activity.title }}</strong><span class="horario-dades"><time datetime="{{ session.starts_at|date:'c' }}">{{ session.starts_at|time:"H:i" }}</time>–<time datetime="{{ session.ends_at|date:'c' }}">{{ session.ends_at|time:"H:i" }}</time> · {{ session.get_kind_display }} · {{ session.place.name }}</span></li>
+              {% endfor %}
+            </ul>
+          </li>
+        {% endfor %}
+      </ol>
+    </section>
+  {% endif %}
   {% for row in rows %}{% with enrolment=row.enrolment activity=row.enrolment.activity %}
     <section class="targeta" aria-labelledby="inscripcio-{{ enrolment.pk }}">
       <h2 id="inscripcio-{{ enrolment.pk }}">{{ activity.title }}</h2>
