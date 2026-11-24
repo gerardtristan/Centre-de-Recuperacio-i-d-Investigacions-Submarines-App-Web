@@ -3,7 +3,8 @@ RN-M07-06 i 08; CA-M07-06, 07, 09 i 10). Tot darrere de `website.newsletter_enab
 no s'encén a producció sense la P-42).
 
 - `subscribe`: la mateixa resposta per a tothom (ho fa la vista). Un correu ja confirmat no canvia
-  ni rep res; un de nou, un de pendent o un de baixa queda pendent amb un enllaç nou.
+  ni rep res; un de pendent torna a quedar pendent amb un enllaç nou, i un de nou (també el d'una
+  baixa anterior, que ja no guarda el correu: `forget`) és una fila nova pendent.
 - `confirm`: d'un sol ús en efecte (obrir-lo dues vegades deixa una sola subscripció confirmada);
   passades `website.newsletter_confirm_hours`, no subscriu.
 - `unsubscribe`: immediata, sense sessió, i tornar-la a obrir no canvia res. En queda només la

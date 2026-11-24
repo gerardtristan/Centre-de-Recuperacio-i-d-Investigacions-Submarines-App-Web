@@ -1355,6 +1355,18 @@ opcions:
       que existeix fins al final del termini, com la resta de la plataforma; B perdria aquesta traça abans d'hora.
     data: 2026-11-24
 
+  P-624:
+    opcions:
+      A: "Només el correu de contacte i el d'entrada dels comptes personals, menys les adreces que també té una altra persona activa; el resum diu quantes coses cal revisar a mà."
+      B: "Totes les adreces de la persona, també les compartides i la de notificació dels comptes d'administrador."
+      C: "Només el correu d'entrada dels comptes personals (únic); el de contacte mai."
+      D: "Com A, però les adreces compartides s'esborren igualment si qui aprova ho marca a la pantalla."
+    recomanada: A
+    perque: >-
+      Mai toca ni lliura dades d'una altra persona (l'esborrat no es pot desfer) i no deixa res amagat: el que és d'una adreça
+      compartida surt al resum perquè ho revisi una persona; C deixaria sense esborrar els missatges dels visitants sense compte.
+    data: 2026-11-24
+
 noves:
   P-412:
     opcions:

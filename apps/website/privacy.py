@@ -2,7 +2,9 @@
 CA-M07-21). Es registra a la base comuna des de `WebsiteConfig.ready`; la 00 no importa el mòdul.
 
 Els missatges de contacte i les subscripcions al butlletí no són d'una persona de la 00 (P-492):
-es troben pel correu. Les adreces d'una persona són la de contacte i les dels seus comptes.
+es troben pel correu. Les adreces d'una persona són la de contacte i la d'entrada dels seus comptes
+personals, menys les que també té una altra persona activa (P-624): una adreça de família o una
+bústia de rol no s'exporta ni s'esborra, i el resum de qui aprova diu quantes coses cal revisar.
 
 - **Exportació:** els seus missatges (motiu, nom, correu, text, estat, resposta i dates) i les
   seves subscripcions (correu, estat, versió del text i dates).
@@ -22,7 +24,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
 
-from apps.accounts import privacy as accounts_privacy
+from apps.accounts.models import Account
 from apps.core.models import Person
 from apps.core.persons import anonymous_email
 
@@ -44,22 +46,45 @@ def remember_email(sender, instance, **kwargs):
             setattr(instance, _ERASED_EMAIL, old)
 
 
-def _addresses(person) -> set[str]:
+def _own_addresses(person) -> set[str]:
+    """El correu de contacte i el d'entrada dels comptes personals (únic). Mai el de notificació
+    d'un compte d'administrador, que pot ser una bústia de rol (P-624)."""
     found = {person.contact_email, getattr(person, _ERASED_EMAIL, "")}
-    return {a.strip().lower() for a in found | accounts_privacy.addresses(person)} - {""}
+    found |= set(person.accounts.filter(kind=Account.Kind.PERSONAL).values_list("login", flat=True))
+    return {a.strip().lower() for a in found} - {""}
 
 
-def _messages(person):
+def _shared(addresses: set[str], person) -> set[str]:
+    """Les que també té una altra persona activa, com a correu de contacte o de compte (P-624)."""
+    shared = set()
+    for address in addresses:
+        others = Q(contact_email__iexact=address) | Q(accounts__login__iexact=address)
+        others |= Q(accounts__notification_email__iexact=address)
+        if Person.objects.filter(others, status=Person.Status.ACTIVE).exclude(pk=person.pk):
+            shared.add(address)
+    return shared
+
+
+def _addresses(person) -> set[str]:
+    own = _own_addresses(person)
+    return own - _shared(own, person)
+
+
+def _matching(addresses):
     match = Q(pk__in=[])
-    for address in _addresses(person):
+    for address in addresses:
         match |= Q(email__iexact=address)
-    return ContactMessage.objects.filter(match).select_related("reason")
+    return match
 
 
-def _subscriptions(person):
-    return NewsletterSubscription.objects.filter(email__in=_addresses(person)).select_related(
-        "legal_text"
-    )
+def _messages(person, addresses=None):
+    addresses = _addresses(person) if addresses is None else addresses
+    return ContactMessage.objects.filter(_matching(addresses)).select_related("reason")
+
+
+def _subscriptions(person, addresses=None):
+    addresses = _addresses(person) if addresses is None else addresses
+    return NewsletterSubscription.objects.filter(email__in=addresses).select_related("legal_text")
 
 
 def export(person) -> dict:
@@ -104,7 +129,35 @@ def describe(person) -> list[str]:
         )
     if _subscriptions(person).exclude(status=NewsletterSubscription.Status.UNSUBSCRIBED).exists():
         lines.append(_("Està subscrita al butlletí: es donarà de baixa."))
+    shared = _shared(_own_addresses(person), person)
+    messages, subscriptions = _messages(person, shared).count(), _subscriptions(person, shared)
+    subscriptions = subscriptions.exclude(status=NewsletterSubscription.Status.UNSUBSCRIBED).count()
+    if messages or subscriptions:
+        lines.append(_shared_line(messages, subscriptions))
     return [str(line) for line in lines]
+
+
+def _shared_line(messages: int, subscriptions: int) -> str:
+    parts = []
+    if messages:
+        parts.append(
+            ngettext("%(n)s missatge de contacte", "%(n)s missatges de contacte", messages)
+            % {"n": messages}
+        )
+    if subscriptions:
+        parts.append(
+            ngettext(
+                "%(n)s subscripció al butlletí", "%(n)s subscripcions al butlletí", subscriptions
+            )
+            % {"n": subscriptions}
+        )
+    return ngettext(
+        "%(what)s és d'una adreça que també té una altra persona: no es tocarà; "
+        "cal revisar-ho a mà.",
+        "%(what)s són d'una adreça que també té una altra persona: no es tocaran; "
+        "cal revisar-los a mà.",
+        messages + subscriptions,
+    ) % {"what": _(" i ").join(parts)}
 
 
 def anonymise(person, *, by, request=None) -> None:
