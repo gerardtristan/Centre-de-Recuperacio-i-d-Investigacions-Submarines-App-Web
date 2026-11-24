@@ -12,7 +12,7 @@ from apps.core.charges import euros
 from apps.core.models import Department, Person
 from apps.core.permissions import accounts_with_perm
 
-from . import catalogue, extensions, permissions
+from . import catalogue, extensions, permissions, sessions
 from .models import (
     Activity,
     CertificationLevel,
@@ -21,6 +21,7 @@ from .models import (
     OutingType,
     Place,
     RequirementsMode,
+    Session,
     SpecialitiesRule,
     TrainingCatalogueEntry,
 )
@@ -449,3 +450,56 @@ class ProjectForm(forms.ModelForm):
     def __init__(self, data=None):
         super().__init__(data, prefix="projecte")
         self.fields["department"].queryset = Department.objects.filter(active=True)
+
+
+class _PersonChoices(forms.ModelMultipleChoiceField):
+    def label_from_instance(self, person):
+        return f"{person.first_name} {person.last_name}".strip()
+
+
+class SessionForm(forms.Form):
+    """Una sessió nova (T-M02-06c2; CA-M02-47): classe, horari, un lloc actiu i instructors. Les
+    regles (lloc obligatori i actiu, horari, requisits dels instructors) són de `sessions`."""
+
+    kind = forms.ChoiceField(label=_("Classe"), choices=Session.Kind.choices)
+    starts_at = moment_field(_("Comença"))
+    ends_at = moment_field(_("Acaba"))
+    place = forms.ModelChoiceField(label=_("Lloc"), queryset=Place.objects.none())
+    is_practice = forms.BooleanField(label=_("És una pràctica que s'avalua"), required=False)
+    instructors = _PersonChoices(
+        label=_("Instructors"), queryset=Person.objects.none(), required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )  # fmt: skip
+
+    def __init__(self, data=None):
+        super().__init__(data, prefix="sessio")
+        self.fields["place"].queryset = Place.objects.filter(active=True).order_by("name")
+        self.fields["instructors"].queryset = sessions.instructor_people().order_by(
+            "first_name", "last_name"
+        )
+
+
+class BlockForm(forms.Form):
+    """Un bloc nou al programa del dia (T-M02-06c2): hora, què s'hi fa, el lloc (buit: el de
+    l'activitat) i qui se n'encarrega com a funció, mai un nom ni un contacte (M02-6)."""
+
+    starts_at = forms.TimeField(
+        label=_("Hora d'inici"), widget=forms.TimeInput(attrs={"type": "time"})
+    )
+    ends_at = forms.TimeField(
+        label=_("Hora de final (opcional)"), required=False,
+        widget=forms.TimeInput(attrs={"type": "time"}),
+    )  # fmt: skip
+    label = forms.CharField(label=_("Què s'hi fa"), max_length=80)
+    place = forms.ModelChoiceField(
+        label=_("Lloc (opcional)"), queryset=Place.objects.none(), required=False,
+        help_text=_("En blanc, el de l'activitat."),
+    )  # fmt: skip
+    responsible_label = forms.CharField(
+        label=_("Qui se n'encarrega (una funció)"), max_length=80, required=False,
+        help_text=_("Per exemple, «cap d'immersió». Sense noms, correus ni telèfons."),
+    )  # fmt: skip
+
+    def __init__(self, data=None):
+        super().__init__(data, prefix="bloc")
+        self.fields["place"].queryset = Place.objects.filter(active=True).order_by("name")

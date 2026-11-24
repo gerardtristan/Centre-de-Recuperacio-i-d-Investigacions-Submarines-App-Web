@@ -27,6 +27,7 @@ from apps.core.permissions import has_perm, permission_required
 from .. import (
     cancellation,
     closing,
+    duplicate,
     enrolment,
     guests,
     material_cost,
@@ -34,7 +35,7 @@ from .. import (
     sessions,
     states,
 )
-from ..forms import ActivityForm, GuestEnrolmentForm, MaterialCostForm
+from ..forms import ActivityForm, BlockForm, GuestEnrolmentForm, MaterialCostForm, SessionForm
 from ..models import Activity, SpecialitiesRule
 from ..permissions import (
     CATALOGUE,
@@ -55,6 +56,8 @@ ADD_TITLES = {K.COURSE: _("Curs nou"), K.OUTING: _("Sortida nova")}
 ADDED = _("Activitat creada en esborrany. Afegeix-hi les sessions o el programa i publica-la.")
 SAVED = _("Canvis desats. Queden al registre d'activitat amb el valor anterior.")
 UNCHANGED = _("No hi havia cap canvi per desar.")
+DUPLICATED = _("Còpia creada en esborrany. Revisa-la i publica-la quan sigui a punt.")
+SCHEDULE_DONE = _("Desat. El canvi queda al registre d'activitat.")
 STATE_DONE = _("Estat desat. Queda al registre d'activitat.")
 DESK_DONE = _("Inscripció feta. Si es paga, la persona rebrà al correu l'enllaç per pagar.")
 LIVE = "vives"
@@ -191,11 +194,26 @@ def _desk_form(request, activity, data=None):
     return form
 
 
+def _duplicate(request, activity):
+    """T-M02-06c3 (026; RN-M02-21 i 44): una còpia en esborrany que comença el dia que es tria;
+    porta a editar-la. El servei comprova AC7, la data i els llocs."""
+    try:
+        new_start = datetime.date.fromisoformat(request.POST.get("nou_inici", ""))
+        copy = duplicate.duplicate(activity, new_start, by=request.user, request=request)
+    except ValueError:
+        messages.error(request, _("Escriu la data d'inici de la còpia."))
+    except ValidationError as error:
+        messages.error(request, " ".join(error.messages))
+    else:
+        messages.success(request, DUPLICATED)
+        return see_other("administration:activity_edit", copy.pk)
+    return _to_detail(activity)
+
+
 def _state_actions(request, activity) -> list[tuple[str, str]]:
     """Els passos d'estat que el responsable pot fer ara (RN-M02-02). El servei torna a
-    comprovar el permís i les condicions; aquí només es decideix quins botons surten."""
-    if not has_perm(request.user, MANAGE, write=True):
-        return []
+    comprovar el permís i les condicions; aquí només es decideix quins botons surten. AC7 només
+    té l'abast «tot»: qui veu la fitxa també pot canviar l'estat."""
     targets, actions = states.allowed_targets(activity), []
     if activity.status == S.DRAFT:
         actions.append(("publica", _("Publica")))
@@ -244,7 +262,56 @@ def _moment(value):
         raise ValidationError(_("Escriu el dia i l'hora de la data límit.")) from error
 
 
-def _detail(request, activity, material_form=None, desk_form=None):
+SCHEDULE_KEYS = ("sessio_nova", "cancel_sessio", "bloc_nou", "treu_bloc")
+
+
+def _blocks_data(activity) -> list[dict]:
+    return [
+        {name: getattr(block, name) for name in sessions.BLOCK_FIELDS}
+        for block in activity.programme_blocks.order_by("order")
+    ]
+
+
+def _edit_schedule(request, activity):
+    """T-M02-06c2: afegir o cancel·lar una sessió i afegir o treure un bloc del programa (AC7;
+    els serveis de `sessions` tornen a comprovar el permís i les regles)."""
+    who, post = {"by": request.user, "request": request}, request.POST
+    session_form = block_form = None
+    try:
+        if "sessio_nova" in post:
+            session_form = SessionForm(post)
+            if not session_form.is_valid():
+                return _detail(request, activity, session_form=session_form)
+            sessions.add_session(activity, **session_form.cleaned_data, **who)
+        elif "cancel_sessio" in post:
+            session = get_object_or_404(activity.sessions, pk=post.get("cancel_sessio"))
+            sessions.cancel_session(session, reason=post.get("motiu", ""), **who)
+        elif "bloc_nou" in post:
+            block_form = BlockForm(post)
+            if not block_form.is_valid():
+                return _detail(request, activity, block_form=block_form)
+            blocks = [*_blocks_data(activity), block_form.cleaned_data]
+            sessions.set_programme(activity, blocks, **who)
+        else:
+            blocks = _blocks_data(activity)
+            index = int(post.get("treu_bloc", "0") or 0) - 1
+            if not 0 <= index < len(blocks):
+                raise Http404
+            sessions.set_programme(activity, blocks[:index] + blocks[index + 1 :], **who)
+    except ValidationError as error:
+        form = session_form or block_form
+        if form is None:
+            messages.error(request, " ".join(error.messages))
+            return _to_detail(activity)
+        form.add_error(None, error)
+        return _detail(request, activity, session_form=session_form, block_form=block_form)
+    messages.success(request, SCHEDULE_DONE)
+    return _to_detail(activity)
+
+
+def _detail(
+    request, activity, material_form=None, desk_form=None, session_form=None, block_form=None
+):
     without_instructor = set(
         sessions.sessions_without_instructor(timezone.now())
         .filter(activity=activity)
@@ -273,6 +340,11 @@ def _detail(request, activity, material_form=None, desk_form=None):
         "material": _material_cost(request, activity, material_form),
         "desk_form": desk_form or _desk_form(request, activity),
         "state_actions": _state_actions(request, activity),
+        "can_duplicate": has_perm(request.user, MANAGE, write=True),
+        "schedule_editable": states.is_editable(activity)
+        and has_perm(request.user, MANAGE, write=True),
+        "session_form": session_form or SessionForm(),
+        "block_form": block_form or BlockForm(),
         "can_cancel": S.CANCELLED in states.allowed_targets(activity)
         and has_perm(request.user, MANAGE, write=True),
         # T-M02-22b: «Què falta per tancar» (sense dades personals; el tancament és del 09)
@@ -294,6 +366,11 @@ def activity_detail_view(request, pk):
         return _enrol_at_desk(request, activity)
     if "accio" in request.POST:
         return _change_state(request, activity)
+    if "duplica" in request.POST:
+        return _duplicate(request, activity)
+    if any(key in request.POST for key in SCHEDULE_KEYS):
+        require(request.user, MANAGE, request=request)
+        return _edit_schedule(request, activity)
     # Fora del seu abast, «no trobat» i registre (el servei ho torna a mirar)
     require(request.user, MATERIAL_COST, activity, request=request)
     form = MaterialCostForm(request.POST)

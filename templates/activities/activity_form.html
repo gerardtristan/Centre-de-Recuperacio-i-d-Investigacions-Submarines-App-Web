@@ -6,6 +6,7 @@
   <p class="etiqueta-seccio">{% translate "Activitats" %}</p>
   <h1>{{ title }}</h1>
   {% if activity %}<p>{{ activity.title }}</p>{% endif %}
+  {% include "activities/_missatges.html" %}
   <form class="formulari" method="post" novalidate>
     {% csrf_token %}
     {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}

@@ -46,6 +46,21 @@
     </section>
   {% endif %}
 
+  {% if can_duplicate %}
+    <details>
+      <summary>{% translate "Duplica l'activitat" %}</summary>
+      <form class="formulari" method="post" novalidate>
+        {% csrf_token %}
+        <div class="camp">
+          <label for="nou-inici">{% translate "Data d'inici de la còpia" %}</label>
+          <input id="nou-inici" type="date" name="nou_inici" required>
+          <p class="ajuda">{% translate "La còpia es crea en esborrany, amb les sessions i el programa moguts a la nova data i els mateixos preus. Un lloc desactivat queda buit." %}</p>
+        </div>
+        <div class="accions"><button class="boto" type="submit" name="duplica" value="1">{% translate "Crea la còpia" %}</button></div>
+      </form>
+    </details>
+  {% endif %}
+
   <section aria-labelledby="dades-titol">
     <h2 id="dades-titol">{% translate "Dades" %}</h2>
     <dl class="dades-soci">
@@ -125,6 +140,7 @@
             <th scope="col">{% translate "Horari" %}</th>
             <th scope="col">{% translate "Lloc" %}</th>
             <th scope="col">{% translate "Instructors" %}</th>
+            {% if schedule_editable %}<th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>{% endif %}
           </tr>
         </thead>
         <tbody>
@@ -134,12 +150,32 @@
               <td data-etiqueta="{% translate 'Horari' %}"><span><time datetime="{{ row.session.starts_at|date:'c' }}">{{ row.session.starts_at|date:"d/m/Y H:i" }}</time> – {{ row.session.ends_at|date:"H:i" }}</span></td>
               <td data-etiqueta="{% translate 'Lloc' %}">{{ row.session.place.name|default:"—" }}</td>
               <td data-etiqueta="{% translate 'Instructors' %}"><span>{% for person in row.instructors %}{{ person }}{% if not forloop.last %}, {% endif %}{% empty %}{% if row.needs_instructor %}<span class="estat estat-avis"><span aria-hidden="true">!</span> {% translate "Sense instructor" %}</span>{% else %}—{% endif %}{% endfor %}</span></td>
+              {% if schedule_editable %}<td class="cel-accions">{% if not row.session.cancelled %}
+                <form method="post" class="accions" novalidate>
+                  {% csrf_token %}
+                  <div class="camp"><label class="visualment-amagat" for="motiu-sessio-{{ row.session.pk }}">{% translate "Motiu de la cancel·lació de la sessió" %}</label>
+                  <input id="motiu-sessio-{{ row.session.pk }}" name="motiu" placeholder="{% translate 'Motiu' %}" required></div>
+                  <button class="boto boto-petit" type="submit" name="cancel_sessio" value="{{ row.session.pk }}">{% translate "Cancel·la" %}<span class="visualment-amagat">: {{ row.session.get_kind_display }} {{ row.session.starts_at|date:"d/m/Y H:i" }}</span></button>
+                </form>{% endif %}</td>{% endif %}
             </tr>
           {% endfor %}
         </tbody>
       </table>
     {% else %}
       <p>{% translate "Encara no té cap sessió." %}</p>
+    {% endif %}
+    {% if schedule_editable %}
+      <details{% if session_form.errors %} open{% endif %}>
+        <summary>{% translate "Afegeix una sessió" %}</summary>
+        <form class="formulari" method="post" novalidate>
+          {% csrf_token %}
+          {% with form=session_form %}{% include "_errata.html" %}{% endwith %}
+          {% for field in session_form %}{% if field.name == "instructors" %}
+            <fieldset><legend>{{ field.label }}</legend>{% for box in field %}<label class="casella" for="{{ box.id_for_label }}">{{ box.tag }} <span>{{ box.choice_label }}</span></label>{% empty %}<p class="text-2">{% translate "Encara no hi ha cap instructor." %}</p>{% endfor %}{{ field.errors }}</fieldset>
+          {% else %}{% include "accounts/_camp.html" %}{% endif %}{% endfor %}
+          <div class="accions"><button class="boto" type="submit" name="sessio_nova" value="1">{% translate "Afegeix la sessió" %}</button></div>
+        </form>
+      </details>
     {% endif %}
   </section>
 
@@ -154,6 +190,7 @@
             <th scope="col">{% translate "Què s'hi fa" %}</th>
             <th scope="col">{% translate "Lloc" %}</th>
             <th scope="col">{% translate "Qui se n'encarrega" %}</th>
+            {% if schedule_editable %}<th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>{% endif %}
           </tr>
         </thead>
         <tbody>
@@ -163,12 +200,23 @@
               <td data-etiqueta="{% translate "Què s'hi fa" %}">{{ block.label }}</td>
               <td data-etiqueta="{% translate 'Lloc' %}">{{ block.place.name|default:"—" }}</td>
               <td data-etiqueta="{% translate "Qui se n'encarrega" %}">{{ block.responsible_label|default:"—" }}</td>
+              {% if schedule_editable %}<td class="cel-accions"><form method="post" class="accions">{% csrf_token %}<button class="boto boto-petit" type="submit" name="treu_bloc" value="{{ forloop.counter }}">{% translate "Treu" %}<span class="visualment-amagat">: {{ block.label }}</span></button></form></td>{% endif %}
             </tr>
           {% endfor %}
         </tbody>
       </table>
     {% else %}
       <p>{% translate "Encara no té programa." %}</p>
+    {% endif %}
+    {% if schedule_editable %}
+      <details{% if block_form.errors %} open{% endif %}>
+        <summary>{% translate "Afegeix un bloc al programa" %}</summary>
+        <form class="formulari" method="post" novalidate>
+          {% csrf_token %}
+          {% with form=block_form %}{% include "_errata.html" %}{% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}{% endwith %}
+          <div class="accions"><button class="boto" type="submit" name="bloc_nou" value="1">{% translate "Afegeix el bloc" %}</button></div>
+        </form>
+      </details>
     {% endif %}
   </section>
   <p class="enllacos"><a href="{% url 'administration:activities' %}">{% translate "Tornar a les activitats" %}</a></p>

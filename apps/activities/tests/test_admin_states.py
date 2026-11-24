@@ -83,3 +83,12 @@ def test_without_ac7_nothing_changes(login_as, make_admin, manager):  # noqa: F8
 
 def test_an_unknown_action_is_not_found(login_as, manager):
     assert act(login_as(manager, AREA_ADMIN), an_outing(manager), "esborra").status_code == 404
+
+
+def test_a_reopen_date_that_is_not_a_date_is_rejected(login_as, manager):
+    outing = an_open_outing(manager)
+    client = login_as(manager, AREA_ADMIN)
+    act(client, outing, "tanca")
+    response = client.get(act(client, outing, "reobre", closes_at="demà")["Location"])
+    assert "Escriu el dia i l'hora" in html.unescape(response.content.decode())
+    assert status(outing) == S.REGISTRATION_CLOSED
