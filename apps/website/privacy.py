@@ -14,9 +14,9 @@ bústia de rol no s'exporta ni s'esborra, i el resum de qui aprova diu quantes c
   tanca, i la purga diària (T-M07-12) l'esborra passat el termini. Les subscripcions es donen de
   baixa i en queda només la traça (M07-12): l'estat, la versió del text i els esborrats.
 
-La 00 buida el correu de contacte de la persona abans de cridar els mòduls: `remember_email` el
-desa a la mateixa instància just abans (torn del nucli: passar les adreces als mòduls; vegeu
-`docs/estat/M07.md`).
+La 00 buida el correu de contacte de la persona abans de cridar els mòduls: `anonymise` el rep a
+`known_addresses` (el mòdul es registra amb `addresses=True`), on també hi ha els correus dels
+comptes; el de notificació d'un compte d'administrador no hi compta.
 """
 
 from django.db.models import Q
@@ -31,25 +31,15 @@ from apps.core.persons import anonymous_email
 from . import newsletter
 from .models import ContactMessage, NewsletterSubscription
 
-_ERASED_EMAIL = "_website_erased_email"
 
-
-def remember_email(sender, instance, **kwargs):
-    """`pre_save` de la persona: en passar a anonimitzada, el correu de contacte que tenia."""
-    if instance.pk and instance.status == Person.Status.ANONYMISED:
-        old = (
-            Person.objects.filter(pk=instance.pk, status=Person.Status.ACTIVE)
-            .values_list("contact_email", flat=True)
-            .first()
-        )
-        if old:
-            setattr(instance, _ERASED_EMAIL, old)
-
-
-def _own_addresses(person) -> set[str]:
-    """El correu de contacte i el d'entrada dels comptes personals (únic). Mai el de notificació
-    d'un compte d'administrador, que pot ser una bústia de rol (P-624)."""
-    found = {person.contact_email, getattr(person, _ERASED_EMAIL, "")}
+def _own_addresses(person, known=()) -> set[str]:
+    """El correu de contacte i el d'entrada dels comptes personals (únic), i les adreces que la 00
+    ha pres abans de buidar la persona. Mai el de notificació d'un compte d'administrador, que pot
+    ser una bústia de rol (P-624)."""
+    found = {person.contact_email, *known}
+    found -= set(
+        person.accounts.filter(kind=Account.Kind.ADMIN).values_list("notification_email", flat=True)
+    )
     found |= set(person.accounts.filter(kind=Account.Kind.PERSONAL).values_list("login", flat=True))
     return {a.strip().lower() for a in found} - {""}
 
@@ -65,8 +55,8 @@ def _shared(addresses: set[str], person) -> set[str]:
     return shared
 
 
-def _addresses(person) -> set[str]:
-    own = _own_addresses(person)
+def _addresses(person, known=()) -> set[str]:
+    own = _own_addresses(person, known)
     return own - _shared(own, person)
 
 
@@ -160,9 +150,10 @@ def _shared_line(messages: int, subscriptions: int) -> str:
     ) % {"what": _(" i ").join(parts)}
 
 
-def anonymise(person, *, by, request=None) -> None:
+def anonymise(person, *, by, request=None, known_addresses=()) -> None:
     ref = person.anonymous_ref
-    for message in _messages(person):
+    addresses = _addresses(person, known_addresses)
+    for message in _messages(person, addresses):
         message.name, message.email = ref, anonymous_email(ref)
         message.body = message.answer = ""
         if message.closed_reason or message.status == ContactMessage.Status.NEW:
@@ -171,7 +162,7 @@ def anonymise(person, *, by, request=None) -> None:
             message.status = ContactMessage.Status.CLOSED
         message.finished_at = message.finished_at or timezone.now()
         message.save()
-    for subscription in _subscriptions(person):
+    for subscription in _subscriptions(person, addresses):
         newsletter.forget(subscription)
 
 
