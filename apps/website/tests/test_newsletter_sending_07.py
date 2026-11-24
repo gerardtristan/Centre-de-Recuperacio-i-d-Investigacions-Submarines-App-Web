@@ -124,3 +124,13 @@ def test_ca_m07_08_each_email_has_the_unsubscribe_link_and_low_priority(three, p
     assert email.priority == OutgoingEmail.Priority.NEWSLETTER
     assert f"/butlleti/baixa/{three.token}/" in email.body_text
     assert email.to_address == "confirmada@example.org"
+
+
+def test_the_newsletter_subject_is_not_html_escaped():
+    from apps.core import mail
+
+    email = mail.queue_email(
+        newsletter.TEMPLATE, to="x@example.org",
+        context={"subject": "Cursos & sortides", "body": "b", "unsubscribe_url": "u"},
+    )  # fmt: skip
+    assert email.subject == "Cursos & sortides"

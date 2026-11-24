@@ -254,3 +254,13 @@ def test_replying_out_of_scope_is_not_found(make_admin):  # noqa: F811
         with pytest.raises(ContactMessage.DoesNotExist):
             contact.reply(_message(), actor=account, answer="Fora d'abast")
     assert not OutgoingEmail.objects.exists()
+
+
+@pytest.mark.parametrize("template", [contact.NOTICE_TEMPLATE, contact.REPLY_TEMPLATE])
+def test_the_subject_is_not_html_escaped(template):
+    from apps.core import mail
+
+    email = mail.queue_email(
+        template, to="x@example.org", context={"reason": "Cursos & sortides", "answer": "a"}
+    )
+    assert "Cursos & sortides" in email.subject
