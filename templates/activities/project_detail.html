@@ -24,7 +24,7 @@
         <tr>
           <th scope="row" class="cel-nom"><a href="{% url 'administration:activity_environment' activity.pk %}">{{ activity.title }}</a></th>
           <td data-etiqueta="{% translate "Data" %}"><time datetime="{{ activity.starts_on|date:'Y-m-d' }}">{{ activity.starts_on|date:"d/m/Y" }}</time></td>
-          <td data-etiqueta="{% translate "Estat" %}">{{ activity.get_status_display }}</td>
+          <td data-etiqueta="{% translate "Estat" %}">{% include "activities/_activity_status.html" %}</td>
           <td data-etiqueta="{% translate "Resultats" %}">{% if result %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Registrats" %}</span>{% else %}<span class="estat estat-neutre">{% translate "Pendents" %}</span>{% endif %}</td>
         </tr>
       {% empty %}

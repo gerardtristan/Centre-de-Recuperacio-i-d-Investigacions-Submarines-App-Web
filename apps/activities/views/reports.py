@@ -9,9 +9,11 @@ amb un POST i queda al registre; el de l'ocupació només porta recomptes (GET).
 
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
+from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods
 
+from apps.core.charges import euros
 from apps.core.permissions import permission_required
 
 from .. import reports
@@ -45,6 +47,11 @@ def participants_view(request, pk):
         content = reports.participants_csv(activity, viewer=request.user, request=request)
         return _csv(content, f"participants-activitat-{activity.pk}.csv")
     headers, rows = reports.participants_report(activity, viewer=request.user, request=request)
+    # A la pantalla, el preu en euros (B18); el CSV el deixa en cèntims, per fer-hi càlculs.
+    if (cents := _("Preu (cèntims)")) in headers:
+        i = headers.index(cents)
+        headers = [*headers[:i], _("Preu"), *headers[i + 1 :]]
+        rows = [[*c[:i], "—" if c[i] is None else euros(c[i]), *c[i + 1 :]] for c in rows]
     # Cada cel·la amb la seva capçalera: a 390 px la taula es llegeix per targetes (data-etiqueta).
     rows = [list(zip(headers, cells, strict=True)) for cells in rows]
     context = {"activity": activity, "headers": headers, "rows": rows}

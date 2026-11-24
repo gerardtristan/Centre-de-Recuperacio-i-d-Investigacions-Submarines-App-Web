@@ -13,7 +13,7 @@
         <div><dt>{% translate "Dates" %}</dt><dd><time datetime="{{ activity.starts_on|date:'Y-m-d' }}">{{ activity.starts_on|date:"d/m/Y" }}</time>{% if activity.ends_on != activity.starts_on %} – <time datetime="{{ activity.ends_on|date:'Y-m-d' }}">{{ activity.ends_on|date:"d/m/Y" }}</time>{% endif %}</dd></div>
         {% if activity.place %}<div><dt>{% translate "Lloc" %}</dt><dd>{{ activity.place.name }}</dd></div>{% endif %}
         <div><dt>{% translate "Inscripció" %}</dt><dd>{{ enrolment.get_status_display }}</dd></div>
-        {% if row.certificate %}<div><dt>{% translate "Certificat" %}</dt><dd>{{ row.certificate.number }} · {{ row.certificate.grants }} · {{ row.certificate.issued_on|date:"d/m/Y" }}</dd></div>{% endif %}
+        {% if row.certificate %}<div><dt>{% translate "Certificat" %}</dt><dd><span class="codi">{{ row.certificate.number }}</span> · {{ row.certificate.grants }} · {{ row.certificate.issued_on|date:"d/m/Y" }}</dd></div>{% endif %}
       </dl>
       <div class="accions">
         {% if enrolment.status == "pending_payment" and enrolment.charge_id %}<a class="boto boto-principal" href="{% url 'payments:charge' enrolment.charge_id %}">{% translate "Paga-la" %}<span class="visualment-amagat">: {{ activity.title }}</span></a>{% endif %}

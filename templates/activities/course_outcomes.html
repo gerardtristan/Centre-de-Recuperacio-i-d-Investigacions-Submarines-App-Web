@@ -50,7 +50,7 @@
                 <select id="nivell-{{ row.pk }}" name="nivell"><option value="">{% translate "Tria…" %}</option>{% for level in levels %}<option value="{{ level.pk }}">{{ level.name }}</option>{% endfor %}</select>
               </div>
             {% endif %}
-            <div class="accions"><button class="boto boto-principal" type="submit" name="emet" value="1">{% translate "Emet el certificat" %}</button></div>
+            <div class="accions"><button class="boto" type="submit" name="emet" value="1">{% translate "Emet el certificat" %}</button></div>
           </form>
         {% endif %}
       {% endif %}
