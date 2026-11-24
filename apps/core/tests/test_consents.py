@@ -49,6 +49,23 @@ class TestPublishing:
         with pytest.raises(ValidationError):
             consents.publish_text("privacy", "   ", by=publisher)
 
+    @pytest.mark.parametrize(
+        ("text", "mark"),
+        [
+            ("Termini de 6 anys [A validar: gestoria].", "[A validar"),
+            ("Responsable: el club [a verificar].", "[A verificar"),
+        ],
+    )
+    def test_p424_a_text_with_a_pending_mark_is_not_published(self, publisher, text, mark):
+        with pytest.raises(ValidationError) as error:
+            consents.publish_text("privacy", text, by=publisher)
+        assert f"«{mark}»" in error.value.messages[0]
+        assert not LegalText.objects.exists()
+
+    def test_p424_a_text_without_marks_is_published(self, publisher):
+        text = "Termini de 6 anys, validat per la gestoria (inventat)."
+        assert consents.publish_text("privacy", text, by=publisher).content == text
+
     def test_kind_must_be_a_code(self, publisher):
         with pytest.raises(ValidationError):
             consents.publish_text("dret d'imatge", "Text", by=publisher)
