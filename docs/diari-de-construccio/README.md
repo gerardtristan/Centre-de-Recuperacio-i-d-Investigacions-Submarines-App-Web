@@ -617,3 +617,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M07-15](T-M07-15.md) | RGPD del 07: exportació i esborrat dels missatges de contacte i del butlletí, i baixa amb només la traça (carril A) | 24/11/2026 21:09 | (vegeu la PR) | 5 noves | [A comprovar] |
 | [T-M08-08-10-12](T-M08-08-10-12.md) | Dashboard: panell de comunicació, ajustos del 08 i ordre per compte (carril B) | 24/11/2026 21:20 | 78a07245 | 13 noves | [A comprovar] |
 | [T-M07-14](T-M07-14.md) | Butlletí: redactar, enviar per la cua i recomptes (en part: plantilla del correu i pantalles, torn del nucli; carril A) | 24/11/2026 23:03 | (vegeu la PR) | 12 noves i 1 xfail | [A comprovar] |
+| [T-M07-13b](T-M07-13b.md) | Correus del 07 (confirmació del butlletí, avís de contacte i resposta), permisos dels ajustos del dashboard (P-645) i adreces a l'RGPD (torn del nucli) | 24/11/2026 21:45 | (vegeu la PR) | 9 noves i 6 cel·les | [A comprovar] |
