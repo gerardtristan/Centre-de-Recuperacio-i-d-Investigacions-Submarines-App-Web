@@ -29,6 +29,7 @@ from .. import (
     closing,
     duplicate,
     enrolment,
+    environment,
     guests,
     material_cost,
     services,
@@ -40,6 +41,7 @@ from ..models import Activity, SpecialitiesRule
 from ..permissions import (
     CATALOGUE,
     ENROL_IN_PERSON,
+    ENVIRONMENT,
     MANAGE,
     MATERIAL_COST,
     MATERIAL_COST_FIELD,
@@ -339,6 +341,9 @@ def _detail(
         "editable": states.is_editable(activity),
         "margin_link": has_perm(request.user, MARGIN_VIEW, activity),
         "reports_link": has_perm(request.user, REPORTS, activity),  # T-M02-24b
+        # T-M02-20b: resultats d'una sortida de medi ambient (AC14)
+        "environment_link": environment.is_environmental(activity)
+        and has_perm(request.user, ENVIRONMENT),
         "material": _material_cost(request, activity, material_form),
         "desk_form": desk_form or _desk_form(request, activity),
         "state_actions": _state_actions(request, activity),

@@ -16,6 +16,7 @@
     {% if margin_link %}<a class="boto" href="{% url 'administration:activity_margin' activity.pk %}">{% translate "Marge de l'activitat" %}</a>{% endif %}
     {% if reports_link %}<a class="boto" href="{% url 'administration:activity_participants' activity.pk %}">{% translate "Participants" %}</a>
     <a class="boto" href="{% url 'administration:activity_schedule' activity.pk %}">{% translate "Horari per imprimir" %}</a>{% endif %}
+    {% if environment_link %}<a class="boto" href="{% url 'administration:activity_environment' activity.pk %}">{% translate "Resultats ambientals" %}</a>{% endif %}
   </div>
 
   {% if state_actions or can_cancel %}

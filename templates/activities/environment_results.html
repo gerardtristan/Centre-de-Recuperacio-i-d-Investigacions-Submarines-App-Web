@@ -1,0 +1,36 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-20b (AC14; S-M02-14; RN-M02-23): resultats d'una sortida de medi ambient. Amb «Cons.» només es veuen; amb edició es registren quan la sortida ja s'ha fet i es corregeixen (cada canvi, al registre amb el valor anterior). Cap dada de salut. No es publica res. Les fotos encara no existeixen. #}
+{% block title %}{% translate "Resultats ambientals" %} · {{ activity.title }} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Resultats ambientals" %}</p>
+    <h1>{{ activity.title }}</h1>
+    <p class="text-2">{% blocktranslate with start=activity.starts_on|date:"d/m/Y" %}Sortida del {{ start }}. Aquests resultats no es publiquen.{% endblocktranslate %}</p>
+  </header>
+  {% include "activities/_missatges.html" %}
+  {% if result %}
+    <dl class="dades-soci">
+      <div><dt>{% translate "Residus recollits" %}</dt><dd>{{ kilos|default:"—" }}</dd></div>
+      <div><dt>{% translate "Espècies observades" %}</dt><dd>{{ result.species|linebreaksbr|default:"—" }}</dd></div>
+      <div><dt>{% translate "Observacions" %}</dt><dd>{{ result.observations|linebreaksbr|default:"—" }}</dd></div>
+    </dl>
+  {% elif not_yet %}
+    <p>{% translate "Els resultats es registren quan la sortida ja s'ha fet." %}</p>
+  {% else %}
+    <p>{% translate "Encara no s'han registrat els resultats d'aquesta sortida." %}</p>
+  {% endif %}
+  {% if form %}
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      <h2>{% if result %}{% translate "Corregeix els resultats" %}{% else %}{% translate "Registra els resultats" %}{% endif %}</h2>
+      {% include "_errata.html" %}
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Desa els resultats" %}</button></div>
+    </form>
+  {% endif %}
+  <p class="enllacos">
+    {% if activity.project_id %}<a href="{% url 'administration:environmental_project' activity.project_id %}">{% blocktranslate with name=activity.project.name %}Projecte «{{ name }}»{% endblocktranslate %}</a>{% endif %}
+    <a href="{% url 'administration:activity_detail' activity.pk %}">{% translate "Torna a la fitxa de l'activitat" %}</a>
+  </p>
+{% endblock %}
