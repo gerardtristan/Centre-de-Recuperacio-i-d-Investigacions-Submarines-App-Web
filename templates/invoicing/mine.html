@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{# T-M09-21 (MG10, propi): les factures emeses a nom de la persona del compte personal. Només les seves: el servidor filtra per la persona del compte, no la plantilla. La facturació encara és desactivada (RN-M09-19) i el PDF es podrà descarregar quan es desi com a fitxer privat (T-M09-25). Sense dades d'altres persones ni de pagament. #}
+{# T-M09-21 (MG10, propi): les factures emeses a nom de la persona del compte personal. Només les seves: el servidor filtra per la persona del compte, no la plantilla. La facturació encara és desactivada (RN-M09-19). El PDF es descarrega amb la vista `private_file`, que torna a comprovar que el fitxer és de la persona del compte (T-M09-21b; desxifrat i amb registre). Sense dades d'altres persones ni de pagament. #}
 {% block title %}{% translate "Les meves factures" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <header class="capcalera-pagina">
@@ -16,6 +16,7 @@
         <th scope="col">{% translate "Data" %}</th>
         <th scope="col">{% translate "Tipus" %}</th>
         <th scope="col" class="cel-import">{% translate "Total" %}</th>
+        <th scope="col">{% translate "PDF" %}</th>
       </tr>
     </thead>
     <tbody>
@@ -25,11 +26,11 @@
           <td data-etiqueta="{% translate 'Data' %}"><time datetime="{{ row.invoice.issued_on|date:'Y-m-d' }}">{{ row.invoice.issued_on|date:"d/m/Y" }}</time></td>
           <td data-etiqueta="{% translate 'Tipus' %}">{{ row.invoice.get_series_display }}</td>
           <td data-etiqueta="{% translate 'Total' %}" class="cel-import"><span class="import">{{ row.total }}</span></td>
+          <td data-etiqueta="{% translate 'PDF' %}">{% if row.invoice.pdf_file_id %}<a class="boto boto-text boto-petit" href="{% url 'core:private_file' row.invoice.pdf_file_id %}" aria-label="{% blocktranslate with number=row.invoice.number %}Descarrega la factura {{ number }}{% endblocktranslate %}">{% translate "Descarrega" %}</a>{% else %}<span class="text-2">{% translate "Encara no disponible" %}</span>{% endif %}</td>
         </tr>
       {% empty %}
-        <tr><td colspan="4">{% translate "Encara no tens cap factura." %}</td></tr>
+        <tr><td colspan="5">{% translate "Encara no tens cap factura." %}</td></tr>
       {% endfor %}
     </tbody>
   </table>
-  <p class="text-2">{% translate "Aviat les podràs descarregar en PDF." %}</p>
 {% endblock %}

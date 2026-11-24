@@ -36,3 +36,27 @@ def test_t_m09_21_only_my_issued_invoices(login_as):
 def test_without_a_personal_session_it_goes_to_the_login(client):
     response = client.get(reverse("invoicing:my_invoices"))
     assert response.status_code == 302 and "/entrar/" in response["Location"]
+
+
+def test_t_m09_21b_i_download_my_pdf_and_not_another_persons(login_as):
+    from apps.core import files
+    from apps.core.models import PrivateFile
+
+    account = a_personal_account(a_person("Sòcia"))
+    other = a_person("Una altra")
+
+    def stored(person, number):
+        return files.store(f"%PDF-1.4 {number}".encode(), owner=person,
+                           kind=PrivateFile.Kind.ISSUED_INVOICE, content_type="application/pdf",
+                           download_name=f"factura-{number}.pdf")  # fmt: skip
+
+    mine = invoice(account.person, "F-2027-0001", pdf_file=stored(account.person, "F-2027-0001"))
+    invoice(account.person, "F-2027-0003")  # encara sense PDF
+    theirs = stored(other, "F-2027-0002")
+    client = login_as(account, AREA_PERSONAL)
+    html = main_of(client.get(reverse("invoicing:my_invoices")).content.decode())
+    assert html.count(">Descarrega<") == 1 and "Encara no disponible" in html
+    response = client.get(reverse("core:private_file", args=[mine.pdf_file_id]))
+    assert response.content == b"%PDF-1.4 F-2027-0001"
+    assert "attachment" in response["Content-Disposition"]
+    assert client.get(reverse("core:private_file", args=[theirs.pk])).status_code == 404
