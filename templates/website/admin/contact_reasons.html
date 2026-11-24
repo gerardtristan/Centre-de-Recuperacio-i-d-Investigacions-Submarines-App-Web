@@ -1,0 +1,28 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# WP8 (RN-M07-07): la llista de motius de contacte i a qui arriba cada un. És una dada: no s'esborra, es desactiva. Els enllaços d'editar només surten amb permís d'escriptura; el servidor ho torna a comprovar. #}
+{% block title %}{% translate "Motius de contacte" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Web pública" %}</p>
+    <h1>{% translate "Motius de contacte" %}</h1>
+    <p class="text-2">{% translate "Cada motiu arriba als comptes dels rols triats que poden veure el contacte. Un motiu inactiu no surt al formulari." %}</p>
+  </header>
+  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+  {% if can_edit %}<div class="accions"><a class="boto boto-principal" href="{% url 'administration:website_contact_reason_add' %}">{% translate "Motiu nou" %}</a></div>{% endif %}
+  <table class="taula">
+    <caption>{% translate "Per ordre del formulari." %}</caption>
+    <thead><tr><th scope="col">{% translate "Motiu" %}</th><th scope="col">{% translate "Rols que el reben" %}</th><th scope="col">{% translate "Estat" %}</th></tr></thead>
+    <tbody>
+      {% for reason in reasons %}
+        <tr>
+          <th scope="row" class="cel-nom">{% if can_edit %}<a href="{% url 'administration:website_contact_reason_edit' reason.pk %}">{{ reason.name }}</a>{% else %}{{ reason.name }}{% endif %}</th>
+          <td data-etiqueta="{% translate 'Rols que el reben' %}">{% for role in reason.roles.all %}{{ role }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</td>
+          <td data-etiqueta="{% translate 'Estat' %}">{% if reason.active %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Actiu" %}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {% translate "Inactiu" %}</span>{% endif %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3">{% translate "Encara no hi ha cap motiu." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
