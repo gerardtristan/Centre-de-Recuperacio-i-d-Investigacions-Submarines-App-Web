@@ -1,5 +1,5 @@
 # ruff: noqa: F811 (fixtures importades com a paràmetres)
-"""«El meu progrés» a l'àrea personal (T-M02-17b; HU-M02-14; RN-M02-17): el resultat i
+"""«El meu progrés» a l'àrea personal (T-M02-17c; HU-M02-14; RN-M02-17): el resultat i
 l'observació de les pràctiques d'una inscripció seva, sense dades d'altres alumnes. Només dades
 inventades."""
 
