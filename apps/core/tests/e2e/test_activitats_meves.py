@@ -2,6 +2,8 @@
 l'estat, el botó per pagar-la i el calendari; una alumna apta obre el seu certificat per imprimir.
 Pantalles a 1280, 390 i 320 px (clar i fosc). Només dades inventades."""
 
+import datetime
+
 import pytest
 from django.db import transaction
 from django.urls import reverse
@@ -62,3 +64,22 @@ def test_a_student_opens_her_certificate(page, live_server, transactional_db, re
     expect(page.get_by_role("heading", name="Certificat de curs")).to_be_visible()
     expect(page.get_by_text("Nivell inventat B1")).to_be_visible()
     review("certificat-alumna")
+
+
+def test_a_student_sees_her_schedule(page, live_server, transactional_db, review):
+    # T-DX-112 (Horario, C16): les properes sessions del curs on té plaça, per dia.
+    manager = make_admin("cursos.prova", "courses_manager")
+    course = opened(a_course(manager, title="Curs inventat d'horari"))
+    for days in (7, 9):
+        a_session(manager, course, timezone.localdate() + datetime.timedelta(days=days))
+    account = a_member("Alumna")
+    Enrolment.objects.create(
+        activity=course, person=account.person, status=Enrolment.Status.CONFIRMED,
+        channel="account", price_kind="member", price_cents=4500, created_at=timezone.now(),
+    )  # fmt: skip
+
+    log_in(page, live_server, account)
+    page.goto(f"{live_server.url}{reverse('activities:mine')}")
+    expect(page.get_by_role("heading", name="Horari", exact=True)).to_be_visible()
+    expect(page.locator(".horario-acte")).to_have_count(2)
+    review("meves-activitats-horari")
