@@ -9,9 +9,8 @@ no s'encén a producció sense la P-42).
   passades `website.newsletter_confirm_hours`, no subscriu.
 - `unsubscribe`: immediata, sense sessió, i tornar-la a obrir no canvia res. En queda només la
   traça (M07-12, T-M07-15): el correu se substitueix (`forget`).
-
-Falta (torn del nucli): enviar el correu de confirmació; la plantilla es declara a
-`core.mail.TEMPLATE_PRIORITIES`. Vegeu `docs/estat/M07.md`.
+- `send_confirmation`: el correu de confirmació (T-M07-13b), sempre a la cua, amb l'enllaç i
+  res més; la vista hi aplica abans el límit per destinatari.
 """
 
 import secrets
@@ -36,6 +35,7 @@ from .models import Newsletter, NewsletterDelivery, NewsletterEvent, NewsletterS
 ENABLED = "website.newsletter_enabled"
 CONFIRM_HOURS = "website.newsletter_confirm_hours"
 TEXT_KIND = "newsletter"
+CONFIRMATION_TEMPLATE = "confirmacio-butlleti"
 Status = NewsletterSubscription.Status
 Kind = NewsletterEvent.Kind
 
@@ -61,6 +61,17 @@ def subscribe(email: str, *, legal_text, now=None) -> tuple[NewsletterSubscripti
     subscription.save()
     NewsletterEvent.objects.create(subscription=subscription, kind=Kind.REQUESTED)
     return subscription, True
+
+
+def send_confirmation(subscription: NewsletterSubscription) -> None:
+    """Posa a la cua el correu de confirmació: només l'enllaç (amb el testimoni) i la caducitat."""
+    link = settings.PUBLIC_SITE_URL + reverse(
+        "website:newsletter_confirm", args=[subscription.token]
+    )
+    hours = business_settings.get(CONFIRM_HOURS)
+    mail.queue_email(
+        CONFIRMATION_TEMPLATE, to=subscription.email, context={"link": link, "hours": hours}
+    )
 
 
 def _by_token(token: str):

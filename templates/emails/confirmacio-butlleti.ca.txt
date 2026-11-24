@@ -1,0 +1,10 @@
+{% load i18n %}{# T-M07-13b (P-M07-E, CA-M07-06, RN-M07-08): doble confirmació del butlletí. TEXT PROVISIONAL [A validar: junta]. Només l'enllaç, que porta el testimoni i res més, i la caducitat. #}{% autoescape off %}{% translate "Hola," %}
+
+{% translate "Hem rebut una petició per subscriure aquesta adreça al butlletí del C.R.I.S. Per confirmar-la, obre aquest enllaç i prem el botó:" %}
+
+{{ link }}
+
+{% blocktranslate count hours=hours %}L'enllaç caduca d'aquí a {{ hours }} hora.{% plural %}L'enllaç caduca d'aquí a {{ hours }} hores.{% endblocktranslate %}
+
+{% translate "Si no has demanat la subscripció, no cal que facis res: no t'arribarà cap butlletí." %}
+{% endautoescape %}

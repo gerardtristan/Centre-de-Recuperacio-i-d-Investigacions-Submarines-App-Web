@@ -106,8 +106,13 @@ def newsletter_view(request):
     if request.method == "POST" and text is not None and form.is_valid():
         with transaction.atomic():
             # shortcut: el límit per origen del «Fer-se soci», com el contacte (T-M07-11).
-            if limits.start_join(client_ip(request)) is not None:
-                newsletter.subscribe(form.cleaned_data["email"], legal_text=text)
+            accepted = limits.start_join(client_ip(request))
+            if accepted is not None:
+                email = form.cleaned_data["email"]
+                subscription, needs = newsletter.subscribe(email, legal_text=text)
+                # T-M07-13b: a la cua i amb el límit per destinatari, com el rebut d'una alta.
+                if needs and limits.join_receipt_allowed(accepted, subscription.email):
+                    newsletter.send_confirmation(subscription)
         request.session[SUBSCRIBED_KEY] = True
         response = redirect("website:newsletter")
         response.status_code = 303

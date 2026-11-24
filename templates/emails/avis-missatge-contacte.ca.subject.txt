@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M07-13b: TEXT PROVISIONAL [A validar: secretaria]. #}{% blocktranslate %}Missatge de contacte nou: {{ reason }}{% endblocktranslate %}

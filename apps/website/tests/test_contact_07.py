@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from apps.core import business_settings
-from apps.core.models import AuditEntry, LegalText, Role, Setting
+from apps.core.models import AuditEntry, LegalText, OutgoingEmail, Role, Setting
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.website import contact, tasks
 from apps.website.models import ContactMessage, ContactReason
@@ -195,3 +195,62 @@ def test_a_visitor_who_fixes_an_error_quickly_is_not_taken_for_a_robot(client, e
 @pytest.mark.parametrize("method", ["head", "put"])
 def test_switched_off_any_method_is_not_found(client, method):
     assert getattr(client, method)(URL).status_code == 404
+
+
+# --- Correus (T-M07-13b) ---------------------------------------------------------------------
+
+
+def _with_email(account, address):
+    account.notification_email = address
+    account.save(update_fields=["notification_email"])
+    return account
+
+
+def test_ca_m07_11_only_the_accounts_of_the_reason_get_the_notice_without_the_visitor_data(
+    client,
+    enabled,
+    privacy,
+    make_admin,  # noqa: F811
+):
+    _with_email(make_admin(R.SECRETARY), "secretaria@example.com")
+    _with_email(make_admin(R.ADMINISTRATOR), "admin@example.com")  # WP5, cap motiu seu
+    _with_email(make_admin(R.TREASURER), "tresorer@example.com")  # sense WP5
+    client.post(URL, _data())
+    email = OutgoingEmail.objects.get()
+    assert (email.to_address, email.template) == ("secretaria@example.com", contact.NOTICE_TEMPLATE)
+    assert "Quotes" in email.subject
+    for private in ("Nom Inventat", "inventat@example.com", "Quan es paga"):
+        assert private not in email.subject + email.body_text
+
+
+def test_a_robot_message_notifies_nobody(client, enabled, privacy, make_admin):  # noqa: F811
+    _with_email(make_admin(R.SECRETARY), "secretaria@example.com")
+    client.post(URL, _data(web="http://spam.example"))
+    assert not OutgoingEmail.objects.exists()
+
+
+def test_replying_queues_the_answer_to_the_visitor_and_is_recorded(make_admin):  # noqa: F811
+    from django.core.exceptions import ValidationError
+
+    secretary, message = make_admin(R.SECRETARY), _message()
+    with pytest.raises(ValidationError):
+        contact.reply(message, actor=secretary, answer=" ")
+    contact.reply(message, actor=secretary, answer="Es paga al gener (inventat).")
+    message.refresh_from_db()
+    assert (message.status, message.answered_by, message.finished_at is not None) == (
+        ContactMessage.Status.ANSWERED, secretary, True,
+    )  # fmt: skip
+    email = OutgoingEmail.objects.get()
+    assert (email.to_address, email.template) == ("inventat@example.com", contact.REPLY_TEMPLATE)
+    assert "Es paga al gener" in email.body_text
+    entry = AuditEntry.objects.get(action=contact.ACTION_ANSWERED)
+    assert (entry.old_value, entry.new_value) == ("new", "answered")
+    with pytest.raises(ValidationError):
+        contact.reply(message, actor=secretary, answer="Un altre cop")
+
+
+def test_replying_out_of_scope_is_not_found(make_admin):  # noqa: F811
+    for account in (make_admin(R.ADMINISTRATOR), make_admin(R.TREASURER)):
+        with pytest.raises(ContactMessage.DoesNotExist):
+            contact.reply(_message(), actor=account, answer="Fora d'abast")
+    assert not OutgoingEmail.objects.exists()
