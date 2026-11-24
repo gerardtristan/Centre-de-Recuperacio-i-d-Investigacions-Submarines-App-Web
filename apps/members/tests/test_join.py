@@ -488,6 +488,15 @@ class TestRateLimit:
             assert limits.start_join("192.0.2.2") is not None  # ni a l'inrevés
             assert limits.start_join("192.0.2.1") is None
 
+    @override_settings(JOIN_FORM_ORIGIN_MAX=1)
+    def test_p450_join_and_guest_licence_counters_are_separate(self, db):
+        with transaction.atomic():
+            assert limits.start_join("192.0.2.3") is not None
+            assert limits.start_join("192.0.2.3", limits.GUEST_LICENCE) is not None
+            assert limits.start_join("192.0.2.3") is None
+            assert limits.start_join("192.0.2.3", limits.GUEST_LICENCE) is None
+        assert EmailLinkRequest.objects.filter(purpose="licguest").count() == 1
+
     @override_settings(JOIN_FORM_RECIPIENT_MAX_PER_DAY=1)
     def test_recipient_limit_stops_the_receipt_but_not_the_request(self, texts):
         submit(id_document="00000001R")

@@ -108,6 +108,7 @@ def recipient_limited(key: str, purpose: str, now=None, *, windows=RECIPIENT_WIN
 # --- Formulari «Fer-se soci» (T-M01-13) --------------------------------------------------------
 # Mateix mecanisme, amb llindars PROVISIONALS de la configuració [A validar] i comptadors propis.
 JOIN = EmailLinkRequest.Purpose.JOIN
+GUEST_LICENCE = EmailLinkRequest.Purpose.GUEST_LICENCE  # P-450: amb el seu propi compte
 
 
 def _join_origin_window() -> Window:
@@ -116,14 +117,15 @@ def _join_origin_window() -> Window:
     return Window(settings.JOIN_FORM_ORIGIN_MAX, min(minutes, RETENTION))
 
 
-def start_join(ip: str) -> EmailLinkRequest | None:
+def start_join(ip: str, purpose: str = JOIN) -> EmailLinkRequest | None:
     """Dins d'una transacció. Torna la petició acceptada, o None si l'origen està limitat
-    (aleshores no es desa res). D'un en un per origen, com els enllaços del correu."""
+    (aleshores no es desa res). D'un en un per origen, com els enllaços del correu. Cada
+    finalitat (`JOIN` o `GUEST_LICENCE`) compta a part, amb els mateixos llindars."""
     lock_origin(ip)
     window = _join_origin_window()
-    if origin_limited(ip, purposes=(JOIN,), window=window, cooldown=window.period):
+    if origin_limited(ip, purposes=(purpose,), window=window, cooldown=window.period):
         return None
-    return EmailLinkRequest.objects.create(ip_address=ip, purpose=JOIN)
+    return EmailLinkRequest.objects.create(ip_address=ip, purpose=purpose)
 
 
 def join_receipt_allowed(accepted: EmailLinkRequest, email: str) -> bool:
