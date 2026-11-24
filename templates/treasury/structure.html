@@ -1,0 +1,96 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M04-22 (P-410, P-411; VC-08): departaments (M7), centres de cost (T3) i comptes (T2). Cada secció i cada formulari surt només amb el seu permís; els serveis el tornen a comprovar. Les entrades del sistema («General», «General / Quotes de socis» i «General / Ajustos de caixa») no tenen cap acció i el servidor les protegeix. Res no s'esborra: es desactiva. D'un compte de banc, només els quatre darrers dígits. Components existents (taula, estat, formulari, Errata). #}
+{% block title %}{% translate "Departaments, centres de cost i comptes" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
+    <h1>{% translate "Departaments, centres de cost i comptes" %}</h1>
+    <p>{% translate "Res no s'esborra: el que ja no es fa servir es desactiva. Cada canvi queda al registre, amb el valor anterior." %}</p>
+  </header>
+  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+
+  {% if can.departament or can.centre %}
+    <section aria-labelledby="departaments-titol">
+      <h2 id="departaments-titol">{% translate "Departaments i centres de cost" %}</h2>
+      <table class="taula">
+        <thead>
+          <tr>
+            <th scope="col">{% translate "Departament" %}</th>
+            <th scope="col">{% translate "Estat" %}</th>
+            <th scope="col">{% translate "Centres de cost" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in departments %}{% with d=row.department %}
+            <tr>
+              <th scope="row" class="cel-nom">
+                {{ d.name }}
+                {% if row.system %}<br><span class="text-2">{% translate "Entrada del sistema" %}</span>
+                {% elif can.departament %}<br><a href="{% url 'administration:treasury_structure_edit' 'departament' d.pk %}">{% translate "Canvia…" %}<span class="visualment-amagat"> {{ d.name }}</span></a>{% endif %}
+              </th>
+              <td data-etiqueta="{% translate 'Estat' %}">{% if d.active %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Actiu" %}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {% translate "Desactivat" %}</span>{% endif %}</td>
+              <td data-etiqueta="{% translate 'Centres de cost' %}"><div>
+                {% for centre, system in row.centres %}
+                  <p>{{ centre.name }}{% if not centre.active %} <span class="estat estat-neutre"><span aria-hidden="true">■</span> {% translate "Desactivat" %}</span>{% endif %}
+                  {% if system %}<span class="text-2">· {% translate "del sistema" %}</span>
+                  {% elif can.centre %}· <a href="{% url 'administration:treasury_structure_edit' 'centre' centre.pk %}">{% translate "Canvia…" %}<span class="visualment-amagat"> {{ d.name }} / {{ centre.name }}</span></a>{% endif %}</p>
+                {% empty %}<span class="text-2">{% translate "Cap" %}</span>{% endfor %}
+              </div></td>
+            </tr>
+          {% endwith %}{% endfor %}
+        </tbody>
+      </table>
+      {% if forms.departament %}
+        <form class="formulari" method="post" action="{% url 'administration:treasury_structure_create' 'departament' %}" novalidate>
+          {% csrf_token %}
+          <h3>{% translate "Departament nou" %}</h3>
+          {% with form=forms.departament %}{% include "_errata.html" %}{% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}{% endwith %}
+          <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Crea el departament" %}</button></div>
+        </form>
+      {% endif %}
+      {% if forms.centre %}
+        <form class="formulari" method="post" action="{% url 'administration:treasury_structure_create' 'centre' %}" novalidate>
+          {% csrf_token %}
+          <h3>{% translate "Centre de cost nou" %}</h3>
+          {% with form=forms.centre %}{% include "_errata.html" %}{% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}{% endwith %}
+          <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Crea el centre de cost" %}</button></div>
+        </form>
+      {% endif %}
+    </section>
+  {% endif %}
+
+  {% if can.compte %}
+    <section aria-labelledby="comptes-titol">
+      <h2 id="comptes-titol">{% translate "Comptes de tresoreria" %}</h2>
+      <table class="taula">
+        <thead>
+          <tr>
+            <th scope="col">{% translate "Compte" %}</th>
+            <th scope="col">{% translate "Tipus" %}</th>
+            <th scope="col">{% translate "Estat" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for account in accounts %}
+            <tr>
+              <th scope="row" class="cel-nom">{{ account.name }}{% if account.last4 %} <span class="codi">·{{ account.last4 }}</span>{% endif %}<br><a href="{% url 'administration:treasury_structure_edit' 'compte' account.pk %}">{% translate "Canvia…" %}<span class="visualment-amagat"> {{ account.name }}</span></a></th>
+              <td data-etiqueta="{% translate 'Tipus' %}">{{ account.get_kind_display }}</td>
+              <td data-etiqueta="{% translate 'Estat' %}">{% if account.active %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Actiu" %}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {% translate "Desactivat" %}</span>{% endif %}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="3">{% translate "Encara no hi ha cap compte de tresoreria." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <form class="formulari" method="post" action="{% url 'administration:treasury_structure_create' 'compte' %}" novalidate>
+        {% csrf_token %}
+        <h3>{% translate "Compte nou" %}</h3>
+        {% with form=forms.compte %}{% include "_errata.html" %}{% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}{% endwith %}
+        <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Crea el compte" %}</button></div>
+      </form>
+    </section>
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:treasury_accounts' %}">{% translate "Tornar als comptes i saldos" %}</a></p>
+{% endblock %}
