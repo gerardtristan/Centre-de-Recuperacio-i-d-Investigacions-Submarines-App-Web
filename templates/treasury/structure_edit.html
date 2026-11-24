@@ -1,0 +1,20 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M04-22 (P-410): reanomenar o desactivar una entrada. Les del sistema (P-411) no arriben aquí: el servidor torna «no trobat». Desactivar no esborra res. #}
+{% block title %}{% blocktranslate with name=obj.name %}Canvia «{{ name }}»{% endblocktranslate %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
+    <h1>{% blocktranslate with name=obj.name %}Canvia «{{ name }}»{% endblocktranslate %}</h1>
+  </header>
+  <form class="formulari" method="post" novalidate>
+    {% csrf_token %}
+    {% include "_errata.html" %}
+    {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    <div class="accions">
+      <button class="boto boto-principal" type="submit">{% translate "Desa el nom" %}</button>
+      {% if obj.active %}<button class="boto" type="submit" name="desactiva" value="1">{% translate "Desactiva" %}</button>{% endif %}
+      <a class="boto boto-text" href="{% url 'administration:treasury_structure' %}">{% translate "Cancel·la" %}</a>
+    </div>
+  </form>
+{% endblock %}
