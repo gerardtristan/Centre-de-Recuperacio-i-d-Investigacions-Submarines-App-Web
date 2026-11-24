@@ -42,7 +42,7 @@ class Supplier(models.Model):
 class Expense(models.Model):
     """Despesa amb factura (M09-6, T-M09-04). Una despesa pagada o anul·lada no es modifica:
     s'anul·la amb motiu i se'n registra una de nova (RN-M09-11). Pagar i anul·lar: T-M09-05; la
-    còpia emmascarada i la marca «il·legible» dels documents: T-M09-25."""
+    còpia emmascarada i la marca «il·legible» dels documents: `documents.py` (T-M09-25b)."""
 
     class Status(models.TextChoices):
         TO_PAY = "to_pay", _("Per pagar")
@@ -80,6 +80,34 @@ class Expense(models.Model):
         blank=True,
         related_name="+",
         verbose_name=_("factura"),
+    )
+    # Documents de justificació (051, T-M09-25b): xifrats, només els obren el tresorer i la junta.
+    # Els posa `documents.py`; el vigent és el d'aquí i l'il·legible es conserva a la marca.
+    payment_proof_file = models.ForeignKey(
+        "core.PrivateFile",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("comprovant del banc"),
+    )
+    # Còpies amb l'IBAN emmascarat (quatre últims dígits). Sense còpia, el document surt a
+    # `documents.pending_masking` («not_detected»): el tresorer la puja a mà (CA-M09-24).
+    invoice_masked_file = models.ForeignKey(
+        "core.PrivateFile",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("factura emmascarada"),
+    )
+    payment_proof_masked_file = models.ForeignKey(
+        "core.PrivateFile",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("comprovant emmascarat"),
     )
     status = models.CharField(
         _("estat"), max_length=8, choices=Status.choices, default=Status.TO_PAY
@@ -161,6 +189,58 @@ class ExpenseAnnulment(AppendOnlyModel):
         constraints = [
             models.CheckConstraint(condition=~models.Q(reason=""), name="expense_annulment_reason")
         ]
+
+
+class DocumentIllegibleMark(models.Model):
+    """Document il·legible (M09-6, RN-M09-25 i 27; T-M09-25b). No es modifica ni s'esborra:
+    l'únic canvi és `replaced_at`, de buit a una data, una sola vegada, i ho fa complir un
+    activador de PostgreSQL. És la font única de «il·legible», «sense factura» i «sense
+    comprovant»: marcar un document no escriu mai a la fila d'`Expense` (RN-M09-11)."""
+
+    class Document(models.TextChoices):
+        INVOICE = "invoice", _("Factura")
+        PAYMENT_PROOF = "payment_proof", _("Comprovant del banc")
+
+    expense = models.ForeignKey(
+        Expense, on_delete=models.PROTECT, related_name="illegible_marks", verbose_name=_("despesa")
+    )
+    document = models.CharField(_("document"), max_length=13, choices=Document.choices)
+    # El fitxer il·legible: es conserva xifrat i deixa de ser el vigent.
+    file = models.ForeignKey(
+        "core.PrivateFile", on_delete=models.PROTECT, related_name="+", verbose_name=_("fitxer")
+    )
+    reason = models.TextField(_("motiu"))
+    marked_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("marcada per"),
+    )
+    marked_at = models.DateTimeField(_("marcada"), auto_now_add=True)
+    notified_person = models.ForeignKey(
+        "core.Person", on_delete=models.PROTECT, related_name="+", verbose_name=_("avisada")
+    )
+    replaced_at = models.DateTimeField(_("substituït"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("document il·legible")
+        verbose_name_plural = _("documents il·legibles")
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(document__in=["invoice", "payment_proof"]),
+                name="illegible_mark_document_valid",
+            ),
+            models.CheckConstraint(condition=~models.Q(reason=""), name="illegible_mark_reason"),
+            # Com a màxim una marca oberta per document (CA-M09-33).
+            models.UniqueConstraint(
+                fields=["expense", "document"],
+                condition=models.Q(replaced_at__isnull=True),
+                name="illegible_mark_one_open_per_document",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.get_document_display()} {self.expense_id}"
 
 
 class OtherIncome(models.Model):
