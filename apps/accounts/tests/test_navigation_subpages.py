@@ -10,6 +10,10 @@ from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 
 # Pantalles sense menú: entrar, sortir, el doble factor de la primera entrada i els fitxers privats.
 STANDALONE = {
+    # T-M04-22: fins que DISSENY hi posi l'entrada a «Quotes i tresoreria» (T-DX-118).
+    "administration:treasury_structure",
+    "administration:treasury_structure_create",
+    "administration:treasury_structure_edit",
     "administration:login",
     "administration:login_totp",
     "administration:logout",

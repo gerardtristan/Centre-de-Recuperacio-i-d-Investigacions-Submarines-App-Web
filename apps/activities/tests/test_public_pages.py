@@ -6,7 +6,9 @@ import html
 import pytest
 from django.urls import reverse
 
-from apps.activities import catalogue
+from apps.activities import catalogue, public
+from apps.activities.models import Enrolment
+from apps.activities.tests.test_attendance import enrolled
 from apps.core.models import Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 
@@ -14,6 +16,7 @@ from .helpers import an_open_course, an_open_outing, an_outing
 
 pytestmark = pytest.mark.django_db
 LIST = reverse("activities:public_list")
+S = Enrolment.Status
 
 
 @pytest.fixture
@@ -61,3 +64,23 @@ def test_enrol_links_follow_the_activity(client, manager):
 
 def test_a_draft_is_not_found(client, manager):
     assert client.get(detail(an_outing(manager))).status_code == 404
+
+
+def test_hu_m02_06_free_places_are_a_number_and_the_page_names_nobody(client, manager):
+    """P-M02-A pas 1: places lliures amb el criteri de la inscripció (pendents de pagament,
+    confirmades i ofertes ocupen plaça; la llista d'espera i les cancel·lades, no)."""
+    outing = an_open_outing(manager, title="Sortida amb places", max_places=5)
+    people = {
+        "Confirmada": S.CONFIRMED,
+        "Pendent": S.PENDING_PAYMENT,
+        "Oferta": S.OFFERED,
+        "Esperant": S.WAITLISTED,
+        "Cancel·lada": S.CANCELLED,
+    }
+    for first, status in people.items():
+        row = enrolled(outing, first, S.WAITLISTED)
+        Enrolment.objects.filter(pk=row.pk).update(status=status, cancelled_reason="Inventat")
+    data = public.get_activity(outing.pk)
+    assert (data.max_places, data.free_places) == (5, 2)
+    page = text(client, detail(outing))
+    assert not [first for first in people if first in page]

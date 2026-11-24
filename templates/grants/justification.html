@@ -1,0 +1,78 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M09A-10c (P-M09A-F, pas 3; RN-M09A-11, 18 i 21; CA-M09A-08, 15, 16 i 20): la justificació d'una sol·licitud. Sense wireframe propi; només components existents. Seguretat: AJ7 per veure-la (sense, «no trobat»); generar demana AJ7 amb «Sí» i AJ12; descarregar és la vista `private_file` (AJ12, desxifrat i amb registre); enviar demana AJ7 i, a partir de la versió 2, un requeriment obert. Amagar un botó no és cap control: els serveis ho tornen a comprovar. Cap dada personal: les despeses surten pel número i el motiu. #}
+{% block title %}{% translate "Justificació de l'ajut" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Ajuts" %}</p>
+    <h1>{% translate "Justificació de l'ajut" %}</h1>
+    <p class="text-2">{% blocktranslate with call=application.call.name body=application.call.body ref=application.pk status=application.get_status_display %}{{ call }} ({{ body }}) · Sol·licitud núm. {{ ref }} · {{ status }}{% endblocktranslate %}</p>
+  </header>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
+
+  {% if can_build and application.status == "granted" or can_build and application.status == "justified" and requirements %}
+    <form class="formulari" method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="build">
+      {% if application.status == "justified" %}
+        <div class="camp">
+          <label for="requeriment-nou">{% translate "Requeriment" %}</label>
+          <select id="requeriment-nou" name="requeriment" required aria-describedby="ajuda-requeriment-nou">
+            {% for requirement in requirements %}<option value="{{ requirement.pk }}">{% blocktranslate with due=requirement.due_on|date:"d/m/Y" %}Fins al {{ due }}{% endblocktranslate %}</option>{% endfor %}
+          </select>
+          <p class="ajuda" id="ajuda-requeriment-nou">{% translate "La justificació ja s'ha enviat: una versió nova va lligada a un requeriment obert." %}</p>
+        </div>
+      {% endif %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Genera el paquet" %}</button></div>
+    </form>
+  {% elif application.status == "justified" and not requirements %}
+    <div class="avis avis-avis" role="note">{% translate "La justificació ja s'ha enviat. Per enviar-ne una versió nova cal un requeriment obert." %}</div>
+  {% endif %}
+
+  {% for row in packages %}
+    <section class="targeta" aria-labelledby="paquet-{{ row.package.pk }}">
+      <h2 id="paquet-{{ row.package.pk }}">{% blocktranslate with when=row.package.generated_at|date:"d/m/Y H:i" %}Paquet del {{ when }}{% endblocktranslate %}</h2>
+      <p>{% if row.submission %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% blocktranslate with n=row.submission.version day=row.submission.sent_on|date:"d/m/Y" %}Enviat: versió {{ n }}, el {{ day }}{% endblocktranslate %}</span>{% else %}<span class="estat estat-neutre">{% translate "Sense enviar" %}</span>{% endif %}</p>
+      <dl class="dades-soci">
+        <div><dt>{% translate "Despeses incloses" %}</dt><dd>{{ row.package.totals.included }}</dd></div>
+        <div><dt>{% translate "Import imputat" %}</dt><dd><span class="import">{{ row.included }}</span></dd></div>
+        <div><dt>{% translate "Despeses excloses" %}</dt><dd>{{ row.package.totals.excluded }}</dd></div>
+        <div><dt>{% translate "Comprovants" %}</dt><dd>{% if row.package.masked %}{% translate "Còpies amb l'IBAN tapat" %}{% else %}{% translate "Originals (la convocatòria no accepta còpies)" %}{% endif %}</dd></div>
+      </dl>
+      {% if row.package.excluded %}
+        <ul>
+          {% for item in row.package.excluded %}<li>{% blocktranslate with ref=item.expense reason=item.reason %}Despesa núm. {{ ref }}: {{ reason }}{% endblocktranslate %}</li>{% endfor %}
+        </ul>
+      {% endif %}
+      {% if can_open %}<p><a class="boto boto-text boto-petit" href="{% url 'administration:private_file' row.package.file_id %}">{% translate "Descarrega el ZIP" %}</a></p>{% endif %}
+      {% if can_build and not row.submission %}
+        {% if application.status == "granted" or requirements %}
+          <form class="formulari" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="send">
+            <input type="hidden" name="paquet" value="{{ row.package.pk }}">
+            <div class="camp">
+              <label for="enviat-{{ row.package.pk }}">{% translate "Data d'enviament a l'organisme" %}</label>
+              <input type="date" id="enviat-{{ row.package.pk }}" name="enviat" value="{{ today|date:'Y-m-d' }}" required>
+            </div>
+            {% if application.status == "justified" %}
+              <div class="camp">
+                <label for="requeriment-{{ row.package.pk }}">{% translate "Requeriment que respon" %}</label>
+                <select id="requeriment-{{ row.package.pk }}" name="requeriment" required>
+                  {% for requirement in requirements %}<option value="{{ requirement.pk }}">{% blocktranslate with due=requirement.due_on|date:"d/m/Y" %}Fins al {{ due }}{% endblocktranslate %}</option>{% endfor %}
+                </select>
+              </div>
+            {% endif %}
+            <div class="accions"><button class="boto" type="submit">{% if application.status == "granted" %}{% translate "Envia'l i marca l'ajut com a justificat" %}{% else %}{% translate "Envia aquesta versió" %}{% endif %}</button></div>
+          </form>
+        {% endif %}
+      {% endif %}
+    </section>
+  {% empty %}
+    <p class="text-2">{% translate "Encara no s'ha generat cap paquet." %}</p>
+  {% endfor %}
+  <p class="enllacos"><a href="{% url 'administration:grants_calendar' %}">{% translate "Torna al calendari d'ajuts" %}</a></p>
+{% endblock %}

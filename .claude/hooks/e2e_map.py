@@ -200,6 +200,12 @@ MAP = {
         "apps/activities/forms.py",
         "templates/activities/place*.html",
     ),
+    "test_meu_progres.py": (
+        "apps/activities/views/my_activities.py",
+        "apps/activities/assessment.py",
+        "templates/activities/my_progress.html",
+        "templates/activities/my_activities.html",
+    ),
     "test_meves_titulacions.py": (
         "apps/activities/views/member_certifications.py",
         "templates/activities/my_certifications.html",
@@ -265,11 +271,22 @@ MAP = {
         "apps/grants/calendar.py",
         "templates/grants/*",
     ),
+    "test_justificacio_ajut.py": (
+        "apps/grants/views.py",
+        "apps/grants/admin_urls.py",
+        "apps/grants/package.py",
+        "templates/grants/*",
+    ),
     "test_periodes.py": (
         "apps/margins/views.py",
         "apps/margins/admin_urls.py",
         "apps/margins/period_closing.py",
         "templates/margins/periods.html",
+    ),
+    "test_primera_estrella.py": (
+        "apps/activities/views/admin_filings.py",
+        "apps/activities/filings.py",
+        "templates/activities/course_filings.html",
     ),
     "test_homologacions.py": (
         "apps/activities/views/admin_filings.py",

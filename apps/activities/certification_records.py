@@ -8,8 +8,10 @@ RN-M02-32; AC29, P-459 i decisió 105).
   verifiquen les declarades o importades: les del club i les de la federació ja ho són per origen.
 
 La Junta té AC29 de només consulta: no en carrega ni en verifica cap. Sense el permís, «no
-trobat». Tot queda al registre d'activitat, només amb identificadors (cap nom ni número).
-La importació des de Cluber continua esperant la mostra (Q-23). Les pantalles no són aquí.
+trobat». Ningú no carrega ni verifica les seves pròpies titulacions (conflicte d'interès, com a
+la fitxa del soci, S-M01-22). Tot queda al registre d'activitat, només amb identificadors (cap
+nom ni número). La importació des de Cluber continua esperant la mostra (Q-23). La pantalla és
+`views/admin_certifications.py` (T-M02-52b).
 """
 
 from django.core.exceptions import ValidationError
@@ -28,12 +30,18 @@ VERIFIED = "activities.certification.verified"
 MANUAL_SOURCES = (S.DECLARED, S.IMPORTED)
 
 
+def _require(by, person_id, request) -> None:
+    permissions.require(by, permissions.CERTIFICATIONS, request=request)
+    if getattr(by, "person_id", None) == person_id:
+        raise ValidationError(_("No pots carregar ni verificar les teves pròpies titulacions."))
+
+
 def load(
     person, *, by, source, level=None, speciality=None, agency=None, number="", issued_on=None,
     request=None,
 ) -> DiverCertification:  # fmt: skip
     """RN-M02-32: una titulació carregada a mà queda sense verificar."""
-    permissions.require(by, permissions.CERTIFICATIONS, request=request)
+    _require(by, person.pk, request)
     if source not in MANUAL_SOURCES:
         raise ValidationError(_("Una titulació carregada a mà és declarada o importada."))
     if (level is None) == (speciality is None):
@@ -60,7 +68,7 @@ def load(
 @transaction.atomic
 def verify(certification, *, by, now=None, request=None) -> DiverCertification:
     """RN-M02-32: qui i quan. Idempotent: una de verificada es torna tal com és."""
-    permissions.require(by, permissions.CERTIFICATIONS, request=request)
+    _require(by, certification.person_id, request)
     locked = DiverCertification.objects.select_for_update().get(pk=certification.pk)
     if locked.is_verified:
         return locked

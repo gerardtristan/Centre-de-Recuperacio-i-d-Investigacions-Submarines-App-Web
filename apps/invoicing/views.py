@@ -1,7 +1,7 @@
 """«Les meves factures» (T-M09-21; MG10, propi; M09-8 `invoicing.invoices_for`). Només les factures
 emeses a nom de la persona del compte personal: mai les d'una altra (permís per objecte al
-servidor, no a la plantilla). Sense descàrrega del PDF fins que es desi com a fitxer privat
-(T-M09-25)."""
+servidor, no a la plantilla). El PDF (T-M09-19) es descarrega amb la vista `private_file`, que
+comprova que el fitxer és de la persona del compte (T-M09-21b)."""
 
 from django.shortcuts import render
 from django.views.decorators.cache import never_cache

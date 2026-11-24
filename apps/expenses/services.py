@@ -6,6 +6,7 @@ Cada servei que escriu comprova el permís del rol (T-M09-30) i, sense, respon �
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, models, transaction
 from django.db.models import Exists, OuterRef, Q
+from django.dispatch import Signal
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 
@@ -25,6 +26,10 @@ EXPENSE_RECORDED = "expenses.expense_recorded"
 EXPENSE_CHANGED = "expenses.expense_changed"
 EXPENSE_PAID = "expenses.expense_paid"
 EXPENSE_ANNULLED = "expenses.expense_annulled"
+
+# Senyal intern (M09-ajuts-8): l'apartat d'ajuts avisa si la despesa és en una versió enviada
+# d'un paquet (RN-M09A-18). Argument: `expense`.
+expense_annulled = Signal()
 
 # Els camps que es poden corregir mentre la despesa és per pagar (RN-M09-11).
 EDITABLE = (
@@ -225,6 +230,7 @@ def annul(expense: Expense, *, reason: str, by, value_date=None) -> ExpenseAnnul
         reason=reason,
         details={"reversal": reversal.pk if reversal else None},
     )
+    expense_annulled.send(sender=Expense, expense=expense)
     return annulment
 
 
