@@ -39,6 +39,8 @@ MODULES = {
     "treasury": gettext_lazy("04 Tresoreria"),
     "payments": gettext_lazy("05 Pagaments"),
     "licences": gettext_lazy("06 Llicències"),
+    "website": gettext_lazy("07 Web pública"),
+    "dashboard": gettext_lazy("08 Dashboard"),
     "expenses": gettext_lazy("09 Marge, despeses i facturació"),
     "grants": gettext_lazy("09 Ajuts"),
     "settings": gettext_lazy("Ajustos"),
