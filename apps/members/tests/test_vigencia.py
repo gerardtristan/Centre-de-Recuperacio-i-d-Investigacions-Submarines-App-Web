@@ -42,9 +42,13 @@ def test_a_far_warning_day_stretches_the_scale():
     assert result["window"] == 90 and result["marks"] == [90] and result["level"] == "ok"
 
 
-def test_a_licence_has_no_warning_days_and_only_turns_red_when_expired():
-    soon = vigencia(local_today() + timedelta(days=2), "llicencia")
-    assert soon["marks"] == [] and soon["level"] == "ok"
+def test_a_licence_warns_from_the_to_renew_days_setting():
+    # T-DX-105: el dia d'avís de la llicència és l'ajust «Per renovar» (VC-41), el mateix que fa
+    # sortir l'estat «Per renovar» al 06. Cap valor nou al codi.
+    Setting.objects.filter(key="licences.to_renew_days").update(initial_value=20)
+    far = vigencia(local_today() + timedelta(days=30), "llicencia")
+    assert far["marks"] == [20] and far["level"] == "ok"
+    assert vigencia(local_today() + timedelta(days=20), "llicencia")["level"] == "avis"
     assert vigencia(local_today() - timedelta(days=1), "llicencia")["level"] == "error"
 
 
