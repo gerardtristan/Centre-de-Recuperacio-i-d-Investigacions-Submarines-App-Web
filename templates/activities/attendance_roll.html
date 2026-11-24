@@ -10,7 +10,7 @@
   </header>
   {% include "activities/_missatges.html" %}
   <p class="anunci" role="status" aria-live="polite" data-llista-anunci></p>
-  <p class="text-2">{% blocktranslate with present=roll.present total=roll.rows|length unmarked=roll.unmarked %}{{ present }} presents de {{ total }} · {{ unmarked }} sense marcar{% endblocktranslate %}</p>
+  <p class="text-2" data-comptador>{% blocktranslate with present=roll.present total=roll.rows|length unmarked=roll.unmarked %}<span data-presents>{{ present }}</span> presents de <span data-total>{{ total }}</span> · <span data-sense>{{ unmarked }}</span> sense marcar{% endblocktranslate %}</p>
   {% if not roll.can_record %}
     <div class="avis avis-sistema" role="status">{% translate "Encara no es pot passar llista: només el dia de la sessió o després, i d'una activitat publicada." %}</div>
   {% endif %}
@@ -20,7 +20,7 @@
     <thead><tr><th scope="col">{% translate "Persona" %}</th><th scope="col">{% translate "Llicència" %}</th><th scope="col">{% translate "Assistència" %}</th></tr></thead>
     <tbody>
       {% for row in roll.rows %}
-        <tr data-fila="{{ row.enrolment_id }}">
+        <tr data-fila="{{ row.enrolment_id }}" data-marca="{% if row.present is True %}1{% elif row.present is False %}0{% endif %}">
           <th scope="row" class="cel-nom">{{ row.name }}{% if row.certifications %}<br><span class="text-2">{{ row.certifications|join:", " }}</span>{% endif %}</th>
           <td data-etiqueta="{% translate 'Llicència' %}">{% if row.licence_valid %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Vigent" %}</span>{% else %}<span class="estat estat-avis"><span aria-hidden="true">!</span> {% translate "No vigent" %}</span>{% endif %}</td>
           <td data-etiqueta="{% translate 'Assistència' %}">

@@ -22,6 +22,18 @@
     if (anunci) anunci.textContent = fila.querySelector('th').textContent.trim() + ': ' + lloc.textContent.trim();
   }
 
+  // El comptador «N presents de M · K sense marcar» només compta el que el servidor ha desat.
+  function compta() {
+    var files = taula.querySelectorAll('[data-fila]');
+    var presents = taula.querySelectorAll('[data-fila][data-marca="1"]').length;
+    var sense = taula.querySelectorAll('[data-fila][data-marca=""]').length;
+    var comptador = document.querySelector('[data-comptador]');
+    if (!comptador) return;
+    comptador.querySelector('[data-presents]').textContent = presents;
+    comptador.querySelector('[data-total]').textContent = files.length;
+    comptador.querySelector('[data-sense]').textContent = sense;
+  }
+
   function envia(form, dades) {
     var fila = form.closest('[data-fila]');
     var clau = fila.getAttribute('data-fila');
@@ -33,6 +45,8 @@
     }).then(function (resposta) {
       delete pendents[clau];
       if (resposta.ok) {
+        fila.setAttribute('data-marca', dades.get('present'));
+        compta();
         pinta(fila, dades.get('present'));
       } else {
         pinta(fila, 'error'); // un error del servidor no es reintenta: cal tornar a marcar

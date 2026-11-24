@@ -122,6 +122,8 @@ ENTRIES = (
             "administration:licences_activate",
             "administration:licences_file",
             "administration:licences_export",
+            "administration:licences_unconfirmed",  # T-M06-24b
+            "administration:licences_confirm",
         ),
     ),  # T-M06-09 (vistes v1); text i lloc per revisar amb DISSENY
     ("administration:licences_prices", _("Llicències: tipus i preus"), ()),  # T-M06-02 (v2)

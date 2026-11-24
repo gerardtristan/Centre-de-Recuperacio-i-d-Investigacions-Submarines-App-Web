@@ -1,0 +1,53 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M06-24 (RN-M06-24 i 26; CA-M06-32; LC5): llicències del pas únic «pendents de confirmar». Les d'any natural sense data es confirmen en bloc al 31/12 de l'any triat; qualsevol, i les que el titular ha declarat, una a una amb «Confirma…». El servidor torna a comprovar el permís, que siguin pendents, la regla i les dates; tot o res, i cada una queda al registre d'activitat. Segueix la confirmació en bloc del 01 (T-M01-36). #}
+{% block title %}{% translate "Llicències per confirmar" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Llicències" %}</p>
+    <h1>{% translate "Llicències per confirmar" %}</h1>
+    <p class="text-2">{% translate "Llicències passades dels registres de la fitxa del soci sense data de caducitat. Fins que no tenen data, no reben avisos ni compten com a vigents per a les activitats." %}</p>
+  </header>
+  <ul class="deposito-comptadors" aria-label="{% translate 'Resum de la revisió' %}">
+    <li{% if licences %} class="es-pendent"{% endif %}><b>{{ licences|length }}</b><span>{% blocktranslate count n=licences|length %}llicència per confirmar{% plural %}llicències per confirmar{% endblocktranslate %}</span></li>
+  </ul>
+  {% for message in messages %}
+    <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
+  {% endfor %}
+  {% if licences %}
+    <p class="text-2">{% translate "Marca només les d'any natural sense data: caducaran el 31/12 de l'any que triïs. Les altres i les declarades pel titular, confirma-les una a una." %}</p>
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{% for error in form.non_field_errors %}{{ error }}{% endfor %}</div>{% endif %}
+      <fieldset>
+        <legend>{% translate "Llicències que es confirmen" %}</legend>
+        <table class="taula">
+          <caption>{% blocktranslate count total=licences|length %}{{ total }} llicència pendent, per cognoms{% plural %}{{ total }} llicències pendents, per cognoms{% endblocktranslate %}</caption>
+          <thead><tr><th scope="col"><span class="visualment-amagat">{% translate "Selecciona" %}</span></th><th scope="col">{% translate "Titular" %}</th><th scope="col">{% translate "Tipus" %}</th><th scope="col">{% translate "Inici" %}</th><th scope="col">{% translate "Declarada pel titular" %}</th><th scope="col">{% translate "Acció" %}</th></tr></thead>
+          <tbody>
+            {% for licence in licences %}
+              <tr>
+                <td>{% if licence.expires_on is None and licence.validity_rule == "calendar_year" %}<label class="casella"><input type="checkbox" name="llicencies" value="{{ licence.pk }}"{% if licence.pk|stringformat:"s" in selected %} checked{% endif %}><span class="visualment-amagat">{% blocktranslate with person=licence.person type=licence.licence_type %}{{ type }} de {{ person }}{% endblocktranslate %}</span></label>{% endif %}</td>
+                <th scope="row" class="cel-nom">{{ licence.person }}</th>
+                <td data-etiqueta="{% translate 'Tipus' %}">{{ licence.licence_type }}</td>
+                <td data-etiqueta="{% translate 'Inici' %}"><time datetime="{{ licence.starts_on|date:'Y-m-d' }}">{{ licence.starts_on|date:"d/m/Y" }}</time></td>
+                <td data-etiqueta="{% translate 'Declarada pel titular' %}">{% if licence.expires_on %}<time datetime="{{ licence.expires_on|date:'Y-m-d' }}">{{ licence.expires_on|date:"d/m/Y" }}</time>{% else %}—{% endif %}</td>
+                <td data-etiqueta="{% translate 'Acció' %}"><a href="{% url 'administration:licences_confirm' licence.pk %}">{% translate "Confirma…" %}</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </fieldset>
+      {% with field=form.any %}{% include "accounts/_camp.html" %}{% endwith %}
+      <p class="ajuda">{% translate "Cada llicència confirmada queda al registre d'activitat. Si alguna no es pot confirmar, no se'n confirma cap." %}</p>
+      <div class="accions">
+        <button class="boto boto-principal" type="submit">{% translate "Confirma les seleccionades" %}</button>
+        <a class="boto boto-text" href="{% url 'administration:licences' %}">{% translate "Torna a les llicències" %}</a>
+      </div>
+    </form>
+  {% else %}
+    <p>{% translate "No hi ha cap llicència pendent de confirmar." %}</p>
+    <p><a href="{% url 'administration:licences' %}">{% translate "Torna a les llicències" %}</a></p>
+  {% endif %}
+{% endblock %}

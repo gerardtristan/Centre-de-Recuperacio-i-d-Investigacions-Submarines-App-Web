@@ -114,3 +114,30 @@ def test_the_instructor_proposes_reinforcement(page, live_server, transactional_
     expect(page.get_by_text("Proposta de reforç enviada al responsable.")).to_be_visible()
     review("reforc-llista")
     assert ReinforcementRequest.objects.get().classes == 2
+
+
+def test_the_counter_follows_the_marks(page, live_server, transactional_db, page_checks):
+    """El comptador «N presents de M · K sense marcar» canvia quan la marca s'ha desat, també la
+    que s'envia en tornar la connexió (DISSENY hi va veure «✓ Hi és» amb «0 presents de 1»)."""
+    manager = make_admin("cursos.prova", "courses_manager")
+    teacher = make_admin("instructor.prova", "instructor")
+    activity = opened(a_course(manager))
+    session = a_session(manager, activity, timezone.localdate(), teacher.person)
+    enrolled(activity, "Alumna")
+    enrolled(activity, "Bernat")
+    login_admin(page, live_server.url, teacher.login)
+    page.set_viewport_size({"width": 390, "height": 844})
+    roll = reverse("administration:attendance_roll_session", args=[activity.pk, session.pk])
+    page.goto(f"{live_server.url}{roll}")
+    counter = page.locator("[data-comptador]")
+    expect(counter).to_have_text("0 presents de 2 · 2 sense marcar")
+    page.get_by_role("button", name="Hi és").first.click()
+    expect(counter).to_have_text("1 presents de 2 · 1 sense marcar")
+    page_checks.ignore("ERR_INTERNET_DISCONNECTED")  # la prova talla la connexió a propòsit
+    page.context.set_offline(True)
+    page.get_by_role("button", name="No hi és").nth(1).click()
+    expect(page.locator("[data-estat]").get_by_text("Pendent d'enviar")).to_be_visible()
+    expect(counter).to_have_text("1 presents de 2 · 1 sense marcar")  # encara no s'ha desat
+    page.context.set_offline(False)
+    page.evaluate("window.dispatchEvent(new Event('online'))")
+    expect(counter).to_have_text("1 presents de 2 · 0 sense marcar")

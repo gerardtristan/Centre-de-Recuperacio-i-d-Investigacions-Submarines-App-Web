@@ -1,0 +1,21 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M06-24 (CA-M06-29; LC5): posar o confirmar la caducitat d'una llicència «pendent de confirmar». Si el titular l'ha declarada, el camp ja la porta. Només el nom del titular, el tipus i l'inici: cap altra dada personal. #}
+{% block title %}{% translate "Confirma la caducitat" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Llicències" %}</p>
+    <h1>{% translate "Confirma la caducitat" %}</h1>
+    <p class="text-2">{% blocktranslate with name=licence.person type=licence.licence_type start=licence.starts_on|date:"d/m/Y" %}{{ type }} de {{ name }}, des del {{ start }}. Escriu la data de caducitat que consta a la federació.{% endblocktranslate %}</p>
+    {% if licence.expires_on %}<p class="text-2">{% blocktranslate with date=licence.expires_on|date:"d/m/Y" %}El titular ha declarat que caduca el {{ date }}.{% endblocktranslate %}</p>{% endif %}
+  </header>
+  <form class="formulari" method="post" novalidate>
+    {% csrf_token %}
+    {% include "_errata.html" %}
+    {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    <div class="accions">
+      <button class="boto boto-principal" type="submit">{% translate "Confirma la caducitat" %}</button>
+      <a class="boto boto-text" href="{% url 'administration:licences_unconfirmed' %}">{% translate "Cancel·la" %}</a>
+    </div>
+  </form>
+{% endblock %}
