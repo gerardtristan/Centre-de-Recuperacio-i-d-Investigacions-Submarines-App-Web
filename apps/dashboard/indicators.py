@@ -116,43 +116,52 @@ CATALOG = _catalog(
        _("Socis amb l'estat «impagat» el darrer dia del període (RN-M01-07)."),
        "members.stats", "count", "people", FEES),
     _i("free_places", ("general",), _("Places lliures a les properes activitats"),
-       _("Places totals menys inscripcions confirmades de les activitats obertes que "
-         "comencen després d'avui."),
+       _("Places totals menys places ocupades (inscripcions pendents de pagament, confirmades "
+         "i amb la plaça oferta, RN-M02-07) de les activitats obertes que comencen després "
+         "d'avui."),
        "activities.stats", "count", "other", ACTIVITY_REPORTS),
     _i("licences_to_renew", ("general", "members"), _("Llicències per renovar"),
        _("Llicències vigents que caduquen dins dels dies de «per renovar» de les "
          "llicències (VC-41)."),
        "licences.expiring", "count", "people", LICENCES),
     _i("equipment_to_review", ("general",), _("Material per revisar"),
-       _("Equips amb una revisió prevista abans del final del període."),
+       _("Equips que no són de baixa amb la revisió vençuda o dins dels dies d'avís de les "
+         "revisions del material (RN-M03-15)."),
        "equipment.stock", "count", "other", EQUIPMENT_REVIEWS),
     _i("grants_closing", ("general",), _("Ajuts que tanquen aviat"),
-       _("Dates de les convocatòries d'ajuts dins dels dies d'avís dels ajuts (VC-36)."),
+       _("Dates del calendari dels ajuts (tancaments, respostes previstes, justificacions i "
+         "requeriments) d'avui fins al tram d'avís més llarg dels ajuts (VC-36)."),
        "grants.calendar", "count", "other", GRANTS),
     # Econòmic
     _i("activity_margin", ("economic",), _("Marge de les activitats realitzades"),
-       _("Suma dels marges (ingressos − despeses − cost de material) de les activitats "
-         "acabades dins del període."),
-       "margins.activity_margin", "cents", "money"),
+       _("Suma dels marges congelats (ingressos − despeses − cost de material) de les "
+         "activitats tancades econòmicament dins del període, de tots els departaments, com a "
+         "l'informe per departament."),
+       "margins.department_report", "cents", "money"),
     _i("department_income", ("economic",), _("Ingressos per departament"),
-       _("Ingressos de cada departament dins del període; la suma dels departaments és el "
-         "total."),
+       _("Ajuts cobrats i altres ingressos sense activitat de cada departament dins del "
+         "període, com a l'informe per departament (els de les activitats són dins del marge); "
+         "la suma dels departaments és el total."),
        "margins.department_report", "cents", "money"),
     _i("department_expenses", ("economic",), _("Despeses per departament"),
-       _("Despeses de cada departament dins del període; la suma dels departaments és el "
-         "total."),
+       _("Despeses pagades sense activitat de cada departament dins del període, com a "
+         "l'informe per departament (les repartides a activitats són dins del marge); la suma "
+         "dels departaments és el total."),
        "margins.department_report", "cents", "money"),
     _i("grants_granted", ("economic",), _("Ajuts concedits per departament"),
-       _("Import concedit dels ajuts resolts dins del període, per departament."),
+       _("Import concedit de les sol·licituds d'ajut resoltes dins del període (sense les "
+         "denegades), per departament."),
        "grants.granted_by_department", "cents", "money", GRANTS),
     _i("expenses_without_invoice", ("economic",), _("Despeses sense factura"),
-       _("Nombre de despeses del període que encara no tenen factura."),
-       "expenses.expenses_for", "count", "other", WITHOUT_INVOICE),
+       _("Nombre de despeses sense factura (o amb la factura il·legible) amb la data de la "
+         "factura dins del període."),
+       "expenses.without_invoice_totals", "count", "other", WITHOUT_INVOICE),
     _i("expenses_without_invoice_amount", ("economic",), _("Import de les despeses sense factura"),
-       _("Suma de les despeses del període que encara no tenen factura."),
-       "expenses.expenses_for", "cents", "money", WITHOUT_INVOICE),
+       _("Suma de les despeses sense factura (o amb la factura il·legible) amb la data de la "
+         "factura dins del període."),
+       "expenses.without_invoice_totals", "cents", "money", WITHOUT_INVOICE),
     _i("treasury_balances", ("economic",), _("Saldos de tresoreria"),
-       _("Saldo de cada compte el darrer dia del període."),
+       _("Saldo de cada compte el darrer dia del període; un compte inactiu a zero no surt."),
        "treasury.balance", "cents", "money", TREASURY),
     # Activitat
     _i("occupancy", ("activity",), _("Ocupació de cursos i sortides"),
@@ -167,7 +176,8 @@ CATALOG = _catalog(
        _("Inscripcions confirmades de cada setmana del període."),
        "activities.stats", "count", "people", ACTIVITY_REPORTS),
     _i("equipment_in_use", ("activity",), _("Material en ús"),
-       _("Equips prestats o assignats a una activitat el darrer dia del període."),
+       _("Equips en ús (lliurats i no retornats) o assignats avui, segons l'estoc del material "
+         "(CA-M03-15); només surt per al període en curs."),
        "equipment.stock", "count", "other", EQUIPMENT_STOCK),
     # Socis
     _i("joins_and_leaves", ("members",), _("Altes i baixes per mes"),
@@ -180,8 +190,9 @@ CATALOG = _catalog(
        _("1 − baixes del període / socis actius el primer dia del període."),
        "members.stats", "percent", "people", MEMBERS),
     _i("signed_mandates", ("members",), _("Mandats signats"),
-       _("Mandats signats durant la campanya de mandats; només mentre hi ha campanya."),
-       "payments.campaign_status", "count", "people", MANDATES),
+       _("Socis que han signat un mandat des que es va obrir la campanya de mandats; només "
+         "mentre hi ha campanya."),
+       "payments.mandates_signed", "count", "people", MANDATES),
     # Comunicació
     _i("confirmed_subscribers", ("communication",), _("Subscriptors confirmats"),
        _("Subscriptors del butlletí que han confirmat el correu."),
