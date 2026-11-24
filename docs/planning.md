@@ -7470,11 +7470,11 @@ En un lloguer puntual, qui el registra escriu el **cost del centre**. El preu pe
 | LC11 | Passar els registres del 01 al 06 | — | — | — | — | — | — | Sí | — | — | — |
 | C6 | Camps: número federatiu, categoria i venciment | — | Sí | Sí | — | Sí | — | Sí | Sí | — | Els veu qui té LC4; l'instructor continua amb «sí o no» (RN-M06-22) |
 
-### 07 Web pública (proposta)
-Files WP1 a WP8 proposades a [M07-4](#M07-4-rols) (secció escrita el 21/11/2026, per aprovar). Entren en aquesta matriu quan s'aprovi la secció.
+### 07 Web pública
+Files WP1 a WP8 de [M07-4](#M07-4-rols), aprovades pel propietari el 24/11/2026; al catàleg des de la T-M07-02.
 
-### 08 Dashboard (mòdul pendent)
-Abast precisat a [M08-4](#M08-4-rols) (secció escrita el 21/11/2026, per aprovar), sense codis nous.
+### 08 Dashboard
+Abast precisat a [M08-4](#M08-4-rols) (secció aprovada pel propietari el 24/11/2026), sense codis nous; DB1 és `dashboard.view` i DB2, `dashboard.actions` (T-M07-02).
 
 | # | Permís | Instr. | Secr. | RCS | RM | Tres. | DH | Admin. | Pres. | Junta | Canvi |
 |---|---|---|---|---|---|---|---|---|---|---|---|
