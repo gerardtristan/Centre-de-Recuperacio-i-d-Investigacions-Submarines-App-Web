@@ -2,7 +2,7 @@
 
 from procrastinate.contrib.django import app
 
-from . import contact
+from . import contact, newsletter
 
 
 # Cada dia, de matinada: els missatges de contacte acabats fora de termini (RN-M07-07, CA-M07-12).
@@ -10,3 +10,9 @@ from . import contact
 @app.task(name="website.purge_contact_messages", queue="maintenance")
 def purge_contact_messages(timestamp: int) -> None:
     contact.purge_finished()
+
+
+# Un lot del butlletí (T-M07-14): els correus van a la cua de la 00 amb la prioritat del butlletí.
+@app.task(name="website.send_newsletter_batch", queue="maintenance")
+def send_newsletter_batch(delivery_ids: list[int]) -> None:
+    newsletter.send_batch(delivery_ids)

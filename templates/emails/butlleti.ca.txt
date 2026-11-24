@@ -1,0 +1,6 @@
+{% load i18n %}{# T-M07-14b (RN-M07-06, CA-M07-08): el butlletí en text pla, sense píxels ni enllaços rastrejats, i l'enllaç de baixa, que funciona sense sessió. TEXT PROVISIONAL del peu [A validar: junta]. #}{% autoescape off %}{{ body }}
+
+--
+{% translate "Reps aquest butlletí perquè t'hi vas subscriure al web del C.R.I.S. Per donar-te'n de baixa, obre aquest enllaç (és immediat):" %}
+{{ unsubscribe_url }}
+{% endautoescape %}

@@ -1878,12 +1878,13 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial=dict.fromkeys((R.COURSES_MANAGER, R.TREASURER, R.ADMINISTRATOR, R.PRESIDENT), _ALL),
     ),
     # Ajustos del dashboard (M08-6; P-488 i P-487): «veure» i «veure i editar», l'Administrador.
+    # El RCS hi entra amb «Cons.» per canviar el llindar d'ocupació (M08-4 i M08-6; P-645).
     _perm(
         "settings.section.dashboard",
         "AJ08",
         _("Ajustos del dashboard"),
         allowed_scopes=(SCOPE_ALL, SCOPE_READ),
-        initial={R.ADMINISTRATOR: _ALL},
+        initial={R.ADMINISTRATOR: _ALL, R.COURSES_MANAGER: SCOPE_READ},
     ),
     _perm(
         "settings.edit.dashboard.help_text",
@@ -1896,6 +1897,20 @@ PERMISSIONS: tuple[Permission, ...] = (
         "settings.edit.dashboard.min_group_size",
         "AJ08-2",
         _("Mida mínima d'un grup al dashboard (P-487)"),
+        requires=("settings.section.dashboard",),
+        initial={R.ADMINISTRATOR: _ALL},
+    ),
+    _perm(
+        "settings.edit.dashboard.low_occupancy_pct",
+        "AJ08-3",
+        _("Llindar d'ocupació baixa al dashboard"),
+        requires=("settings.section.dashboard",),
+        initial={R.ADMINISTRATOR: _ALL, R.COURSES_MANAGER: _ALL},
+    ),
+    _perm(
+        "settings.edit.dashboard.default_period",
+        "AJ08-4",
+        _("Període per defecte del dashboard"),
         requires=("settings.section.dashboard",),
         initial={R.ADMINISTRATOR: _ALL},
     ),

@@ -94,6 +94,9 @@ TEMPLATE_PRIORITIES = {
     "avis-reobertura-periode": _Priority.CONFIRMATION,  # S-M09-13, al tresorer i a la junta
     "avis-ajut-paquet": _Priority.CONFIRMATION,  # RN-M09A-11 i 18, al responsable i al tresorer
     "avis-document-illegible": _Priority.CONFIRMATION,  # CA-M09-28, a qui el va pujar (T-M09-25b)
+    "avis-missatge-contacte": _Priority.CONFIRMATION,  # RN-M07-07, CA-M07-11 (T-M07-13b)
+    "resposta-contacte": _Priority.CONFIRMATION,  # P-M07-D, al visitant (T-M07-13b)
+    "confirmacio-butlleti": _Priority.CONFIRMATION,  # P-M07-E, CA-M07-06 (T-M07-13b)
     "confirmacio-inscripcio": _Priority.CONFIRMATION,  # RN-M02-19 (T-M02-21b)
     "termini-pagament": _Priority.CONFIRMATION,  # RN-M02-08 i 19 (T-M02-21b)
     "oferta-placa": _Priority.CONFIRMATION,  # RN-M02-09 i 19 (T-M02-21b)
@@ -131,6 +134,8 @@ TEMPLATE_PRIORITIES = {
     "avis-ajut-justificacio": _Priority.REMINDER,  # RN-M09A-04 i 20, S-M09A-04 (T-M09A-06)
     "avis-ajut-requeriment": _Priority.REMINDER,  # RN-M09A-19, CA-M09A-17 i 18 (T-M09A-15)
     "prova": _Priority.REMINDER,  # correu de prova de l'ordre `send_test_email`
+    # Butlletí: la prioritat més baixa, dins del comptador i sense la reserva dels transaccionals.
+    "butlleti": _Priority.NEWSLETTER,  # RN-M07-06, CA-M07-08 (T-M07-14b)
 }
 
 

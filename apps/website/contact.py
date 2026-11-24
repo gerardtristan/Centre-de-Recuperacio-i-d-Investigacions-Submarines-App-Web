@@ -3,14 +3,14 @@
 - `submit`: el formulari públic, darrere de `website.contact_enabled` (apagat; P-486). Robots,
   sense cap servei de tercers: camp parany, temps mínim i límit per origen. Un robot o un origen
   limitat rep la mateixa resposta que un visitant i no es desa res.
-- `visible_to` i `close`: la safata. WP5 (`website.contact`) i, a més, l'abast per motiu: un
-  compte només veu els motius que tenen algun dels seus rols (`ContactReason.roles`, WP8).
+- `visible_to`, `reply` i `close`: la safata. WP5 (`website.contact`) i, a més, l'abast per motiu:
+  un compte només veu els motius que tenen algun dels seus rols (`ContactReason.roles`, WP8).
+- Correus (T-M07-13b), sempre a la cua: l'avís als comptes del motiu en desar un missatge, només
+  amb el nom del motiu, i la resposta al visitant, només amb el motiu i la resposta.
 - `purge_finished`: la tasca diària; esborra els missatges acabats fa més de
   `website.contact_retention_months` i en deixa la traça al registre sense el contingut.
 
-Falten (torn del nucli): l'avís als comptes del motiu i la resposta al visitant per correu (les
-plantilles es declaren a `core.mail.TEMPLATE_PRIORITIES`) i les pantalles de la safata i dels
-motius (les rutes d'administració s'inclouen a `accounts/admin_urls.py`). Vegeu `docs/estat/M07.md`.
+Les pantalles de la safata i dels motius (WP8) s'inclouen a `accounts/admin_urls.py`.
 """
 
 import time
@@ -23,8 +23,8 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
 from apps.accounts import limits
-from apps.core import audit, business_settings
-from apps.core.permissions import active_role_codes, has_perm
+from apps.core import audit, business_settings, mail
+from apps.core.permissions import accounts_with_perm, active_role_codes, has_perm
 from apps.payments.expiry import months_after
 
 from .models import ContactMessage
@@ -32,7 +32,10 @@ from .models import ContactMessage
 ENABLED = "website.contact_enabled"
 RETENTION_MONTHS = "website.contact_retention_months"
 PERMISSION = "website.contact"  # WP5
+ACTION_ANSWERED = "website.contact_answered"
 ACTION_CLOSED = "website.contact_closed"
+NOTICE_TEMPLATE = "avis-missatge-contacte"
+REPLY_TEMPLATE = "resposta-contacte"
 ACTION_DELETED = "website.contact_deleted"
 # Seguretat (M07-6, «Es queden al codi»): un humà no omple el formulari en menys de 3 segons, i
 # un formulari obert fa més d'un dia es torna a carregar.
@@ -74,13 +77,37 @@ def submit(data: dict, *, ip: str, privacy_text) -> ContactMessage | None:
     # quan el nucli hi tingui una finalitat pròpia per al contacte, fer-la servir aquí.
     if limits.start_join(ip) is None:
         return None
-    return ContactMessage.objects.create(
+    message = ContactMessage.objects.create(
         reason=data["reason"],
         name=data["name"].strip(),
         email=data["email"],
         body=data["body"].strip(),
         privacy_text=privacy_text,
     )
+    notify(message)
+    return message
+
+
+def recipients(reason):
+    """Els comptes amb WP5 i algun rol del motiu (RN-M07-07, CA-M07-11)."""
+    roles = set(reason.roles.values_list("code", flat=True))
+    return [
+        account
+        for account in accounts_with_perm(PERMISSION, write=True)
+        if roles & active_role_codes(account)
+    ]
+
+
+def notify(message: ContactMessage) -> int:
+    sent = 0
+    for account in recipients(message.reason):
+        if account.notification_email:
+            mail.queue_email(
+                NOTICE_TEMPLATE, to=account.notification_email, person=account.person,
+                context={"reason": message.reason.name},
+            )  # fmt: skip
+            sent += 1
+    return sent
 
 
 def visible_to(account):
@@ -91,13 +118,9 @@ def visible_to(account):
     return ContactMessage.objects.filter(reason__roles__code__in=roles).distinct()
 
 
-@transaction.atomic
-def close(message: ContactMessage, *, actor, reason: str) -> ContactMessage:
-    """Tancar sense resposta, amb motiu i registre (P-M07-D, RN-M07-14). Fora de l'abast, «no
-    trobat» com la resta de la plataforma."""
-    reason = (reason or "").strip()
-    if not reason:
-        raise ValidationError(_("Cal el motiu del tancament."))
+def _lock_new(message, actor):
+    """El missatge bloquejat, si el compte el pot gestionar i encara és nou; fora de l'abast,
+    «no trobat» com la resta de la plataforma."""
     if not (
         has_perm(actor, PERMISSION, write=True) and visible_to(actor).filter(pk=message.pk).exists()
     ):
@@ -105,6 +128,40 @@ def close(message: ContactMessage, *, actor, reason: str) -> ContactMessage:
     message = ContactMessage.objects.select_for_update().get(pk=message.pk)
     if message.status != ContactMessage.Status.NEW:
         raise ValidationError(_("Aquest missatge ja està respost o tancat."))
+    return message
+
+
+@transaction.atomic
+def reply(message: ContactMessage, *, actor, answer: str) -> ContactMessage:
+    """Respondre per correu des de cris@cris.es (P-M07-D, 085), amb registre (RN-M07-14)."""
+    answer = (answer or "").strip()
+    if not answer:
+        raise ValidationError(_("Cal escriure la resposta."))
+    message = _lock_new(message, actor)
+    message.status, message.answer, message.answered_by = (
+        ContactMessage.Status.ANSWERED, answer, actor,
+    )  # fmt: skip
+    message.finished_at = timezone.now()
+    message.save(update_fields=["status", "answer", "answered_by", "finished_at"])
+    mail.queue_email(
+        REPLY_TEMPLATE, to=message.email,
+        context={"reason": message.reason.name, "answer": answer},
+    )  # fmt: skip
+    audit.record(
+        ACTION_ANSWERED, actor=actor, target=message, field="status",
+        old=ContactMessage.Status.NEW, new=message.status,
+    )  # fmt: skip
+    return message
+
+
+@transaction.atomic
+def close(message: ContactMessage, *, actor, reason: str) -> ContactMessage:
+    """Tancar sense resposta, amb motiu i registre (P-M07-D, RN-M07-14). Fora de l'abast, «no
+    trobat» com la resta de la plataforma."""
+    reason = (reason or "").strip()
+    if not reason:
+        raise ValidationError(_("Cal el motiu del tancament."))
+    message = _lock_new(message, actor)
     message.status, message.closed_reason = ContactMessage.Status.CLOSED, reason
     message.finished_at = timezone.now()
     message.save(update_fields=["status", "closed_reason", "finished_at"])

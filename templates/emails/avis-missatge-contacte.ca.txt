@@ -1,0 +1,6 @@
+{% load i18n %}{# T-M07-13b (P-M07-D, RN-M07-07, CA-M07-11): avís als comptes que reben el motiu. TEXT PROVISIONAL [A validar: secretaria]. Només el motiu: cap nom, correu ni text del visitant, que es llegeixen a la safata. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate %}Hi ha un missatge nou a la safata de contacte amb el motiu «{{ reason }}». El pots llegir i respondre des de l'administració de la plataforma.{% endblocktranslate %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}

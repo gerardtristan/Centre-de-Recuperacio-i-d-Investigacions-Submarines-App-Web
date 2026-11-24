@@ -1,0 +1,51 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# P-M08-A i B (DB1; RN-M08-01 a 05, 08, 09 i 11): un panell del dashboard. Només xifres agregades: cap nom, correu ni document. Els grups petits ja arriben amagats del servidor («menys de N»). Un bloc enllaça al detall només si el compte té el permís del mòdul, i el mòdul el torna a comprovar. Sense gràfics fins a la T-M08-11: xifres i taules. #}
+{% block title %}{% translate "Dashboard" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Dashboard" %}</p>
+    <h1>{% blocktranslate with name=panel_name %}Panell {{ name }}{% endblocktranslate %}</h1>
+    <p class="text-2">{% blocktranslate with start=starts_on|date:"d/m/Y" end=ends_on|date:"d/m/Y" time=computed_at|time:"H:i" %}Del {{ start }} al {{ end }}. Dades calculades a les {{ time }}.{% endblocktranslate %}</p>
+  </header>
+
+  <nav class="accions" aria-label="{% translate 'Panells' %}">
+    {% for code, name in panels.items %}<a class="boto boto-text" href="{% url 'administration:dashboard_panel' code %}?periode={{ period }}"{% if code == panel %} aria-current="page"{% endif %}>{{ name }}</a>{% endfor %}
+  </nav>
+
+  <form class="formulari barra-filtres" method="get" action="{% url 'administration:dashboard_panel' panel %}" novalidate>
+    <fieldset class="filtres">
+      <legend>{% translate "Filtres" %}</legend>
+      <div class="camp">
+        <label for="filtre-periode">{% translate "Període" %}</label>
+        <select id="filtre-periode" name="periode">{% for code, label in periods.items %}<option value="{{ code }}"{% if code == period %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+      </div>
+    </fieldset>
+    <div class="accions"><button class="boto" type="submit">{% translate "Mostra" %}</button></div>
+  </form>
+
+  {% for block in blocks %}
+    <section class="targeta" aria-labelledby="bloc-{{ block.code }}">
+      <h2 id="bloc-{{ block.code }}">{% if block.link %}<a href="{{ block.link }}">{{ block.name }}</a>{% else %}{{ block.name }}{% endif %}</h2>
+      {% if block.error %}
+        <div class="avis avis-avis" role="note">{% translate "No s'ha pogut calcular." %}</div>
+      {% elif block.breakdowns %}
+        {% for breakdown in block.breakdowns %}
+          <table class="taula">
+            {% if breakdown.label %}<caption>{{ breakdown.label }}</caption>{% endif %}
+            <tbody>
+              {% for label, value in breakdown.cells %}<tr><th scope="row" class="cel-nom">{{ label }}</th><td class="xifra-viva">{{ value }}</td></tr>{% empty %}<tr><td colspan="2">{% translate "Sense dades en aquest període." %}</td></tr>{% endfor %}
+            </tbody>
+            {% if breakdown.cells %}<tfoot><tr><th scope="row">{% translate "Total" %}</th><td class="xifra-viva">{{ breakdown.total }}</td></tr></tfoot>{% endif %}
+          </table>
+        {% endfor %}
+      {% else %}
+        <p class="{% if block.unit == 'cents' %}import{% else %}xifra-viva{% endif %}">{{ block.value }}</p>
+      {% endif %}
+      <p class="text-2"><strong>{% translate "Què vol dir?" %}</strong> {{ block.definition }}</p>
+      {% if block.help %}<p class="text-2">{{ block.help }}</p>{% endif %}
+    </section>
+  {% empty %}
+    <p class="text-2">{% translate "Aquest panell encara no té cap bloc." %}</p>
+  {% endfor %}
+{% endblock %}

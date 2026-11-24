@@ -1,0 +1,55 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# P-M07-F (WP6; RN-M07-06 i 14, CA-M07-08): redactar un butlletí, veure'n la vista prèvia i el nombre de destinataris, i enviar-lo amb una confirmació. Enviat, només els recomptes. Mai cap correu de subscriptor (WP7). El servidor torna a comprovar el permís, l'interruptor i que no s'hagi enviat. #}
+{% block title %}{% if item %}{{ item.subject }}{% else %}{% translate "Butlletí nou" %}{% endif %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio"><a href="{% url 'administration:website_newsletters' %}">{% translate "Butlletí" %}</a></p>
+    <h1>{% if item %}{{ item.subject }}{% else %}{% translate "Butlletí nou" %}{% endif %}</h1>
+  </header>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
+
+  {% if counts %}
+    <section class="targeta" aria-labelledby="titol-recomptes">
+      <h2 id="titol-recomptes">{% blocktranslate with day=item.sent_at|date:"d/m/Y H:i" %}Enviat el {{ day }}{% endblocktranslate %}</h2>
+      <dl class="dades-soci">
+        <div><dt>{% translate "Destinataris" %}</dt><dd class="xifra-viva">{{ counts.recipients }}</dd></div>
+        <div><dt>{% translate "Enviats" %}</dt><dd class="xifra-viva">{{ counts.sent }}</dd></div>
+        <div><dt>{% translate "Fallits" %}</dt><dd class="xifra-viva">{{ counts.failed }}</dd></div>
+        <div><dt>{% translate "Baixes després de l'enviament" %}</dt><dd class="xifra-viva">{{ counts.unsubscribed_after }}</dd></div>
+      </dl>
+      {{ item.body|linebreaks }}
+    </section>
+  {% else %}
+    <section class="targeta" aria-labelledby="titol-redactar">
+      <h2 id="titol-redactar">{% translate "Redactar" %}</h2>
+      <form class="formulari" method="post" action="{% if item %}{% url 'administration:website_newsletter_edit' item.pk %}{% else %}{% url 'administration:website_newsletter_add' %}{% endif %}" novalidate>
+        {% csrf_token %}
+        {% include "_errata.html" %}
+        {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+        <div class="accions"><button class="boto{% if not item %} boto-principal{% endif %}" type="submit">{% translate "Desa l'esborrany" %}</button></div>
+      </form>
+    </section>
+    {% if item %}
+      <section class="targeta" aria-labelledby="titol-previa">
+        <h2 id="titol-previa">{% translate "Vista prèvia" %}</h2>
+        <p><strong>{{ item.subject }}</strong></p>
+        {{ item.body|linebreaks }}
+        <p class="text-2">{% translate "Al final, l'enllaç per donar-se de baixa." %}</p>
+      </section>
+      <section class="targeta" aria-labelledby="titol-envia">
+        <h2 id="titol-envia">{% translate "Enviar" %}</h2>
+        <p>{% blocktranslate count total=recipients %}Ara l'han de rebre {{ total }} subscripció confirmada.{% plural %}Ara l'han de rebre {{ total }} subscripcions confirmades.{% endblocktranslate %}</p>
+        <form class="formulari" method="post" action="{% url 'administration:website_newsletter_send' item.pk %}" novalidate>
+          {% csrf_token %}
+          {% with form=send_form %}{% include "_errata.html" %}{% endwith %}
+          {% for field in send_form %}{% include "accounts/_camp.html" %}{% endfor %}
+          <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Envia el butlletí" %}</button></div>
+        </form>
+      </section>
+    {% endif %}
+  {% endif %}
+{% endblock %}

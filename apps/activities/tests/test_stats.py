@@ -136,3 +136,19 @@ def test_contract_only_counts_no_personal_data(place):
     assert all(isinstance(k, datetime.date) and isinstance(v, int)
                for k, v in result.weekly.items())  # fmt: skip
     assert "Nom-Que-No-Surt" not in repr(result) and "Prova" not in repr(result)
+
+
+def test_low_occupancy_counts_open_upcoming_activities_below_the_threshold(place):
+    """RN-M08-07 (T-M08-10): confirmades / places per sota del llindar, només de les obertes que
+    encara no han començat; una de passada que s'hagi quedat oberta no surt a l'avís."""
+    low = activity(place, datetime.date(2027, 6, 25), places=10)
+    for _ in range(4):  # 40 %
+        enrol(low)
+    enrol(low, E.PENDING_PAYMENT)  # no és confirmada
+    full = activity(place, datetime.date(2027, 6, 26), places=2)
+    enrol(full)
+    enrol(full)  # 100 %
+    activity(place, datetime.date(2027, 6, 10), places=10)  # passada i encara oberta
+    activity(place, datetime.date(2027, 6, 27), places=10, status=A.REGISTRATION_CLOSED)
+    assert stats.low_occupancy_count(50, today=NOW.date()) == 1
+    assert stats.low_occupancy_count(40, today=NOW.date()) == 0

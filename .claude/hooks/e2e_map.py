@@ -277,6 +277,31 @@ MAP = {
         "apps/grants/package.py",
         "templates/grants/*",
     ),
+    "test_butlleti_admin.py": (
+        "apps/website/admin_views.py",
+        "apps/website/admin_urls.py",
+        "apps/website/newsletter.py",
+        "templates/website/admin/newsletter*.html",
+    ),
+    "test_contacte_admin.py": (
+        "apps/website/admin_views.py",
+        "apps/website/admin_urls.py",
+        "apps/website/contact.py",
+        "templates/website/admin/*",
+    ),
+    "test_dashboard.py": (
+        "apps/dashboard/views.py",
+        "apps/dashboard/admin_urls.py",
+        "apps/dashboard/panels.py",
+        "templates/dashboard/*",
+    ),
+    "test_dashboard_llavor.py": (
+        "apps/dashboard/views.py",
+        "apps/dashboard/panels.py",
+        "apps/dashboard/privacy.py",
+        "apps/core/management/commands/seed_demo_data.py",
+        "templates/dashboard/*",
+    ),
     "test_periodes.py": (
         "apps/margins/views.py",
         "apps/margins/admin_urls.py",
@@ -299,6 +324,13 @@ MAP = {
         "apps/website/urls.py",
         "apps/website/newsletter.py",
         "templates/website/newsletter*.html",
+    ),
+    "test_web_fluxos_07.py": (
+        "apps/website/views.py",
+        "apps/website/admin_views.py",
+        "apps/website/contact.py",
+        "apps/website/newsletter.py",
+        "templates/website/*",
     ),
     "test_homologacions.py": (
         "apps/activities/views/admin_filings.py",
