@@ -44,6 +44,11 @@ BASE_ROUTES = {
     "administration:treasury_accounts": ((("treasury.view", READ),),),  # T1 (T-M04-15)
     "administration:treasury_movements": ((("treasury.view", READ),),),
     "administration:treasury_reconciliation": ((("treasury.view", READ),),),  # T1 (T-M04-15)
+    # T-M04-22 (T-DX-118): T3 o T2 d'escriptura, com `structure_view`.
+    "administration:treasury_structure": (
+        (("treasury.cost_centres.manage", WRITE),),
+        (("treasury.accounts.manage", WRITE),),
+    ),
     "administration:bank_statement": ((("core.bank_statement.import", READ),),),  # M9 (T-M00-01)
     "administration:payments_list": ((("payments.view", READ),),),  # B6 (T-M05b-16)
     "administration:licences": ((("licences.list", READ),),),  # LC4 (T-M06-09)
@@ -272,6 +277,11 @@ ENTRIES = (
         ),
     ),  # T-DX-44
     (
+        "administration:treasury_structure",
+        _("Departaments, centres de cost i comptes"),
+        ("administration:treasury_structure_create", "administration:treasury_structure_edit"),
+    ),  # T-M04-22; lloc: DISSENY (T-DX-118)
+    (
         "administration:payments_list",
         _("Pagaments: llistat"),
         ("administration:payments_review_close", "administration:payments_charge_review_close"),
@@ -389,6 +399,7 @@ GROUPS = (
             "administration:treasury_accounts",
             "administration:treasury_movements",
             "administration:treasury_reconciliation",
+            "administration:treasury_structure",
             "administration:expense_new",
             "administration:expenses_without_invoice",
             "administration:margin_periods",

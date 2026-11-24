@@ -72,3 +72,14 @@ def test_types_entry_is_current_when_editing_a_type(login_as, make_admin):  # no
     assert response.status_code == 200
     entry = reverse("administration:membership_types")
     assert f'<a href="{entry}" aria-current="page">' in response.content.decode()
+
+
+def test_structure_entry_only_with_t2_or_t3(login_as, make_admin):  # noqa: F811
+    """T-DX-118: «Departaments, centres de cost i comptes» (T-M04-22) és a «Quotes i tresoreria»
+    i queda marcada a la seva pantalla; sense T2 ni T3, el menú no hi enllaça."""
+    url = reverse("administration:treasury_structure")
+    html = login_as(make_admin("treasurer"), AREA_ADMIN).get(url).content.decode()
+    assert f'<a href="{url}" aria-current="page">' in html
+    home = reverse("administration:home")
+    html = login_as(make_admin("secretary"), AREA_ADMIN).get(home).content.decode()
+    assert f'href="{url}"' not in html
