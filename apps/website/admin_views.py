@@ -236,12 +236,13 @@ def _newsletter_page(request, item, form, send_form=None):
 @never_cache
 @require_http_methods(["GET", "POST"])
 def newsletter_edit_view(request, pk=None):
-    _newsletter_access(request, write=True)
+    _newsletter_access(request)
     item = get_object_or_404(Newsletter, pk=pk) if pk else None
     if item is not None and item.status == Newsletter.Status.SENT:
         if request.method == "POST":
             raise Http404
-        return _newsletter_page(request, item, None)
+        return _newsletter_page(request, item, None)  # els recomptes: n'hi ha prou amb veure
+    _newsletter_access(request, write=True)
     initial = {"subject": item.subject, "body": item.body} if item else None
     form = NewsletterForm(request.POST or None, initial=initial)
     if request.method == "POST" and form.is_valid():

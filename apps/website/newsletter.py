@@ -144,8 +144,8 @@ ACTION_SENT = "website.newsletter_sent"
 BATCH_SIZE = 50
 
 
-def _require(actor):
-    if not business_settings.get(ENABLED) or not has_perm(actor, PERMISSION, write=True):
+def _require(actor, *, write=True):
+    if not business_settings.get(ENABLED) or not has_perm(actor, PERMISSION, write=write):
         raise Http404
 
 
@@ -241,7 +241,7 @@ def send_batch(delivery_ids: list[int]) -> None:
 
 def counts(newsletter: Newsletter, *, actor) -> dict:
     """CA-M07-08: enviats, fallits i baixes posteriors; només recomptes (WP6)."""
-    _require(actor)
+    _require(actor, write=False)  # veure els recomptes no demana poder enviar
     deliveries = newsletter.deliveries
     # De la base de dades: la instància de qui crida pot ser d'abans d'enviar-lo.
     sent_at = Newsletter.objects.values_list("sent_at", flat=True).get(pk=newsletter.pk)

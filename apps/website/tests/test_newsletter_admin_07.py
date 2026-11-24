@@ -62,3 +62,4 @@ def test_ca_m07_08_sending_needs_the_confirmation_and_happens_once(three, make_a
     assert "Destinataris" in page and "Desa l&#x27;esborrany" not in page
     assert "@example.org" not in page
     assert client.post(_edit(item), {"subject": "Canvi", "body": "x"}).status_code == 404
+
