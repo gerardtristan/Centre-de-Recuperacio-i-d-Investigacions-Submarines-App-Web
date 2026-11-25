@@ -15,17 +15,26 @@ Cloudflare és una empresa dels EUA. S'accepta com a excepció només per a prov
 
 ## Primera vegada (al portàtil que farà de servidor)
 
-1. **Instal·la Docker Desktop** des de <https://www.docker.com/products/docker-desktop/>. Accepta l'opció WSL 2 i reinicia si t'ho demana. Obre'l i espera que digui «Engine running». A *Settings → General*, marca «Start Docker Desktop when you sign in».
-2. **Instal·la Git** des de <https://git-scm.com/download/win> (les opcions per defecte ja van bé).
-3. **Baixa el repositori.** Obre PowerShell i escriu:
+1. **Activa la virtualització a la BIOS.** Engega el portàtil prement **F1**; a *Security → Virtualization*, posa *Intel Virtualization Technology* (i VT-d, si hi és) a *Enabled* i desa amb **F10**. Sense això Docker no arrenca. Comprova que el Windows 10 és la versió 22H2 (*Configuració → Sistema → Quant a*) i que està al dia.
+2. **Limita la memòria de Docker** (portàtils de 4 GB, com el ThinkPad 11e). Crea amb el Bloc de notes el fitxer `C:\Users\EL_TEU_USUARI\.wslconfig` (tria «Tots els fitxers» perquè no hi afegeixi `.txt`) amb aquest contingut:
+   ```
+   [wsl2]
+   memory=2GB
+   processors=2
+   swap=2GB
+   ```
+   El servidor ja està ajustat per gastar poc: un sol procés de l'aplicació i poca memòria per a la base de dades.
+3. **Instal·la Docker Desktop** des de <https://www.docker.com/products/docker-desktop/>. Accepta l'opció WSL 2 i reinicia si t'ho demana. Obre'l i espera que digui «Engine running». A *Settings → General*, marca «Start Docker Desktop when you sign in».
+4. **Instal·la Git** des de <https://git-scm.com/download/win> (les opcions per defecte ja van bé).
+5. **Baixa el repositori.** Obre PowerShell i escriu:
    ```powershell
    git clone https://github.com/gerardtristan/Centre-de-Recuperacio-i-d-INvestigacions-Submarines-App-Web.git C:\cris
    ```
-4. **Arrenca'l.** Obre la carpeta `C:\cris\deploy\proves` i fes doble clic a **`arrenca.cmd`**. La primera vegada triga entre 5 i 10 minuts. Genera els secrets del portàtil (es desen a `deploy\proves\local\` i mai no van al repositori), carrega les dades inventades i, al final, mostra:
+6. **Arrenca'l.** Obre la carpeta `C:\cris\deploy\proves` i fes doble clic a **`arrenca.cmd`**. La primera vegada triga entre 5 i 20 minuts, segons el portàtil. Genera els secrets del portàtil (es desen a `deploy\proves\local\` i mai no van al repositori), carrega les dades inventades i, al final, mostra:
    - l'**adreça per compartir** i la **contrasenya del davant**;
    - els **comptes de l'administració** (`admin-demo`, `secretaria-demo`, `tresorer-demo`, `president-demo` i `instructor-demo`), amb la contrasenya `contrasenya-de-proves-1954`;
    - el **secret del doble factor**, que és el mateix per a tots els comptes. Afegeix-lo a Google Authenticator, Aegis o una app semblant com a «clau de configuració».
-5. **Deixa'l encès.** A *Configuració → Sistema → Energia*, posa «Quan estigui connectat, posa en repòs després de» a **Mai**. Si el tens amb la tapa tancada: *Tauler de control → Opcions d'energia → Tria què fa el tancament de la tapa → No fer res* (amb el portàtil endollat).
+7. **Deixa'l encès.** A *Configuració → Sistema → Energia*, posa «Quan estigui connectat, posa en repòs després de» a **Mai**. Si el tens amb la tapa tancada: *Tauler de control → Opcions d'energia → Tria què fa el tancament de la tapa → No fer res* (amb el portàtil endollat).
 
 La finestra mostra també com entrar a la **bústia de proves** (`/bustia/`). Hi arriben tots els correus de la plataforma, i també un correu titulat «Entorn de proves: com s'hi entra» amb els mateixos accessos.
 

@@ -20,6 +20,9 @@ x-app: &app
     - local/adreca.env
   environment:
     DJANGO_SETTINGS_MODULE: config.settings.staging
+    # Un sol procés de gunicorn amb fils: n'hi ha prou per a la junta i cap en 4 GB (099).
+    GUNICORN_WORKERS: "1"
+    GUNICORN_THREADS: "4"
   depends_on:
     db:
       condition: service_healthy
@@ -34,6 +37,8 @@ services:
     environment:
       POSTGRES_USER: cris
       POSTGRES_DB: cris
+    # Poca memòria: el servidor de proves corre en un portàtil de 4 GB (decisió 099).
+    command: ["postgres", "-c", "shared_buffers=64MB", "-c", "max_connections=30", "-c", "work_mem=2MB"]
     volumes:
       - dades-postgres:/var/lib/postgresql/data
     healthcheck:

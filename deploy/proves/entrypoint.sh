@@ -14,7 +14,8 @@ case "${1:-web}" in
     else
       echo "La base ja té dades: no es carreguen dades inventades."
     fi
-    exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 2 \
+    exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers "${GUNICORN_WORKERS:-2}" \
+      --threads "${GUNICORN_THREADS:-1}" \
       --access-logfile - --forwarded-allow-ips '*'
     ;;
   worker)
