@@ -637,3 +637,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M07-09](T-M07-09.md) | Preguntes freqüents amb cercador a `/ajuda/` (Recoveco) (en part: pantalles de WP4, torn del nucli; carril A) | 25/11/2026 01:30 | (vegeu la PR) | 8 noves i 1 e2e | [A comprovar] |
 | [T-M07-13c](T-M07-13c.md) | Butlletí des de l'àrea del soci, amb el consentiment de la 00 (P-492; carril A) | 25/11/2026 01:38 | (vegeu la PR) | 5 noves i 1 e2e | [A comprovar] |
 | [torn-nucli-25-11-b](torn-nucli-25-11-b.md) | Torn del nucli: notícies (WP2) i preguntes freqüents (WP4) a l'administració, i permís de les imatges públiques (P-663) | 25/11/2026 02:43 | (vegeu la PR) | 5 noves, 1 fila de la matriu i 2 e2e | [A comprovar] |
+| [T-M07-10](T-M07-10.md) | Tutorials i «Mira com es fa» (en part: sense vídeo, decisió 106; pantalles de WP4, torn del nucli; carril A) | 25/11/2026 02:44 | (vegeu la PR) | 6 noves i 1 e2e | [A comprovar] |
