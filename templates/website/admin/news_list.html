@@ -1,0 +1,28 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# P-M07-B (WP2; RN-M07-02 i 14): les notícies, esborranys, publicades i retirades. L'enllaç de redactar només surt amb permís d'escriptura; el servidor ho torna a comprovar. #}
+{% block title %}{% translate "Notícies" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Web pública" %}</p>
+    <h1>{% translate "Notícies" %}</h1>
+    <p class="text-2">{% translate "Només es veuen a la web les publicades. Retirar-ne una demana un motiu." %}</p>
+  </header>
+  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+  {% if can_write %}<div class="accions"><a class="boto boto-principal" href="{% url 'administration:website_news_add' %}">{% translate "Notícia nova" %}</a></div>{% endif %}
+  <table class="taula">
+    <caption>{% translate "De la més recent a la més antiga." %}</caption>
+    <thead><tr><th scope="col">{% translate "Títol" %}</th><th scope="col">{% translate "Data" %}</th><th scope="col">{% translate "Estat" %}</th></tr></thead>
+    <tbody>
+      {% for item in items %}
+        <tr>
+          <th scope="row" class="cel-nom">{% if can_write %}<a href="{% url 'administration:website_news_edit' item.pk %}">{{ item.title }}</a>{% else %}{{ item.title }}{% endif %}</th>
+          <td data-etiqueta="{% translate 'Data' %}">{{ item.date|date:"d/m/Y" }}</td>
+          <td data-etiqueta="{% translate 'Estat' %}">{% if item.status == "published" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ item.get_status_display }}</span>{% elif item.status == "retired" %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {{ item.get_status_display }}</span>{% else %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {{ item.get_status_display }}</span>{% endif %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3">{% translate "Encara no hi ha cap notícia." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
