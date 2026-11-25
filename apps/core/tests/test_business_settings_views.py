@@ -188,5 +188,16 @@ def test_t_m02_39_the_places_link_shows_only_with_ac21(make_admin):
     assert (
         response.status_code in (200, 404) and f'href="{places}"' not in response.content.decode()
     )
-    # Amb AC21 i cap apartat d'ajustos, la pantalla també hi és (com els textos legals).
-    assert admin_client(make_admin(R.EQUIPMENT_MANAGER)).get(index).status_code == 200
+    # Amb AC21 i cap apartat d'ajustos, la pantalla també hi és (com els textos legals): el
+    # Departament d'Història no té cap apartat; se li dona només AC21.
+    from apps.core.models import Role, RolePermission
+
+    historian = make_admin(R.HISTORY_DEPARTMENT)
+    assert admin_client(historian).get(index).status_code == 404
+    RolePermission.objects.create(
+        role=Role.objects.get(code=R.HISTORY_DEPARTMENT),
+        permission_code="activities.places.view",
+        scope="all",
+    )
+    page = admin_client(historian).get(index).content.decode()
+    assert f'href="{places}"' in page and "/ajustos/" not in page.split("<main", 1)[1]

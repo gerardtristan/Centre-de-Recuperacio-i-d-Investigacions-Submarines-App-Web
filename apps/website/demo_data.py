@@ -7,8 +7,6 @@ subscripció) i un butlletí en esborrany. Els missatges nous es desen sense el 
 perquè no passin pel límit per origen; cap dada real.
 """
 
-from django.db.models import Max
-
 from apps.core import consents
 
 from . import contact, newsletter
@@ -50,9 +48,9 @@ def create(*, secretary, admin) -> dict:
     newsletter.unsubscribe(gone.token)
 
     # El butlletí és apagat (P-42): `save_draft` el rebutjaria; l'esborrany es desa directament.
-    number = (Newsletter.objects.aggregate(last=Max("number"))["last"] or 0) + 1
     Newsletter.objects.create(
-        number=number, subject="Sortides de primavera (inventat)", created_by=admin,
+        number=newsletter._next_number(), created_by=admin,
+        subject="Sortides de primavera (inventat)",
         body="Aquest any farem tres sortides a la Costa Brava.\n\nInscripcions aviat.",
     )  # fmt: skip
     return {"messages": len(rows), "subscriptions": len(SUBSCRIBERS), "drafts": 1}
