@@ -35,13 +35,15 @@ def _check_image(item: NewsItem) -> None:
         media.check_publishable([str(item.image.key)])
 
 
+@transaction.atomic
 def save_news(item: NewsItem | None, *, actor, **fields) -> NewsItem:
-    """Crea (`item=None`, en esborrany) o canvia una notícia que no és retirada."""
+    """Crea (`item=None`, en esborrany) o canvia una notícia que no és retirada. Amb la fila
+    bloquejada i només els camps editats: una retirada alhora no es desfà (revisió de la #597)."""
     require(actor)
     if set(fields) - EDITABLE_FIELDS:
         raise ValueError(f"Camps no editables: {sorted(set(fields) - EDITABLE_FIELDS)}")
     # Des de la base de dades: un canvi rebutjat abans no s'arrossega.
-    item = NewsItem.objects.get(pk=item.pk) if item else NewsItem()
+    item = NewsItem.objects.select_for_update().get(pk=item.pk) if item else NewsItem()
     if item.status == S.RETIRED:
         raise ValidationError(_("Una notícia retirada no es pot canviar."))
     for name, value in fields.items():
@@ -49,7 +51,7 @@ def save_news(item: NewsItem | None, *, actor, **fields) -> NewsItem:
     item.full_clean()
     if item.status == S.PUBLISHED:
         _check_image(item)
-    item.save()
+    item.save(update_fields=list(fields) if item.pk else None)
     return item
 
 

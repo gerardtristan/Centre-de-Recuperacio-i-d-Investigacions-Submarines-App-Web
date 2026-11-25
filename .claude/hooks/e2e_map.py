@@ -333,7 +333,7 @@ MAP = {
     ),
     "test_web_ajuda.py": (
         "apps/website/help.py",
-        "apps/website/news_views.py",
+        "apps/website/help_views.py",
         "templates/website/help.html",
         "static/css/recoveco.css",
     ),

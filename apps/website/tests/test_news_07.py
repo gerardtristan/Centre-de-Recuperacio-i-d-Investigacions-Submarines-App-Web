@@ -11,12 +11,16 @@ from django.http import Http404
 from apps.core.models import AuditEntry, Role, Setting
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.website import media, news
-from apps.website.models import NewsItem
+from apps.website.models import MediaAsset, NewsItem
 
 pytestmark = pytest.mark.django_db
 R = Role.Code
 S = NewsItem.Status
-PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 16
+# Un PNG vàlid de 8×8 px (inventat): en pujar-lo, se'n treuen les metadades.
+PNG = bytes.fromhex(
+    "89504e470d0a1a0a0000000d49484452000000080000000808020000004b6d29dc0000001149444154789c63908b"
+    "eac18a18869604004abf41011d609a4f0000000049454e44ae426082"
+)
 DAY = datetime.date(2026, 11, 1)
 
 
@@ -135,6 +139,7 @@ def test_rn_m07_10_the_body_is_escaped(client, editor):
 
 
 def test_p489_the_public_photo_view_checks_at_every_request(client, editor):
+    Setting.objects.filter(key="website.public_images_enabled").update(initial_value=True)
     photo = _photo(editor, author="Autora Inventada", licence_note="Cedida al club")
     url = f"/web/fotos/{photo.key}/"
     assert client.get(url).status_code == 404  # encara no surt enlloc
@@ -145,3 +150,37 @@ def test_p489_the_public_photo_view_checks_at_every_request(client, editor):
     assert f'src="{url}"' in client.get(f"/noticies/{item.slug}/").content.decode()
     news.retire(item, actor=editor, reason="Ja ha passat")
     assert client.get(url).status_code == 404
+
+
+def test_d2_switched_off_public_photos_are_not_found_and_news_show_without_them(client, editor):
+    """Pla d'acceleració F2-6 (D2): les imatges públiques, darrere d'un interruptor apagat."""
+    assert Setting.objects.get(key="website.public_images_enabled").initial_value is False
+    photo = _photo(editor, author="Autora Inventada", licence_note="Cedida al club")
+    item = news.publish(_item(editor, image=photo), actor=editor)
+    assert client.get(f"/web/fotos/{photo.key}/").status_code == 404
+    page = client.get(f"/noticies/{item.slug}/").content.decode()
+    assert item.title in page and "/web/fotos/" not in page
+
+
+def test_saving_does_not_bring_back_a_news_item_retired_meanwhile(editor, monkeypatch):
+    """Revisió de la #597: desar només escriu els camps editats, mai l'estat."""
+    item = news.publish(_item(editor), actor=editor)
+    original = NewsItem.full_clean
+
+    def retire_meanwhile(self, *args, **kwargs):
+        NewsItem.objects.filter(pk=self.pk).update(status=S.RETIRED, retired_reason="Ja no")
+        return original(self, *args, **kwargs)
+
+    monkeypatch.setattr(NewsItem, "full_clean", retire_meanwhile)
+    news.save_news(item, actor=editor, body="Text corregit.")
+    item.refresh_from_db()
+    assert (item.status, item.body) == (S.RETIRED, "Text corregit.")
+
+
+def test_the_detail_does_not_paint_a_photo_that_is_no_longer_publishable(client, editor):
+    Setting.objects.filter(key="website.public_images_enabled").update(initial_value=True)
+    photo = _photo(editor, author="Autora Inventada", licence_note="Cedida al club")
+    item = news.publish(_item(editor, image=photo), actor=editor)
+    MediaAsset.objects.filter(pk=photo.pk).update(status=MediaAsset.Status.RETIRED)
+    page = client.get(f"/noticies/{item.slug}/").content.decode()
+    assert "/web/fotos/" not in page and "Autora Inventada" not in page

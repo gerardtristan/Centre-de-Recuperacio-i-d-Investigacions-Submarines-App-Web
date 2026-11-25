@@ -10,6 +10,7 @@ import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from playwright.sync_api import expect
 
+from apps.core.models import Setting
 from apps.website import media, news
 
 from .conftest import make_admin
@@ -32,6 +33,7 @@ def _png(width=480, height=270) -> bytes:
 
 
 def test_visitor_reads_the_published_news(page, live_server, transactional_db, review):
+    Setting.objects.filter(key="website.public_images_enabled").update(initial_value=True)
     editor = make_admin("web.prova", "administrator")
     photo = media.upload(
         SimpleUploadedFile("barca.png", _png()), actor=editor, alt_text="Una barca a les Medes",
