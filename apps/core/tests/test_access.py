@@ -58,6 +58,11 @@ PUBLIC_ROUTES = {
     "website:newsletter",
     "website:newsletter_confirm",
     "website:newsletter_unsubscribe",
+    # Notícies publicades i fotos de la web (T-M07-08; RN-M07-01 i 02, P-489): un esborrany, una
+    # retirada o una foto que no surt publicada donen «no trobat».
+    "website:news_list",
+    "website:news_detail",
+    "website:media",
     # Enllaços de convidat (T-M00-02; RN-40, decisió 021): el testimoni és la credencial.
     "core:guest",
     "core:guest_link",

@@ -5,8 +5,8 @@
 - `check_publishable(keys)`: la crida `pages.publish_page`; cap foto en un bloc publicat sense
   autor, permís d'ús, text alternatiu i, si s'hi veuen persones, el consentiment.
 - `public_asset(key)` i `open_content(asset)`: per a la vista pública declarada (P-489). Una foto
-  retirada o que no surt a cap versió vigent d'una pàgina publicada és «no trobat» a la petició
-  següent, sense cap memòria cau.
+  retirada, o que no surt a la versió vigent de cap pàgina publicada ni a cap notícia publicada,
+  és «no trobat» a la petició següent, sense cap memòria cau.
 """
 
 import uuid
@@ -21,7 +21,7 @@ from django.utils.translation import gettext_lazy
 from apps.core import audit, files
 from apps.core.permissions import has_perm
 
-from .models import MediaAsset, Page, PageVersion
+from .models import MediaAsset, NewsItem, Page, PageVersion
 
 PERMISSION = "website.media"  # WP3
 ACTION_CHANGED = "website.media_changed"
@@ -138,14 +138,18 @@ def check_publishable(keys) -> None:
 
 
 def _published_keys() -> set[uuid.UUID]:
-    """Fotos de la versió vigent de cada pàgina publicada (DISTINCT ON de PostgreSQL)."""
+    """Fotos de la versió vigent de cada pàgina publicada (DISTINCT ON de PostgreSQL) i de les
+    notícies publicades."""
     current = (
         PageVersion.objects.filter(page__status=Page.Status.PUBLISHED)
         .order_by("page_id", "-number")
         .distinct("page_id")
         .values_list("blocks", flat=True)
     )
-    return _as_uuids(key for blocks in current for key in block_media_keys(blocks))
+    news = NewsItem.objects.filter(status=NewsItem.Status.PUBLISHED, image__isnull=False)
+    return _as_uuids(key for blocks in current for key in block_media_keys(blocks)) | set(
+        news.values_list("image__key", flat=True)
+    )
 
 
 def public_asset(key: str) -> MediaAsset:

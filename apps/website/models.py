@@ -323,3 +323,33 @@ class NewsletterDelivery(models.Model):
 
     def __str__(self):
         return f"{self.newsletter} · {self.pk}"
+
+
+class NewsItem(models.Model):
+    """Notícia (M07-6, P-M07-B). Només es veu publicada (RN-M07-02); retirar-la demana motiu."""
+
+    class Status(models.TextChoices):
+        DRAFT = "draft", _("Esborrany")
+        PUBLISHED = "published", _("Publicada")
+        RETIRED = "retired", _("Retirada")
+
+    title = models.CharField(_("títol"), max_length=200)
+    slug = models.SlugField(_("adreça"), max_length=80, unique=True)
+    date = models.DateField(_("data"))
+    body = models.TextField(_("cos"))
+    image = models.ForeignKey(
+        MediaAsset, on_delete=models.PROTECT, null=True, blank=True, related_name="+",
+        verbose_name=_("foto"),
+    )  # fmt: skip
+    status = models.CharField(
+        _("estat"), max_length=20, choices=Status.choices, default=Status.DRAFT
+    )
+    retired_reason = models.CharField(_("motiu de la retirada"), max_length=300, blank=True)
+
+    class Meta:
+        verbose_name = _("notícia")
+        verbose_name_plural = _("notícies")
+        ordering = ["-date", "-pk"]
+
+    def __str__(self):
+        return self.title
