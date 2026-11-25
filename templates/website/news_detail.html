@@ -4,7 +4,7 @@
 {% block title %}{{ item.title }} · C.R.I.S.{% endblock %}
 {% block titol_zona %}{% translate "Notícies" %}{% endblock %}
 {% block content %}
-  <article aria-labelledby="titol-noticia">
+  <article class="columna-principal" aria-labelledby="titol-noticia">{# T-DX-151: com el tutorial #}
     <p class="etiqueta-seccio"><a href="{% url 'website:news_list' %}">{% translate "Notícies" %}</a></p>
     <h1 id="titol-noticia">{{ item.title }}</h1>
     <p class="text-2"><time datetime="{{ item.date|date:'Y-m-d' }}">{{ item.date|date:"d/m/Y" }}</time></p>
