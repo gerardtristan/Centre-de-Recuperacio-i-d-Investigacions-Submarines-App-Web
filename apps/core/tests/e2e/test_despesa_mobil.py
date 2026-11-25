@@ -20,7 +20,7 @@ MOBILE = {"width": 390, "height": 844}
 
 
 def test_ca_m09_27_the_photo_only_leaves_the_phone_with_save(
-    page, live_server, transactional_db, review, tmp_path
+    page, live_server, transactional_db, review, tmp_path, page_checks
 ):
     president = make_admin("presidenta.prova", "president")
     expense = services.record_expense(
@@ -46,8 +46,10 @@ def test_ca_m09_27_the_photo_only_leaves_the_phone_with_save(
     page.set_viewport_size(MOBILE)
 
     # Surt sense «Desa»: cap petició amb el fitxer, cap fitxer desat.
-    page.get_by_role("link", name="Torna a les despeses sense factura").click()
-    expect(page.get_by_role("heading", name="Despeses sense factura")).to_be_visible()
+    # (Sense MG2 no té l'enllaç a «Despeses sense factura»: se'n va a «Registra una despesa».)
+    expect(page.get_by_role("link", name="Torna a les despeses sense factura")).to_have_count(0)
+    page.goto(f"{live_server.url}{reverse('administration:expense_new')}")
+    expect(page.get_by_role("heading", name="Registra una despesa")).to_be_visible()
     assert posts == []
     expense.refresh_from_db()
     assert expense.invoice_file is None
@@ -65,5 +67,7 @@ def test_ca_m09_27_the_photo_only_leaves_the_phone_with_save(
 
     # Sense C5 no el pot tornar a obrir: ni enllaç ni l'adreça forçada.
     expect(page.get_by_role("link", name="Obre el document")).to_have_count(0)
-    page.goto(f"{live_server.url}{reverse('administration:private_file', args=[expense.invoice_file.pk])}")
+    opened = reverse("administration:private_file", args=[expense.invoice_file.pk])
+    page_checks.expect(404, opened)
+    page.goto(f"{live_server.url}{opened}")
     expect(page.get_by_role("heading", name="No s'ha trobat la pàgina")).to_be_visible()
