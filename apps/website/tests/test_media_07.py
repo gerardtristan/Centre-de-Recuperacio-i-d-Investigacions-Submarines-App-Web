@@ -14,7 +14,11 @@ from apps.website.models import MediaAsset, Page
 
 pytestmark = pytest.mark.django_db
 R = Role.Code
-PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 16
+# Un PNG vàlid de 8×8 px (inventat): en pujar-lo, se'n treuen les metadades.
+PNG = bytes.fromhex(
+    "89504e470d0a1a0a0000000d49484452000000080000000808020000004b6d29dc0000001149444154789c63908b"
+    "eac18a18869604004abf41011d609a4f0000000049454e44ae426082"
+)
 COMPLETE = {"author": "Autora Inventada", "licence_note": "Cedida al club"}
 
 
@@ -197,3 +201,39 @@ def test_names_and_unknown_page_fields(editor):
     assert (str(asset), str(page), str(version)) == ("Una barca", "Proves", "Proves v1")
     with pytest.raises(ValueError):
         pages.save_page(page, actor=editor, status="published")
+
+
+# Un JPEG inventat amb EXIF (GPS i número de sèrie) i un comentari: SOI, APP1, COM, SOS i EOI.
+EXIF = b"Exif\x00\x00GPS 41.38N 2.17E; serie INVENTADA-123"
+JPEG = (
+    b"\xff\xd8"
+    + b"\xff\xe1" + (len(EXIF) + 2).to_bytes(2, "big") + EXIF
+    + b"\xff\xfe\x00\x0cPropietari"
+    + b"\xff\xda\x00\x08\x01\x01\x00\x00\x3f\x00" + b"\x12\x34\x56" + b"\xff\xd9"
+)  # fmt: skip
+
+
+def test_the_metadata_of_a_jpeg_is_removed_on_upload(editor):
+    """Revisió de la #597: el fitxer desat (i servit) no porta GPS, número de sèrie ni propietari."""
+    asset = _photo(editor, name="foto.jpg", content=JPEG, **COMPLETE)
+    with media.open_content(asset) as handle:
+        kept = handle.read()
+    assert b"GPS" not in kept and b"INVENTADA" not in kept and b"Propietari" not in kept
+    assert kept.startswith(b"\xff\xd8") and kept.endswith(b"\x12\x34\x56\xff\xd9")
+    assert asset.size_bytes == len(kept)
+
+
+def test_the_text_chunks_of_a_png_are_removed_on_upload(editor):
+    text = b"tEXt" + b"Author\x00Persona Inventada"
+    chunk = (len(text) - 4).to_bytes(4, "big") + text + b"\x00\x00\x00\x00"
+    content = PNG[:33] + chunk + PNG[33:]  # després de l'IHDR
+    asset = _photo(editor, content=content, **COMPLETE)
+    with media.open_content(asset) as handle:
+        assert handle.read() == PNG
+
+
+def test_p633_webp_is_rejected_because_it_cannot_be_cleaned_without_a_new_library(editor):
+    webp = b"RIFF\x1a\x00\x00\x00WEBPVP8 " + b"\x00" * 14
+    with pytest.raises(ValidationError):
+        _photo(editor, name="foto.webp", content=webp, **COMPLETE)
+    assert not MediaAsset.objects.exists()
