@@ -1,0 +1,3 @@
+{% load i18n %}
+{# T-M07-10 (RN-M07-11, CA-M07-17): l'enllaç al tutorial publicat d'aquesta pantalla, si n'hi ha. #}
+{% if tutorial %}<p class="enllacos"><a href="{% url 'website:tutorial' tutorial.slug %}">{% translate "Mira com es fa" %}<span class="visualment-amagat">: {{ tutorial.title }}</span></a></p>{% endif %}

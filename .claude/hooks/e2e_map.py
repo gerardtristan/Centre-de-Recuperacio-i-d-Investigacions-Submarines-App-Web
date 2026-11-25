@@ -309,6 +309,13 @@ MAP = {
         "apps/core/management/commands/seed_demo_data.py",
         "templates/dashboard/*",
     ),
+    "test_web_admin_continguts.py": (
+        "apps/website/news_admin_views.py",
+        "apps/website/help_admin_views.py",
+        "apps/website/admin_urls.py",
+        "templates/website/admin/news_*.html",
+        "templates/website/admin/help_*.html",
+    ),
     "test_periodes.py": (
         "apps/margins/views.py",
         "apps/margins/admin_urls.py",
@@ -343,6 +350,13 @@ MAP = {
         "apps/website/help_views.py",
         "templates/website/help.html",
         "static/css/recoveco.css",
+    ),
+    "test_web_tutorials.py": (
+        "apps/website/help.py",
+        "apps/website/help_views.py",
+        "templates/website/tutorial.html",
+        "templates/website/_mira_com_es_fa.html",
+        "templates/payments/charge.html",
     ),
     "test_butlleti_soci.py": (
         "apps/website/views.py",

@@ -24,7 +24,7 @@ from apps.activities.card_photos import strip_jpeg, strip_png
 from apps.core import audit, files
 from apps.core.permissions import has_perm
 
-from .models import MediaAsset, NewsItem, Page, PageVersion
+from .models import MediaAsset, NewsItem, Page, PageVersion, Tutorial
 
 PERMISSION = "website.media"  # WP3
 ACTION_CHANGED = "website.media_changed"
@@ -150,6 +150,8 @@ def _is_published(asset: MediaAsset) -> bool:
     """Surt en una notícia publicada o a la versió vigent d'una pàgina publicada. Només es miren
     les versions que contenen aquesta clau (contenció de JSON de PostgreSQL), no totes."""
     if NewsItem.objects.filter(status=NewsItem.Status.PUBLISHED, image=asset).exists():
+        return True
+    if Tutorial.objects.filter(published=True, image=asset).exists():  # T-M07-10
         return True
     key = str(asset.key)
     candidates = PageVersion.objects.filter(page__status=Page.Status.PUBLISHED).filter(

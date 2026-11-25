@@ -4,6 +4,8 @@ dins de l'espai de noms `administration`. Totes demanen sessió i permís."""
 from django.urls import path
 
 from . import admin_views as views
+from . import help_admin_views as help_views
+from . import news_admin_views as news_views
 
 urlpatterns = [
     path("web/contacte/", views.inbox_view, name="website_contact"),
@@ -23,4 +25,18 @@ urlpatterns = [
     path(
         "web/butlleti/<int:pk>/envia/", views.newsletter_send_view, name="website_newsletter_send"
     ),
+    # T-M07-08 (WP2): notícies.
+    path("web/noticies/", news_views.admin_list_view, name="website_news"),
+    path("web/noticies/nova/", news_views.admin_edit_view, name="website_news_add"),
+    path("web/noticies/<int:pk>/", news_views.admin_edit_view, name="website_news_edit"),
+    path(
+        "web/noticies/<int:pk>/publica/", news_views.admin_publish_view, name="website_news_publish"
+    ),
+    path("web/noticies/<int:pk>/retira/", news_views.admin_retire_view, name="website_news_retire"),
+    # T-M07-09b (WP4): preguntes freqüents.
+    path("web/ajuda/", help_views.admin_list_view, name="website_help"),
+    path("web/ajuda/temes/nou/", help_views.admin_topic_add_view, name="website_help_topic_add"),
+    path("web/ajuda/nova/", help_views.admin_edit_view, name="website_help_add"),
+    path("web/ajuda/<int:pk>/", help_views.admin_edit_view, name="website_help_edit"),
+    path("web/ajuda/<int:pk>/publica/", help_views.admin_publish_view, name="website_help_publish"),
 ]

@@ -1860,6 +1860,15 @@ PERMISSIONS: tuple[Permission, ...] = (
         requires=("settings.section.website",),
         initial={R.ADMINISTRATOR: _ALL},
     ),
+    # Imatges públiques de la web (F2-6, D2; decisió 105): el pla no diu qui encén l'interruptor;
+    # d'inici, només l'administrador (l'opció més conservadora, P-663).
+    _perm(
+        "settings.edit.website.public_images_enabled",
+        "AJ07-8",
+        _("Imatges públiques de la web actives"),
+        requires=("settings.section.website",),
+        initial={R.ADMINISTRATOR: _ALL},
+    ),
     # --- 08 Dashboard (M08-4; RN-RP-16) -------------------------------------------------------
     # DB1 dona només xifres agregades, mai cap dada personal ni cap pantalla de detall.
     _perm(

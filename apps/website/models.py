@@ -11,7 +11,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import AppendOnlyModel
 
-from .routes import route_taken
+from .routes import route_exists, route_taken
 
 
 class Page(models.Model):
@@ -388,3 +388,37 @@ class FaqEntry(models.Model):
 
     def __str__(self):
         return self.question
+
+
+class Tutorial(models.Model):
+    """Tutorial de l'ajuda (M07-6; RN-M07-10 i 11): els passos escrits en text pla, una foto
+    opcional de la web (amb la regla RN-M07-05) i la pantalla on surt «Mira com es fa»
+    (`screen_code`, el nom de la ruta: p. ex. `payments:charge`). El vídeo espera la decisió 106."""
+
+    title = models.CharField(_("títol"), max_length=200)
+    slug = models.SlugField(_("adreça"), max_length=80, unique=True)
+    steps = models.TextField(_("passos"), max_length=10000)
+    image = models.ForeignKey(
+        MediaAsset, on_delete=models.PROTECT, null=True, blank=True, related_name="+",
+        verbose_name=_("foto"),
+    )  # fmt: skip
+    screen_code = models.CharField(_("pantalla"), max_length=100, blank=True)
+    order = models.PositiveSmallIntegerField(_("ordre"), default=0)
+    published = models.BooleanField(_("publicat"), default=False)
+
+    class Meta:
+        verbose_name = _("tutorial")
+        verbose_name_plural = _("tutorials")
+        ordering = ["order", "title"]
+
+    def __str__(self):
+        return self.title
+
+    def clean(self):
+        if self.screen_code and not route_exists(self.screen_code):
+            raise ValidationError({"screen_code": _("Aquesta pantalla no existeix.")})
+
+    @property
+    def step_list(self) -> list[str]:
+        """Un pas per línia, sense les línies buides."""
+        return [line.strip() for line in self.steps.splitlines() if line.strip()]

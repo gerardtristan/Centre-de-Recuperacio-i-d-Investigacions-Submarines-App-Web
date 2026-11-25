@@ -36,6 +36,7 @@ MATRIX = {
     "settings.edit.website.newsletter_confirm_hours": ADMIN,
     "settings.edit.website.contact_enabled": ADMIN,
     "settings.edit.website.contact_retention_months": ADMIN,
+    "settings.edit.website.public_images_enabled": ADMIN,  # P-663
     "dashboard.view": (N, Y, Y, Y, Y, Y, Y, Y, N),  # DB1
     "dashboard.actions": (N, N, Y, N, Y, N, Y, Y, N),  # DB2
     "settings.section.dashboard": (N, N, CONS, N, N, N, Y, N, N),  # P-645
@@ -158,3 +159,14 @@ def test_p645_undoing_core_0080_only_removes_the_cells_it_created():
     migration.load(django_apps, None)
     migration.unload(django_apps, None)
     assert section.get(role__code=R.COURSES_MANAGER).scope == "all"
+
+
+def test_p663_only_the_administrator_turns_on_the_public_images(make_admin):  # noqa: F811
+    key = "website.public_images_enabled"
+    url = detail_url("website", key)
+    president = admin_client(make_admin(R.PRESIDENT))
+    assert president.post(url, {"value": "1", "note": "Prova"}).status_code == 404
+    assert business_settings.get(key) is False  # apagat d'inici
+    admin = admin_client(make_admin(R.ADMINISTRATOR))
+    response = admin.post(url, {"value": "1", "note": "Prova"})
+    assert response.status_code == 302 and business_settings.get(key) is True

@@ -1,0 +1,57 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# P-M07-G (WP4; RN-M07-12): les preguntes freqüents per tema, publicades o no. Publicar i retirar no esborren res. Els formularis i els botons només surten amb permís d'escriptura; el servidor ho torna a comprovar. #}
+{% block title %}{% translate "Preguntes freqüents" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Web pública" %}</p>
+    <h1>{% translate "Preguntes freqüents" %}</h1>
+    <p class="text-2">{% translate "A l'ajuda només surten les publicades. Una pregunta retirada no s'esborra: es pot tornar a publicar." %}</p>
+  </header>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
+  {% if can_write and topics %}<div class="accions"><a class="boto boto-principal" href="{% url 'administration:website_help_add' %}">{% translate "Pregunta nova" %}</a></div>{% endif %}
+
+  {% for topic in topics %}
+    <section class="targeta" aria-labelledby="tema-{{ topic.pk }}">
+      <h2 id="tema-{{ topic.pk }}">{{ topic.name }}</h2>
+      <table class="taula">
+        <thead><tr><th scope="col">{% translate "Pregunta" %}</th><th scope="col">{% translate "Estat" %}</th>{% if can_write %}<th scope="col">{% translate "Acció" %}</th>{% endif %}</tr></thead>
+        <tbody>
+          {% for entry in topic.entries.all %}
+            <tr>
+              <th scope="row" class="cel-nom">{% if can_write %}<a href="{% url 'administration:website_help_edit' entry.pk %}">{{ entry.question }}</a>{% else %}{{ entry.question }}{% endif %}</th>
+              <td data-etiqueta="{% translate 'Estat' %}">{% if entry.published %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Publicada" %}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {% translate "No publicada" %}</span>{% endif %}</td>
+              {% if can_write %}
+                <td data-etiqueta="{% translate 'Acció' %}">
+                  <form method="post" action="{% url 'administration:website_help_publish' entry.pk %}">
+                    {% csrf_token %}
+                    {% if entry.published %}<input type="hidden" name="publish" value="0"><button class="boto" type="submit">{% translate "Retira-la" %}</button>
+                    {% else %}<input type="hidden" name="publish" value="1"><button class="boto" type="submit">{% translate "Publica-la" %}</button>{% endif %}
+                  </form>
+                </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr><td colspan="{% if can_write %}3{% else %}2{% endif %}">{% translate "Aquest tema encara no té cap pregunta." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  {% empty %}
+    <p class="text-2">{% translate "Encara no hi ha cap tema: crea'n un per afegir-hi preguntes." %}</p>
+  {% endfor %}
+
+  {% if topic_form %}
+    <section class="targeta" aria-labelledby="titol-tema">
+      <h2 id="titol-tema">{% translate "Tema nou" %}</h2>
+      <form class="formulari" method="post" action="{% url 'administration:website_help_topic_add' %}" novalidate>
+        {% csrf_token %}
+        {% for field in topic_form %}{% include "accounts/_camp.html" %}{% endfor %}
+        <div class="accions"><button class="boto" type="submit">{% translate "Crea el tema" %}</button></div>
+      </form>
+    </section>
+  {% endif %}
+{% endblock %}

@@ -65,6 +65,8 @@ PUBLIC_ROUTES = {
     "website:media",
     # Preguntes freqüents publicades (T-M07-09; RN-M07-01 i 12).
     "website:help",
+    # Tutorials publicats (T-M07-10; RN-M07-01 i 11).
+    "website:tutorial",
     # Enllaços de convidat (T-M00-02; RN-40, decisió 021): el testimoni és la credencial.
     "core:guest",
     "core:guest_link",
