@@ -229,7 +229,8 @@ Entrar, codi de doble factor, seguretat del compte, verificar el correu, canviar
 | Portada | En construcció | Oleaje, Desfile, Eclipse |
 | Projectes | En construcció | Vistazo, Desfile |
 | Sortides i cursos, una activitat | En construcció | Marcador, Camilla, Comanda, Convite |
-| Preguntes freqüents | En construcció | Recoveco |
+| Preguntes freqüents (`/ajuda/`) | Funcional (T-M07-09) | Recoveco |
+| Notícies (`/noticies/`) | Funcional (T-M07-08); les fotos, darrere de `website.public_images_enabled`, apagat | Llista: Vistazo (la finestra de foto) quan s'encengui l'interruptor de les fotos; fins llavors, targetes en `graella-targetes`. Detall: article de lectura, sense recurs; Pregon, només a l'editor (vista prèvia en compartir). T-DX-147 |
 | Contacte (`/contacte/`) | Funcional (T-M07-11), apagat fins que s'encén `website.contact_enabled` | Cap, de moment (T-DX-119): formulari, Errata i textos legals del sistema, com «Demana la llicència». Quan l'ajuda pública tingui preguntes, Recoveco al costat del formulari (`amb-columna-lateral`), perquè qui escriu trobi abans la resposta |
 | Butlletí | En construcció | Marcador |
 

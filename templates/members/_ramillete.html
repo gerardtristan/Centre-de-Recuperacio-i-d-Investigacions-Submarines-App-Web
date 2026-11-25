@@ -1,10 +1,10 @@
-{% load i18n static icones payments_nav member_nav monograma %}{% comment %}Ramillete (T-DX-08 i T-DX-59; design-system §6.12): la navegació de l'àrea del soci a totes les mides.
+{% load i18n static icones payments_nav member_nav monograma website_nav %}{% comment %}Ramillete (T-DX-08 i T-DX-59; design-system §6.12): la navegació de l'àrea del soci a totes les mides.
    Fins a 1023 px, una barra a baix amb les pàgines que més es fan servir i un botó central «Més» que
    s'obre en ventall amb la resta (B15). A partir de 1024 px, un panell lateral clar i flotant amb el
    logotip, «Mostra el QR», totes les entrades i el compte. Cada mida té la seva llista (l'altra no es
    veu ni es llegeix). Es construeix al servidor amb el compte de la sessió, amb els mateixos enllaços i
    condicions que _personal_nav.html (la navegació sense JavaScript); amagar un enllaç no és cap control.
-   Un sol «Surt» per pantalla: a la capçalera fins a 1023 px i al panell a partir de 1024 px (T-M01-46).{% endcomment %}{% mandate_signing_enabled as mandate_on %}{% url "activities:mine" as activitats_url %}{% with current=request.resolver_match.view_name member=user.person.member %}{% if current != "members:accept_policies" %}
+   Un sol «Surt» per pantalla: a la capçalera fins a 1023 px i al panell a partir de 1024 px (T-M01-46).{% endcomment %}{% mandate_signing_enabled as mandate_on %}{% newsletter_enabled as newsletter_on %}{% url "activities:mine" as activitats_url %}{% with current=request.resolver_match.view_name member=user.person.member %}{% if current != "members:accept_policies" %}
 <nav class="ramillete" aria-label="{% translate 'Àrea de socis' %}" data-ramillete>
   {# Mòbil i tauleta: la barra. «Activitats» porta a «Les meves activitats» (T-DX-95); «El meu perfil» passa al ventall. Sense soci (cap carnet ni quotes), la segona pestanya va després de «Més», que queda al centre igualment (V4). #}
   <ul class="ramillete-barra">
@@ -21,6 +21,7 @@
         <li><a class="ramillete-item" href="{% url 'members:leave' %}"{% if current == "members:leave" %} aria-current="page"{% endif %}>{% icona "door-open" %}{% translate "Baixa" %}</a></li>{% endif %}
         <li><a class="ramillete-item" href="{% url 'activities:my_certifications' %}"{% if current == "activities:my_certifications" or current == "activities:my_certification_photo" %} aria-current="page"{% endif %}>{% icona "badge-check" %}{% translate "Les meves titulacions" %}</a></li>
         <li><a class="ramillete-item" href="{% url 'invoicing:my_invoices' %}"{% if current == "invoicing:my_invoices" %} aria-current="page"{% endif %}>{% icona "file-down" %}{% translate "Les meves factures" %}</a></li>
+        {% if newsletter_on %}<li><a class="ramillete-item" href="{% url 'website:my_newsletter' %}"{% if current == "website:my_newsletter" %} aria-current="page"{% endif %}>{% icona "mail" %}{% translate "Butlletí" %}</a></li>{% endif %}{# T-DX-148 #}
         <li><a class="ramillete-item" href="{% url 'accounts:security' %}"{% if current == "accounts:security" or current == "accounts:totp_enrol" or current == "accounts:totp_disable" %} aria-current="page"{% endif %}>{% icona "shield-check" %}{% translate "Seguretat i aparença" %}</a></li>
       </ul>
     </li>
@@ -55,7 +56,7 @@
       <li><a href="{% url 'members:card' %}"{% if current == "members:card" or current == "members:card_renew" %} aria-current="page"{% endif %}>{% icona "id-card" %}{% translate "El meu carnet" %}</a></li>{% endif %}
       <li><a href="{% url 'members:profile' %}"{% if current == "members:profile" or current == "members:declare_expiry" or current == "members:consent" or current == "members:change_email" or current == "members:birth_date" or current == "members:erase" or current == "members:export_data" or current == "licences:mine" %} aria-current="page"{% endif %}>{% icona "user" %}{% translate "El meu perfil" %}</a></li>
       {# «Més» ja surt obert si la pàgina actual hi és, perquè es vegi on ets. #}
-      <li>{% if current == "activities:my_certifications" or current == "activities:my_certification_photo" or current == "invoicing:my_invoices" or current == "members:change_type" or current == "members:change_type_withdraw" or current == "members:leave" or current == "accounts:security" or current == "accounts:totp_enrol" or current == "accounts:totp_disable" %}
+      <li>{% if current == "activities:my_certifications" or current == "activities:my_certification_photo" or current == "invoicing:my_invoices" or current == "website:my_newsletter" or current == "members:change_type" or current == "members:change_type_withdraw" or current == "members:leave" or current == "accounts:security" or current == "accounts:totp_enrol" or current == "accounts:totp_disable" %}
         <button class="ramillete-lateral-mes" type="button" aria-expanded="true" aria-controls="ramillete-lateral-mes" data-desplega>{% icona "ellipsis" %}{% translate "Més" %}{% icona "chevron-down" "ramillete-fletxa" %}</button>
         <ul id="ramillete-lateral-mes">{% else %}
         <button class="ramillete-lateral-mes" type="button" aria-expanded="false" aria-controls="ramillete-lateral-mes" data-desplega>{% icona "ellipsis" %}{% translate "Més" %}{% icona "chevron-down" "ramillete-fletxa" %}</button>
@@ -64,6 +65,7 @@
           <li><a href="{% url 'members:leave' %}"{% if current == "members:leave" %} aria-current="page"{% endif %}>{% icona "door-open" %}{% translate "Baixa" %}</a></li>{% endif %}
           <li><a href="{% url 'activities:my_certifications' %}"{% if current == "activities:my_certifications" or current == "activities:my_certification_photo" %} aria-current="page"{% endif %}>{% icona "badge-check" %}{% translate "Les meves titulacions" %}</a></li>
           <li><a href="{% url 'invoicing:my_invoices' %}"{% if current == "invoicing:my_invoices" %} aria-current="page"{% endif %}>{% icona "file-down" %}{% translate "Les meves factures" %}</a></li>
+          {% if newsletter_on %}<li><a href="{% url 'website:my_newsletter' %}"{% if current == "website:my_newsletter" %} aria-current="page"{% endif %}>{% icona "mail" %}{% translate "Butlletí" %}</a></li>{% endif %}{# T-DX-148 #}
           <li><a href="{% url 'accounts:security' %}"{% if current == "accounts:security" or current == "accounts:totp_enrol" or current == "accounts:totp_disable" %} aria-current="page"{% endif %}>{% icona "shield-check" %}{% translate "Seguretat i aparença" %}</a></li>
         </ul>
       </li>

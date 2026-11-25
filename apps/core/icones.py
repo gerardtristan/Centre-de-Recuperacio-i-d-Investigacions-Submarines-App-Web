@@ -31,6 +31,7 @@ NAMES = (
     "settings",
     "globe",  # Web pública (T-DX-140)
     "layout-dashboard",  # Dashboard (T-DX-144)
+    "mail",  # Butlletí a l'àrea del soci (T-DX-148)
     "menu",
     "x",
     # Activitats
