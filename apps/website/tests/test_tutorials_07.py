@@ -91,3 +91,35 @@ def test_a_role_without_wp4_cannot_write_tutorials(make_admin):  # noqa: F811
     with pytest.raises(Http404):
         _tutorial(make_admin(R.SECRETARY))
     assert not faq.published_tutorials().exists()
+
+
+# --- Revisió de la T-M07-10 -------------------------------------------------------------------
+
+
+def test_rn_m07_14_publishing_retiring_and_changing_a_tutorial_are_recorded(editor):
+    from apps.core.models import AuditEntry
+
+    tutorial = _tutorial(editor, published=False)
+    faq.save_tutorial(tutorial, actor=editor, published=True)
+    faq.save_tutorial(tutorial, actor=editor, title="Com pagar la quota anual")
+    faq.save_tutorial(tutorial, actor=editor, published=False)
+    entries = AuditEntry.objects.filter(target_id=str(tutorial.pk)).order_by("pk")
+    assert [(e.action, e.field, e.old_value, e.new_value) for e in entries] == [
+        (faq.TUTORIAL_PUBLISHED, "published", False, True),
+        (faq.TUTORIAL_CHANGED, "title", "Com pagar la quota", "Com pagar la quota anual"),
+        (faq.TUTORIAL_RETIRED, "published", True, False),
+    ]
+
+
+def test_an_old_edit_does_not_publish_again_a_retired_tutorial(editor):
+    stale = _tutorial(editor)  # publicat, carregat abans de la retirada
+    faq.save_tutorial(stale, actor=editor, published=False)
+    faq.save_tutorial(stale, actor=editor, steps="Un pas corregit.")
+    stale.refresh_from_db()
+    assert (stale.published, stale.steps) == (False, "Un pas corregit.")
+
+
+def test_the_screen_must_be_an_existing_route(editor):
+    with pytest.raises(ValidationError):
+        _tutorial(editor, screen_code="payments:no_existeix")
+    assert _tutorial(editor, "sense-pantalla", screen_code="").screen_code == ""
