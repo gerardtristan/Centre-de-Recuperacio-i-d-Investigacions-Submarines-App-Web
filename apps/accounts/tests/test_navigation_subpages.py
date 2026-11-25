@@ -21,6 +21,11 @@ STANDALONE = {
     "administration:website_help_add",
     "administration:website_help_edit",
     "administration:website_help_publish",
+    # T-M07-10b (WP4): els tutorials, fins que DISSENY hi posi l'entrada del menú (T-DX-151).
+    "administration:website_tutorials",
+    "administration:website_tutorial_add",
+    "administration:website_tutorial_edit",
+    "administration:website_tutorial_publish",
     "administration:login",
     "administration:login_totp",
     "administration:logout",

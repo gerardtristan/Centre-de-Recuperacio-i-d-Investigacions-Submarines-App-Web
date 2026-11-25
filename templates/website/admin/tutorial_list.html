@@ -1,0 +1,39 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M07-10b (WP4; RN-M07-11): els tutorials, publicats o no. Publicar i retirar no esborren res. Els botons només surten amb permís d'escriptura; el servidor ho torna a comprovar. #}
+{% block title %}{% translate "Tutorials" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Web pública" %}</p>
+    <h1>{% translate "Tutorials" %}</h1>
+    <p class="text-2">{% translate "A l'ajuda només surten els publicats. Un tutorial retirat no s'esborra: es pot tornar a publicar." %}</p>
+  </header>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
+  {% if can_write %}<div class="accions"><a class="boto boto-principal" href="{% url 'administration:website_tutorial_add' %}">{% translate "Tutorial nou" %}</a></div>{% endif %}
+  <table class="taula">
+    <thead><tr><th scope="col">{% translate "Tutorial" %}</th><th scope="col">{% translate "Pantalla" %}</th><th scope="col">{% translate "Estat" %}</th>{% if can_write %}<th scope="col">{% translate "Acció" %}</th>{% endif %}</tr></thead>
+    <tbody>
+      {% for tutorial in tutorials %}
+        <tr>
+          <th scope="row" class="cel-nom">{% if can_write %}<a href="{% url 'administration:website_tutorial_edit' tutorial.pk %}">{{ tutorial.title }}</a>{% else %}{{ tutorial.title }}{% endif %}</th>
+          <td data-etiqueta="{% translate 'Pantalla' %}">{{ tutorial.screen_code|default:"—" }}</td>
+          <td data-etiqueta="{% translate 'Estat' %}">{% if tutorial.published %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Publicat" %}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {% translate "No publicat" %}</span>{% endif %}</td>
+          {% if can_write %}
+            <td data-etiqueta="{% translate 'Acció' %}">
+              <form method="post" action="{% url 'administration:website_tutorial_publish' tutorial.pk %}">
+                {% csrf_token %}
+                {% if tutorial.published %}<input type="hidden" name="publish" value="0"><button class="boto" type="submit">{% translate "Retira'l" %}</button>
+                {% else %}<input type="hidden" name="publish" value="1"><button class="boto" type="submit">{% translate "Publica'l" %}</button>{% endif %}
+              </form>
+            </td>
+          {% endif %}
+        </tr>
+      {% empty %}
+        <tr><td colspan="{% if can_write %}4{% else %}3{% endif %}">{% translate "Encara no hi ha cap tutorial." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
