@@ -83,3 +83,32 @@ def test_structure_entry_only_with_t2_or_t3(login_as, make_admin):  # noqa: F811
     home = reverse("administration:home")
     html = login_as(make_admin("secretary"), AREA_ADMIN).get(home).content.decode()
     assert f'href="{url}"' not in html
+
+
+def test_dashboard_is_a_loose_entry_and_web_is_a_group(login_as, make_admin):  # noqa: F811
+    """T-DX-140 a 145: «Dashboard» solt sota «Inici» (també marcat en un panell) i el grup «Web
+    pública»; el butlletí només amb `website.newsletter_enabled` encès, com la vista."""
+    from apps.core.models import Setting
+    from apps.website import newsletter
+
+    client = login_as(make_admin("administrator"), AREA_ADMIN)
+    dashboard, contact = (
+        reverse("administration:dashboard"),
+        reverse("administration:website_contact"),
+    )
+    newsletters = reverse("administration:website_newsletters")
+    html = client.get(reverse("administration:home")).content.decode()
+    assert f'<a href="{dashboard}" class="lateral-solt">' in html
+    assert "Web pública" in html and f'href="{contact}"' in html
+    assert f'href="{newsletters}"' not in html  # butlletí apagat: cap enllaç a un «no trobat»
+    panel = reverse("administration:dashboard_panel", args=["socis"])
+    html = client.get(panel).content.decode()
+    assert f'<a href="{dashboard}" aria-current="page" class="lateral-solt">' in html
+    Setting.objects.filter(key=newsletter.ENABLED).update(initial_value=True)
+    html = client.get(reverse("administration:home")).content.decode()
+    assert f'href="{newsletters}"' in html
+
+
+def test_without_db1_there_is_no_dashboard_entry(login_as, make_admin):  # noqa: F811
+    html = login_as(make_admin("instructor"), AREA_ADMIN).get(reverse("administration:home"))
+    assert f'href="{reverse("administration:dashboard")}"' not in html.content.decode()

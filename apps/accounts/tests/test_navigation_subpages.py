@@ -10,21 +10,6 @@ from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 
 # Pantalles sense menú: entrar, sortir, el doble factor de la primera entrada i els fitxers privats.
 STANDALONE = {
-    # T-M07-11 (WP5 i WP8), T-M07-14 (WP6) i T-M08-09: fins que DISSENY hi posi les entrades del
-    # menú (DX.md).
-    "administration:website_contact",
-    "administration:website_contact_message",
-    "administration:website_contact_reply",
-    "administration:website_contact_close",
-    "administration:website_contact_reasons",
-    "administration:website_contact_reason_add",
-    "administration:website_contact_reason_edit",
-    "administration:website_newsletters",
-    "administration:website_newsletter_add",
-    "administration:website_newsletter_edit",
-    "administration:website_newsletter_send",
-    "administration:dashboard",
-    "administration:dashboard_panel",
     "administration:login",
     "administration:login_totp",
     "administration:logout",

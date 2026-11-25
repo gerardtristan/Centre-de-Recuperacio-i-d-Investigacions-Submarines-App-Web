@@ -789,6 +789,10 @@ img { max-width: 100%; display: block; }
 .pestanya:hover, .pestanya[aria-selected="true"] { color: var(--c-text); }
 .pestanya[aria-selected="true"] { font-weight: var(--p-negreta); }
 .pestanya:focus-visible { outline-offset: -3px; border-radius: var(--r-m); }
+/* Pestanyes d'enllaços (T-DX-122): cada una és una pàgina, sense JavaScript; la de la pàgina actual
+   porta aria-current="page", la negreta i el subratllat daurat fix */
+a.pestanya { display: inline-flex; align-items: center; text-decoration: none; }
+.pestanya[aria-current="page"] { color: var(--c-text); font-weight: var(--p-negreta); box-shadow: inset 0 calc(var(--v-activa) * -1) 0 var(--c-accent); }
 .panells { display: grid; }
 .panells > [role="tabpanel"] { grid-area: 1 / 1; min-width: 0; }
 .panells > [role="tabpanel"]:focus-visible { outline-offset: var(--e-2); border-radius: var(--r-m); }

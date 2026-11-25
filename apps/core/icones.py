@@ -29,6 +29,8 @@ NAMES = (
     "wallet",
     "upload",
     "settings",
+    "globe",  # Web pública (T-DX-140)
+    "layout-dashboard",  # Dashboard (T-DX-144)
     "menu",
     "x",
     # Activitats

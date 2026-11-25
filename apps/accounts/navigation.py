@@ -17,6 +17,7 @@ from django.urls import reverse
 from django.utils.functional import SimpleLazyObject
 from django.utils.translation import gettext_lazy as _
 
+from apps.core import business_settings
 from apps.core.business_settings import section_code
 from apps.core.permission_catalog import CATALOG, SCOPE_ALL
 from apps.core.permissions import has_perm, request_permissions, scope_for
@@ -44,6 +45,10 @@ BASE_ROUTES = {
     "administration:treasury_accounts": ((("treasury.view", READ),),),  # T1 (T-M04-15)
     "administration:treasury_movements": ((("treasury.view", READ),),),
     "administration:treasury_reconciliation": ((("treasury.view", READ),),),  # T1 (T-M04-15)
+    "administration:dashboard": ((("dashboard.view", READ),),),  # DB1 (T-M08-09; T-DX-144)
+    "administration:website_contact": ((("website.contact", READ),),),  # WP5 (T-DX-140)
+    "administration:website_contact_reasons": ((("website.contact_reasons", READ),),),  # WP8
+    "administration:website_newsletters": ((("website.newsletter", READ),),),  # WP6 (T-DX-145)
     # T-M04-22 (T-DX-118): T3 o T2 d'escriptura, com `structure_view`.
     "administration:treasury_structure": (
         (("treasury.cost_centres.manage", WRITE),),
@@ -87,6 +92,30 @@ BASE_ROUTES = {
 # Ruta de l'entrada, text i les altres pantalles que en pengen (també la marquen com a actual).
 ENTRIES = (
     ("administration:home", _("Inici"), ()),
+    ("administration:dashboard", _("Dashboard"), ("administration:dashboard_panel",)),  # T-DX-144
+    (
+        "administration:website_contact",
+        _("Missatges de contacte"),
+        (
+            "administration:website_contact_message",
+            "administration:website_contact_reply",
+            "administration:website_contact_close",
+        ),
+    ),  # T-DX-140 i 141
+    (
+        "administration:website_contact_reasons",
+        _("Motius de contacte"),
+        ("administration:website_contact_reason_add", "administration:website_contact_reason_edit"),
+    ),  # T-DX-142 i 143: entrada pròpia, perquè WP8 no va lligat a WP5
+    (
+        "administration:website_newsletters",
+        _("Butlletí"),
+        (
+            "administration:website_newsletter_add",
+            "administration:website_newsletter_edit",
+            "administration:website_newsletter_send",
+        ),
+    ),  # T-DX-145
     (
         "administration:members_list",
         _("Llistat de socis"),
@@ -434,6 +463,15 @@ GROUPS = (
         ),
     ),
     (
+        _("Web pública"),
+        "globe",
+        (
+            "administration:website_contact",
+            "administration:website_contact_reasons",
+            "administration:website_newsletters",
+        ),
+    ),  # T-DX-140 a 145
+    (
         _("Ajustos"),
         "settings",
         (
@@ -443,6 +481,13 @@ GROUPS = (
         ),
     ),
 )
+
+# Entrades soltes sota «Inici», amb la seva icona (T-DX-144): el dashboard no és de cap grup.
+SOLTS = {"administration:dashboard": "layout-dashboard"}
+
+# Entrades que només surten amb un ajust encès, com la vista (`website.newsletter_enabled`, que
+# és `newsletter.ENABLED`): sense, el menú no enllaça a un «no trobat» (T-DX-145).
+SWITCHES = {"administration:website_newsletters": "website.newsletter_enabled"}
 
 _REQUEST_CACHE_ATTR = "_cris_admin_nav"
 
@@ -481,6 +526,11 @@ class AdminNav:
     @property
     def home(self) -> Entry:
         return self.entries[0]
+
+    @property
+    def solts(self) -> tuple[tuple[Entry, str], ...]:
+        """Les entrades soltes sota «Inici», amb la icona (T-DX-144)."""
+        return tuple((e, SOLTS[e.name]) for e in self.entries if e.name in SOLTS)
 
     @property
     def groups(self) -> tuple[Group, ...]:
@@ -523,6 +573,7 @@ def _build(request) -> AdminNav | None:
         Entry(name, reverse(name), label, current == name or current in children)
         for name, label, children in ENTRIES
         if _allowed(account, name, permissions)
+        and (name not in SWITCHES or business_settings.get(SWITCHES[name]))
     )
     return AdminNav(entries, account.get_username(), account.has_totp)
 
