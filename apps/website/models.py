@@ -11,7 +11,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import AppendOnlyModel
 
-from .routes import route_taken
+from .routes import route_exists, route_taken
 
 
 class Page(models.Model):
@@ -413,6 +413,10 @@ class Tutorial(models.Model):
 
     def __str__(self):
         return self.title
+
+    def clean(self):
+        if self.screen_code and not route_exists(self.screen_code):
+            raise ValidationError({"screen_code": _("Aquesta pantalla no existeix.")})
 
     @property
     def step_list(self) -> list[str]:
