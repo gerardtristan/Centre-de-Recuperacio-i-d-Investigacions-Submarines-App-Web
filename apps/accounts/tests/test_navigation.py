@@ -21,6 +21,8 @@ from django.urls import reverse
 
 from apps.accounts.navigation import (
     ENTRIES,
+    SOLTS,
+    SWITCHES,
     admin_nav_for,
     admin_navigation,
     need_met,
@@ -28,8 +30,8 @@ from apps.accounts.navigation import (
 )
 from apps.accounts.security import AREA_ADMIN, AREA_PERSONAL
 from apps.accounts.sessions import ADMIN_MAX_AGE_SECONDS, AREA_SESSION_KEY, AUTH_AT_SESSION_KEY
-from apps.core import consents
-from apps.core.models import Role, RolePermission
+from apps.core import business_settings, consents
+from apps.core.models import Role, RolePermission, Setting
 from apps.core.permissions import has_perm
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.core.under_construction import PERMISSION as UNDER_CONSTRUCTION
@@ -91,6 +93,8 @@ def test_no_menu_entry_without_the_permission_of_its_route(login_as, make_admin,
             declared = any(
                 all(need_met(account, need) for need in group) for group in route_needs(name)
             )
+        # T-DX-145: una entrada amb ajust (`SWITCHES`) només surt amb l'ajust encès, com la vista
+        declared = declared and (name not in SWITCHES or business_settings.get(SWITCHES[name]))
         assert (url in shown) == declared, name
         assert client.get(url).status_code == (200 if declared else 404), name
     assert set(shown) <= {reverse(name) for name in ENTRY_NAMES}
@@ -116,6 +120,8 @@ def test_every_admin_screen_carries_the_menu_the_account_and_the_logout(login_as
     RolePermission.objects.create(  # DX1 no el té cap rol d'entrada (P-90; T-DX-50)
         role=Role.objects.get(code="administrator"), permission_code=UNDER_CONSTRUCTION, scope="all"
     )
+    for key in SWITCHES.values():  # totes les entrades, també les que depenen d'un ajust
+        Setting.objects.filter(key=key).update(initial_value=True)
     client = login_as(account, AREA_ADMIN)
     member = a_member("Fitxa")
     children = {
@@ -173,8 +179,9 @@ def test_admin_home_lists_the_same_entries_as_the_menu(login_as, make_admin):  #
     response = login_as(make_admin("treasurer"), AREA_ADMIN).get(reverse("administration:home"))
     html = response.content.decode()
     main = re.search(r"<main.*</main>", html, re.S).group(0)
-    in_menu = menu_links(response)
-    assert re.findall(r'<a href="([^"]+)"', main) == in_menu[1:]  # tot menys «Inici»
+    loose = {reverse(name) for name in SOLTS}  # T-DX-144: les soltes no són de cap grup
+    in_menu = [url for url in menu_links(response)[1:] if url not in loose]  # tot menys «Inici»
+    assert re.findall(r'<a href="([^"]+)"', main) == in_menu
     assert "Sortir" not in html
     assert not re.search(r"<button(?![^>]*class=\"boto)", html)
 

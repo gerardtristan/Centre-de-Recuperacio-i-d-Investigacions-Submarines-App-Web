@@ -10,6 +10,7 @@
     {# A la tauleta, amb JavaScript (menu-admin.js), un carril de 72 px amb la icona de cada grup. #}
     <ul class="lateral-llista">
       {% with entry=admin_nav.home %}<li><a href="{{ entry.url }}"{% if entry.current %} aria-current="page"{% endif %} class="lateral-solt">{% icona "house" %}<span class="lateral-text">{{ entry.label }}</span></a></li>{% endwith %}
+      {% for entry, icon in admin_nav.solts %}<li><a href="{{ entry.url }}"{% if entry.current %} aria-current="page"{% endif %} class="lateral-solt">{% icona icon %}<span class="lateral-text">{{ entry.label }}</span></a></li>{% endfor %}{# T-DX-144: el dashboard, solt sota «Inici» #}
       {% for group in admin_nav.groups %}<li class="lateral-grup{% if group.current %} es-actual{% endif %}">
         <details{% if group.current %} open{% endif %}>
           <summary>{% icona group.icon %}<span class="lateral-text">{{ group.label }}</span>{% icona "chevron-down" "lateral-fletxa" %}</summary>
