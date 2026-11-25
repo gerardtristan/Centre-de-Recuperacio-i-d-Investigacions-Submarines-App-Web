@@ -96,7 +96,11 @@ def new_view(request):
                 _("Despesa registrada (%(amount)s). Queda «sense factura» fins que s'adjunti.")
                 % {"amount": euros(expense.amount_cents)},
             )
-            return redirect(WITHOUT_INVOICE_URL)
+            # Sense MG2 no es veu «Despeses sense factura»: va als documents per adjuntar-hi la
+            # factura (CA-M09-27).
+            if has_perm(request.user, services.PAY):
+                return redirect(WITHOUT_INVOICE_URL)
+            return redirect("administration:expense_documents", expense.pk)
     return render(request, "expenses/new.html", {"form": form})
 
 
@@ -210,6 +214,9 @@ def documents_view(request, pk):
         "amount": euros(expense.amount_cents),
         "rows": rows,
         "can_open": can_open,
+        # «Despeses sense factura» s'obre amb MG2, també «Cons.»: la mateixa comprovació que la
+        # redirecció després de registrar una despesa.
+        "can_list": has_perm(request.user, services.PAY, permissions=perms),
         "treasurer": live and can[services.PAY] and can_open,
         "accept": ",".join(sorted(documents.DOCUMENT_TYPES)),
     }

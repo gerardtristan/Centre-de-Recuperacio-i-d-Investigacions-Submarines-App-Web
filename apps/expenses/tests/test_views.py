@@ -94,3 +94,55 @@ def test_dx107_ring_by_department_filter_and_total(as_role):
     assert "Total del departament" in html and "100,00" in html
     html = main_of(client.get(url, {"departament": "x"}).content.decode())  # valor fora de llista
     assert "Compressor" in html and "Sortida a les Medes" in html
+
+
+def test_without_mg2_the_new_expense_goes_to_its_documents_not_to_a_404(as_role):
+    """Trobat a l'e2e de CA-M09-27 (T-M09-06): el president (MG1, sense MG2) que registrava una
+    despesa anava a «Despeses sense factura», que no pot veure (404), i no arribava a adjuntar-hi
+    la factura; i «Documents de la despesa» li ensenyava l'enllaç a aquella llista."""
+    client = as_role(R.PRESIDENT)
+    response = client.post(reverse("administration:expense_new"), data())
+    expense = Expense.objects.get()
+    documents = reverse("administration:expense_documents", args=[expense.pk])
+    assert response.status_code == 302 and response.url == documents
+    html = main_of(client.get(documents).content.decode())
+    assert reverse("administration:expenses_without_invoice") not in html
+    assert client.get(reverse("administration:expenses_without_invoice")).status_code == 404
+
+
+def test_with_mg2_the_documents_page_links_back_to_the_list(as_role):
+    client = as_role(R.TREASURER)
+    client.post(reverse("administration:expense_new"), data())
+    expense = Expense.objects.get()
+    html = main_of(
+        client.get(reverse("administration:expense_documents", args=[expense.pk])).content.decode()
+    )
+    assert reverse("administration:expenses_without_invoice") in html
+
+
+def test_with_mg2_read_only_the_documents_page_also_links_back_to_the_list(as_role, monkeypatch):
+    """Si MG2 admetés «Cons.» (avui el catàleg només li permet «tot»), la llista s'obriria i la
+    redirecció hi portaria: l'enllaç de tornada també hi ha de ser (revisió de la #595)."""
+    import dataclasses
+
+    from apps.core import permissions
+    from apps.core.models import RolePermission
+    from apps.core.permission_catalog import SCOPE_ALL, SCOPE_READ
+
+    pay = dataclasses.replace(
+        permissions.CATALOG["expenses.pay"], allowed_scopes=(SCOPE_ALL, SCOPE_READ)
+    )
+    monkeypatch.setattr(permissions, "CATALOG", {**permissions.CATALOG, "expenses.pay": pay})
+
+    RolePermission.objects.update_or_create(
+        role=Role.objects.get(code=R.PRESIDENT), permission_code="expenses.pay",
+        defaults={"scope": SCOPE_READ},
+    )  # fmt: skip
+    client = as_role(R.PRESIDENT)
+    response = client.post(reverse("administration:expense_new"), data())
+    assert response.url == reverse("administration:expenses_without_invoice")
+    expense = Expense.objects.get()
+    html = main_of(
+        client.get(reverse("administration:expense_documents", args=[expense.pk])).content.decode()
+    )
+    assert reverse("administration:expenses_without_invoice") in html
