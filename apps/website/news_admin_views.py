@@ -39,7 +39,11 @@ class NewsForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["image"].queryset = MediaAsset.objects.filter(status=MediaAsset.Status.ACTIVE)
+        # RN-M07-05: només les fotos que es poden publicar (autor, permís, text i consentiment).
+        active = MediaAsset.objects.filter(status=MediaAsset.Status.ACTIVE)
+        self.fields["image"].queryset = active.filter(
+            pk__in=[a.pk for a in active if a.publishable]
+        )
 
 
 class RetireForm(forms.Form):

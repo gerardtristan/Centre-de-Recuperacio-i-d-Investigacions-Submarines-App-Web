@@ -38,3 +38,26 @@ def test_ca_m07_18_without_wp2_the_screens_are_not_found(make_admin, role):  # n
     assert client.get(LIST).status_code == 404
     assert client.post(ADD, DATA).status_code == 404
     assert not NewsItem.objects.exists()
+
+
+def test_saving_a_retired_news_item_shows_why(make_admin):  # noqa: F811
+    client = admin_client(make_admin(R.PRESIDENT))
+    item = NewsItem.objects.create(**{**DATA, "status": "retired", "retired_reason": "Antiga"})
+    url = reverse("administration:website_news_edit", args=[item.pk])
+    page = client.post(url, {**DATA, "title": "Canvi"}).content.decode()
+    assert "Una notícia retirada no es pot canviar." in page
+    item.refresh_from_db()
+    assert item.title == "Sortida inventada"
+
+
+def test_the_photo_selector_only_offers_publishable_photos(make_admin):  # noqa: F811
+    from apps.website.models import MediaAsset
+    from apps.website.news_admin_views import NewsForm
+
+    fields = {
+        "alt_text": "Alt", "licence_note": "Permís", "shows_people": False,
+        "content_type": "image/jpeg", "size_bytes": 1, "uploaded_by": make_admin(),
+    }  # fmt: skip
+    ok = MediaAsset.objects.create(author="Autora", storage_key="a", **fields)
+    MediaAsset.objects.create(author="", storage_key="b", **fields)  # sense autor
+    assert list(NewsForm().fields["image"].queryset) == [ok]

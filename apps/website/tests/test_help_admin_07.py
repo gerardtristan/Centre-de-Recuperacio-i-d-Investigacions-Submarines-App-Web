@@ -63,3 +63,44 @@ def test_an_empty_question_shows_the_error_and_saves_nothing(make_admin):  # noq
     )
     assert response.status_code == 200 and "Hi ha 1 error" in response.content.decode()
     assert not FaqEntry.objects.exists()
+
+
+def test_rn_m07_14_publishing_retiring_and_editing_leave_a_trace_with_the_old_value(make_admin):  # noqa: F811
+    from apps.core.models import AuditEntry
+
+    actor = make_admin(R.ADMINISTRATOR)
+    topic = FaqTopic.objects.create(name="Quotes")
+    entry = help.save_entry(None, actor=actor, topic=topic, question="Quan?", answer="Al gener.")
+    help.save_entry(entry, actor=actor, published=True)
+    help.save_entry(entry, actor=actor, answer="Al febrer.")
+    help.save_entry(entry, actor=actor, published=False)
+    rows = list(
+        AuditEntry.objects.filter(action__startswith="website.help")
+        .order_by("pk")
+        .values_list("action", "field", "old_value", "new_value")
+    )
+    assert (help.ACTION_PUBLISHED, "published", False, True) in rows
+    assert (help.ACTION_CHANGED, "answer", "Al gener.", "Al febrer.") in rows
+    assert (help.ACTION_RETIRED, "published", True, False) in rows
+
+
+def test_a_stale_edit_does_not_publish_a_retired_question_again(make_admin):  # noqa: F811
+    actor = make_admin(R.ADMINISTRATOR)
+    topic = FaqTopic.objects.create(name="Quotes")
+    entry = help.save_entry(None, actor=actor, topic=topic, question="Quan?", answer="x")
+    help.save_entry(entry, actor=actor, published=True)
+    stale = FaqEntry.objects.get(pk=entry.pk)  # una altra pestanya, encara publicada
+    help.save_entry(entry, actor=actor, published=False)
+    help.save_entry(stale, actor=actor, question="Quan es paga?")
+    entry.refresh_from_db()
+    assert (entry.published, entry.question) == (False, "Quan es paga?")
+
+
+def test_publishing_an_invalid_question_shows_the_error_instead_of_failing(make_admin):  # noqa: F811
+    client = admin_client(make_admin(R.ADMINISTRATOR))
+    topic = FaqTopic.objects.create(name="Cursos")
+    entry = FaqEntry.objects.create(topic=topic, question="", answer="x")  # dada antiga, invàlida
+    response = client.post(_url("publish", entry.pk), {"publish": "1"}, follow=True)
+    assert response.status_code == 200
+    entry.refresh_from_db()
+    assert entry.published is False

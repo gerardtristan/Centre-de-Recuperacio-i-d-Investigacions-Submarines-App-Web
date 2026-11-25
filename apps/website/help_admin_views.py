@@ -88,6 +88,10 @@ def admin_publish_view(request, pk):
     require_perm(request, help.PERMISSION, write=True)
     entry = get_object_or_404(FaqEntry, pk=pk)
     published = request.POST.get("publish") == "1"
-    help.save_entry(entry, actor=request.user, published=published)
+    try:
+        help.save_entry(entry, actor=request.user, published=published)
+    except ValidationError as error:  # una pregunta incompleta: es corregeix a la fitxa
+        messages.error(request, " ".join(error.messages))
+        return redirect("administration:website_help_edit", entry.pk)
     messages.success(request, _("Pregunta publicada.") if published else _("Pregunta retirada."))
     return redirect(LIST)

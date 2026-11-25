@@ -13,6 +13,7 @@
     {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
   {% endfor %}
   {% if item.status == "retired" %}
+    {% for error in form.non_field_errors %}<div class="avis avis-error" role="alert">{{ error }}</div>{% endfor %}
     <div class="avis avis-avis" role="status">{% blocktranslate with reason=item.retired_reason %}Retirada: {{ reason }}{% endblocktranslate %}</div>
   {% else %}
     <section class="targeta" aria-labelledby="titol-redactar">

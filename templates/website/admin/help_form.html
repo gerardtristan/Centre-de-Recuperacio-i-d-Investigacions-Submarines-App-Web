@@ -8,7 +8,10 @@
     <h1>{% if entry %}{{ entry.question }}{% else %}{% translate "Pregunta nova" %}{% endif %}</h1>
     {% if entry %}<p class="text-2">{% if entry.published %}{% translate "Publicada a l'ajuda." %}{% else %}{% translate "No publicada: no surt a l'ajuda." %}{% endif %}</p>{% endif %}
   </header>
-  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
   <section class="targeta">
     <form class="formulari" method="post" novalidate>
       {% csrf_token %}
