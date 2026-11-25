@@ -131,6 +131,8 @@ def photo_upload_view(request, pk):
 @permission_required(ENVIRONMENT, write=True)
 @require_POST
 def photo_retire_view(request, pk, photo_id):
+    if not environment_photos.enabled():  # apagat, com la resta de les fotos: «no trobat»
+        raise Http404
     activity = _environmental(pk)
     photo = get_object_or_404(EnvironmentalPhoto, pk=photo_id, result__activity=activity)
     form = RetirePhotoForm(request.POST)

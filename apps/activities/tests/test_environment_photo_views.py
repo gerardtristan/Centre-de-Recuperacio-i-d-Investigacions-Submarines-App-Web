@@ -58,3 +58,14 @@ def test_the_file_view_is_not_found_once_the_switch_is_off(outing, manager, swit
     url = reverse("administration:private_file", args=[EnvironmentalPhoto.objects.get().file_id])
     Setting.objects.filter(key=environment_photos.SWITCH).update(initial_value=False)
     assert client.get(url).status_code == 404
+
+
+def test_retiring_is_not_found_once_the_switch_is_off(outing, manager, switch_on):  # noqa: F811
+    client = admin_client(manager)
+    post_photo(client, outing)
+    photo = EnvironmentalPhoto.objects.get()
+    Setting.objects.filter(key=environment_photos.SWITCH).update(initial_value=False)
+    retire = reverse("administration:activity_environment_photo_retire", args=[outing.pk, photo.pk])
+    assert client.post(retire, {"reason": "x"}).status_code == 404
+    photo.refresh_from_db()
+    assert photo.status == "active"
