@@ -8,7 +8,7 @@
     <p class="etiqueta-seccio"><a href="{% url 'website:news_list' %}">{% translate "Notícies" %}</a></p>
     <h1 id="titol-noticia">{{ item.title }}</h1>
     <p class="text-2"><time datetime="{{ item.date|date:'Y-m-d' }}">{{ item.date|date:"d/m/Y" }}</time></p>
-    {% if item.image and images_on %}
+    {% if images_on and item.image.publishable %}
       <figure>
         <img src="{% url 'website:media' item.image.key %}" alt="{{ item.image.alt_text }}">
         <figcaption class="text-2">{% if item.image.credit %}{{ item.image.credit }}{% else %}{% blocktranslate with author=item.image.author %}Foto: {{ author }}{% endblocktranslate %}{% endif %}</figcaption>

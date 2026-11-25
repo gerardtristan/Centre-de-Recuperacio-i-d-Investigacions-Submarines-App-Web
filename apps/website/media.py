@@ -12,12 +12,15 @@
 import uuid
 
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 from django.core.files.storage import storages
 from django.db import transaction
+from django.db.models import Q
 from django.http import Http404
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
+from apps.activities.card_photos import strip_jpeg, strip_png
 from apps.core import audit, files
 from apps.core.permissions import has_perm
 
@@ -26,8 +29,10 @@ from .models import MediaAsset, NewsItem, Page, PageVersion
 PERMISSION = "website.media"  # WP3
 ACTION_CHANGED = "website.media_changed"
 ACTION_RETIRED = "website.media_retired"
-# Només formats que mostra qualsevol navegador (el HEIC de la 00, no).
-WEB_IMAGE_TYPES = frozenset({"image/jpeg", "image/png", "image/webp"})
+# Només formats que mostra qualsevol navegador i dels quals es poden treure les metadades sense cap
+# biblioteca nova (el HEIC de la 00, no; el WebP, tampoc: P-633).
+WEB_IMAGE_TYPES = frozenset({"image/jpeg", "image/png"})
+_STRIP = {"image/jpeg": strip_jpeg, "image/png": strip_png}
 DETAIL_FIELDS = ("alt_text", "author", "licence_note", "shows_people", "people_consent", "credit")
 NOT_PUBLISHABLE = gettext_lazy(
     "Una foto no té autor, permís d'ús o text alternatiu, s'hi veuen persones sense el seu "
@@ -48,9 +53,13 @@ def upload(uploaded, *, actor, alt_text, shows_people, **details) -> MediaAsset:
     if unknown:
         raise ValueError(f"Camps desconeguts: {sorted(unknown)}")
     content_type = files.validate_upload(uploaded, allowed=WEB_IMAGE_TYPES)
+    uploaded.seek(0)
+    # Sense metadades (EXIF amb el GPS, número de sèrie, propietari, comentaris): el mateix mètode
+    # que les fotos dels carnets (T-M02-42), sense cap biblioteca nova.
+    clean = ContentFile(_STRIP[content_type](uploaded.read()))
     asset = MediaAsset(
         content_type=content_type,
-        size_bytes=uploaded.size,
+        size_bytes=clean.size,
         alt_text=alt_text.strip(),
         shows_people=shows_people,
         uploaded_by=actor,
@@ -58,7 +67,7 @@ def upload(uploaded, *, actor, alt_text, shows_people, **details) -> MediaAsset:
     )
     asset.full_clean(exclude=["storage_key", "uploaded_by"])
     storage = storages["private"]
-    asset.storage_key = storage.save(uuid.uuid4().hex, uploaded)
+    asset.storage_key = storage.save(uuid.uuid4().hex, clean)
     try:
         asset.save()
     except Exception:
@@ -137,19 +146,21 @@ def check_publishable(keys) -> None:
         raise ValidationError(NOT_PUBLISHABLE)
 
 
-def _published_keys() -> set[uuid.UUID]:
-    """Fotos de la versió vigent de cada pàgina publicada (DISTINCT ON de PostgreSQL) i de les
-    notícies publicades."""
-    current = (
-        PageVersion.objects.filter(page__status=Page.Status.PUBLISHED)
-        .order_by("page_id", "-number")
-        .distinct("page_id")
-        .values_list("blocks", flat=True)
+def _is_published(asset: MediaAsset) -> bool:
+    """Surt en una notícia publicada o a la versió vigent d'una pàgina publicada. Només es miren
+    les versions que contenen aquesta clau (contenció de JSON de PostgreSQL), no totes."""
+    if NewsItem.objects.filter(status=NewsItem.Status.PUBLISHED, image=asset).exists():
+        return True
+    key = str(asset.key)
+    candidates = PageVersion.objects.filter(page__status=Page.Status.PUBLISHED).filter(
+        Q(blocks__contains=[{"kind": "image", "media": key}])
+        | Q(blocks__contains=[{"kind": "gallery", "media": [key]}])
     )
-    news = NewsItem.objects.filter(status=NewsItem.Status.PUBLISHED, image__isnull=False)
-    return _as_uuids(key for blocks in current for key in block_media_keys(blocks)) | set(
-        news.values_list("image__key", flat=True)
-    )
+    for version in candidates.select_related("page"):
+        latest = version.page.versions.order_by("-number").values_list("number", flat=True)[0]
+        if version.number == latest:
+            return True
+    return False
 
 
 def public_asset(key: str) -> MediaAsset:
@@ -160,7 +171,7 @@ def public_asset(key: str) -> MediaAsset:
     except ValueError:
         raise Http404 from None
     asset = MediaAsset.objects.filter(key=wanted).first()
-    if asset is None or not asset.publishable or wanted not in _published_keys():
+    if asset is None or not asset.publishable or not _is_published(asset):
         raise Http404
     return asset
 

@@ -214,7 +214,7 @@ JPEG = (
 
 
 def test_the_metadata_of_a_jpeg_is_removed_on_upload(editor):
-    """Revisió de la #597: el fitxer desat (i servit) no porta GPS, número de sèrie ni propietari."""
+    """Revisió de la #597: el fitxer desat i servit no porta GPS, número de sèrie ni propietari."""
     asset = _photo(editor, name="foto.jpg", content=JPEG, **COMPLETE)
     with media.open_content(asset) as handle:
         kept = handle.read()
