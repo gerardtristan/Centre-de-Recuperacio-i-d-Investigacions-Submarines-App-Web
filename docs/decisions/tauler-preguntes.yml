@@ -1367,6 +1367,36 @@ opcions:
       compartida surt al resum perquè ho revisi una persona; C deixaria sense esborrar els missatges dels visitants sense compte.
     data: 2026-11-24
 
+  P-630:
+    opcions:
+      A: "El correu d'entrada del compte personal (únic i verificat)."
+      B: "El correu de contacte de la persona."
+      C: "Que el soci triï entre tots dos."
+    recomanada: A
+    perque: >-
+      És l'únic correu únic i verificat de la persona; el de contacte pot ser compartit (famílies, P-624) i obriria la porta
+      a subscriure algú altre.
+    data: 2026-11-25
+  P-631:
+    opcions:
+      A: "Confirmada al moment: el correu d'entrada ja és verificat i el soci actua amb la seva sessió."
+      B: "Doble confirmació igualment, amb l'enllaç del correu."
+    recomanada: A
+    perque: >-
+      La doble confirmació serveix per provar que qui escriu l'adreça n'és l'amo, i el soci ja ho ha provat en verificar
+      el compte; el consentiment queda igualment a la 00 amb la versió del text.
+    data: 2026-11-25
+  P-632:
+    opcions:
+      A: "No: el consentiment de l'alta no crea cap subscripció; el soci se subscriu des de la seva àrea."
+      B: "Sí: en aprovar l'alta, la casella marcada crea una subscripció confirmada amb el correu d'entrada."
+      C: "Es treu la casella del butlletí de «Fer-se soci» i el soci se subscriu des de la seva àrea."
+    recomanada: C
+    perque: >-
+      Tenir una casella que no fa res confon el soci; un sol lloc per subscriure's, amb el text i la baixa del 07, evita
+      dues fonts del mateix consentiment.
+    data: 2026-11-25
+
 noves:
   P-412:
     opcions:

@@ -26,8 +26,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from apps.core import audit, business_settings, mail
-from apps.core.models import OutgoingEmail
+from apps.core import audit, business_settings, consents, mail
+from apps.core.models import Consent, OutgoingEmail
 from apps.core.permissions import has_perm
 from apps.core.persons import ANONYMOUS_EMAIL_DOMAIN
 
@@ -125,6 +125,46 @@ def forget(subscription: NewsletterSubscription, *, now=None) -> None:
         NewsletterEvent.objects.create(subscription=subscription, kind=Kind.UNSUBSCRIBED)
     subscription.email = f"baixa-{subscription.pk}@{ANONYMOUS_EMAIL_DOMAIN}"
     subscription.save(update_fields=["status", "unsubscribed_at", "email"])
+
+
+# --- Des de l'àrea del soci (T-M07-13; P-492, opció A) ---------------------------------------
+# La fila és la del 07, amb el correu d'entrada del compte personal (verificat; P-630), i també
+# el consentiment de la 00. El compte ja ha verificat l'adreça: es confirma sense l'enllaç del
+# correu (P-631).
+
+
+def member_subscription(account) -> NewsletterSubscription | None:
+    return NewsletterSubscription.objects.filter(email=normalise(account.login)).first()
+
+
+@transaction.atomic
+def subscribe_member(account, *, request=None) -> NewsletterSubscription:
+    text = consents.current_text(TEXT_KIND)
+    if text is None:
+        raise ValidationError(_("Ara mateix no et pots subscriure."))
+    email, now = normalise(account.login), timezone.now()
+    subscription = NewsletterSubscription.objects.select_for_update().filter(email=email).first()
+    if subscription is None or subscription.status != Status.CONFIRMED:
+        subscription = subscription or NewsletterSubscription(email=email)
+        subscription.status, subscription.legal_text = Status.CONFIRMED, text
+        subscription.token, subscription.requested_at = secrets.token_urlsafe(32), now
+        subscription.confirmed_at = now
+        subscription.save()
+        for kind in (Kind.REQUESTED, Kind.CONFIRMED):
+            NewsletterEvent.objects.create(subscription=subscription, kind=kind, legal_text=text)
+    consents.grant(
+        account.person, TEXT_KIND, channel=Consent.Channel.WEB, by=account, request=request
+    )
+    return subscription
+
+
+@transaction.atomic
+def unsubscribe_member(account, *, request=None) -> None:
+    subscription = member_subscription(account)
+    if subscription is not None:
+        forget(subscription)
+    consents.withdraw(account.person, TEXT_KIND, channel=Consent.Channel.WEB, by=account,
+                      request=request)  # fmt: skip
 
 
 def recipients():

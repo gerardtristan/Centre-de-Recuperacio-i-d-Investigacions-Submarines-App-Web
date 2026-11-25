@@ -12,15 +12,18 @@ confirmar i donar-se de baixa funcionen sense sessió amb l'enllaç del correu.
 from functools import wraps
 
 from django import forms
+from django.contrib import messages
 from django.contrib.auth.decorators import login_not_required
 from django.db import transaction
 from django.http import Http404
 from django.shortcuts import redirect, render
+from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
 from apps.accounts import limits
+from apps.accounts.models import Account
 from apps.accounts.security import client_ip
 from apps.core import business_settings, consents
 
@@ -140,3 +143,31 @@ def newsletter_confirm_view(request, token):
 def newsletter_unsubscribe_view(request, token):
     newsletter.unsubscribe(token)
     return render(request, "website/newsletter_link.html", {"unsubscribed": True})
+
+
+@never_cache
+@switched_on(newsletter.ENABLED)
+@require_http_methods(["GET", "POST"])
+def my_newsletter_view(request):
+    """Àrea del soci (T-M07-13; P-492, opció A): subscriure's o donar-se de baixa amb el compte
+    personal; també el consentiment de la 00. Sessió obligatòria (no és pública)."""
+    account = request.user
+    if getattr(account, "kind", None) != Account.Kind.PERSONAL:
+        raise Http404
+    text = consents.current_text(newsletter.TEXT_KIND)
+    if request.method == "POST" and text is not None:
+        if request.POST.get("accio") == "baixa":
+            newsletter.unsubscribe_member(account, request=request)
+            messages.success(request, _("T'has donat de baixa del butlletí."))
+        elif request.POST.get("accept_newsletter"):
+            newsletter.subscribe_member(account, request=request)
+            messages.success(request, _("Ja estàs subscrit al butlletí."))
+        else:
+            messages.error(request, _("Cal acceptar el text del butlletí."))
+        response = redirect("website:my_newsletter")
+        response.status_code = 303
+        return response
+    subscription = newsletter.member_subscription(account)
+    subscribed = subscription is not None and subscription.status == subscription.Status.CONFIRMED
+    context = {"text": text, "subscribed": subscribed, "email": account.login}
+    return render(request, "website/my_newsletter.html", context)

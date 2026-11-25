@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{# T-M07-13 (P-M07-E; P-492, opció A; RN-M07-06): el butlletí des de l'àrea del soci. Amb el correu d'entrada del compte personal (P-630), sense l'enllaç de confirmació (adreça ja verificada, P-631), i el consentiment de la 00 amb el text vigent. Donar-se'n de baixa retira el consentiment. Sense entrada de menú fins a DISSENY (DX.md). #}
+{% block title %}{% translate "Butlletí" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "El meu compte" %}</p>
+  <h1>{% translate "Butlletí del club" %}</h1>
+  {% include "activities/_missatges.html" %}
+  {% if not text %}
+    <div class="avis avis-avis" role="status">{% translate "Ara mateix no et pots subscriure des d'aquí. Torna-ho a provar més tard." %}</div>
+  {% elif subscribed %}
+    <p>{% blocktranslate %}Reps el butlletí a {{ email }}. Cada butlletí porta l'enllaç per donar-te'n de baixa.{% endblocktranslate %}</p>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="accio" value="baixa">
+      <div class="accions"><button class="boto" type="submit">{% translate "Dona'm de baixa" %}</button></div>
+    </form>
+  {% else %}
+    <p>{% blocktranslate %}Rebràs el butlletí a {{ email }}, el correu amb què entres.{% endblocktranslate %}</p>
+    <form class="formulari" method="post">
+      {% csrf_token %}
+      <fieldset>
+        <legend>{% translate "Textos legals" %}</legend>
+        <label class="casella"><input type="checkbox" name="accept_newsletter" id="id_accept_newsletter"> <span>{% translate "Accepto el text del" %} <a href="#text-newsletter" data-obre-text>{% translate "Butlletí del club" %}</a> <span class="text-2">{% blocktranslate with version=text.version %}(versió {{ version }}){% endblocktranslate %}</span> <strong class="etiqueta-obligatori">{% translate "obligatori" %}</strong></span></label>
+      </fieldset>
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Subscriu-me" %}</button></div>
+    </form>
+    <section class="textos-legals" aria-labelledby="textos-legals-titol" data-textos-legals data-tanca="{% translate 'Tanca' %}">
+      <h2 id="textos-legals-titol">{% translate "Textos legals" %}</h2>
+      <article id="text-newsletter" aria-labelledby="text-newsletter-titol">
+        <h3 id="text-newsletter-titol">{% translate "Butlletí del club" %} <span class="text-2">{% blocktranslate with version=text.version %}(versió {{ version }}){% endblocktranslate %}</span></h3>
+        <div class="text-legal-cos">{{ text.content|linebreaks }}</div>
+      </article>
+    </section>
+    <script src="{% static 'js/textos-legals.js' %}" defer></script>
+  {% endif %}
+{% endblock %}

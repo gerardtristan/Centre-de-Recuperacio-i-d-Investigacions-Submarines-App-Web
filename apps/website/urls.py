@@ -23,4 +23,6 @@ urlpatterns = [
         views.newsletter_unsubscribe_view,
         name="newsletter_unsubscribe",
     ),
+    # T-M07-13 (P-492): el butlletí des de l'àrea del soci (sessió obligatòria; no és pública).
+    path("socis/butlleti/", views.my_newsletter_view, name="my_newsletter"),
 ]
