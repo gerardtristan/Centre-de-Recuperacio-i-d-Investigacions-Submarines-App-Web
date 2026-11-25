@@ -330,6 +330,7 @@ Tots són a `tokens.css` (components compartits) o a l'estil de cada pàgina (es
 ### 6.1 Navegació
 - Pública: barra superior en forma de pastilla. Al mòbil, una hamburguesa que s'obre i es tanca amb un clic o amb Esc. **Regla (034):** la pastilla no s'allarga. A l'escriptori mostra 6 enllaços i «Més», i les seccions noves van dins de «Més». Els enllaços que surten de «Més» només a l'escriptori porten la classe `nav-escriptori`, i les seves còpies dins de «Més», `nav-no-escriptori`. Així cada enllaç només es veu i es llegeix una vegada a cada mida.
 - Compte personal (1.37): Ramillete (§6.12). Fins a 1023 px, la barra a baix; a partir de 1024 px, un panell lateral **clar i flotant** (`--c-superficie-flotant`, radi i ombra, separat de les vores). El de l'administració és **fosc i fix**: les dues zones tenen panell a l'escriptori, però es veu de seguida en quina ets. Sense JavaScript, la navegació en text a la capçalera.
+- **Butlletí (T-DX-148):** dins de «Més» (icona `mail`), després de «Les meves factures», a les tres llistes (ventall, panell i text). Només surt amb `website.newsletter_enabled` encès (`{% newsletter_enabled %}`, `apps/website/templatetags/website_nav.py`), com la vista; a la seva pàgina, «Més» surt obert i l'entrada, marcada.
 - Administració: barra lateral fosca amb els mòduls Socis, Activitats, Material, Tresoreria, Pagaments, Llicències, Web i Dashboard, **filtrada per rol** (§6.2).
 - Element actiu: `aria-current="page"`, barra groga, negreta i fons (§2.5).
 
