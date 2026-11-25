@@ -582,7 +582,7 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-119](T-DX-119.md) | Contacte (07): sense recurs de moment | 24/11/2026 23:33 | a447c953 | — | [A comprovar] |
 | [T-DX-140](T-DX-140.md) | Menú del 07 i el 08 (T-DX-140 a 146), i es retira la pantalla en construcció del dashboard | 25/11/2026 01:20 | 5995eb6b | 3 + e2e | [A comprovar] |
 | [T-DX-122](T-DX-122.md) | Revisió B, C i D del 07 i el 08: dashboard, safata, fitxa i motius de contacte, i butlletí | 25/11/2026 01:30 | 1fcca690 | e2e | [A comprovar] |
-| [T-DX-147](T-DX-147.md) | Butlletí al menú del soci (T-DX-148); notícies i ajuda públiques sense menú escrit a la plantilla, i a l'administració (T-DX-149 i 150) | 25/11/2026 03:15 | c3727dc6 | 1 + e2e | [A comprovar] |
+| [T-DX-147](T-DX-147.md) | Butlletí al menú del soci (T-DX-148); notícies i ajuda públiques sense menú escrit a la plantilla, i a l'administració (T-DX-149 i 150) | 25/11/2026 03:15 | a7d3f568 | 1 + e2e | [A comprovar] |
 | [T-M07-03](T-M07-03.md) | App `website` i ajustos del 07, amb el butlletí i el contacte apagats | 24/11/2026 10:57 | 90f1821e | 25 noves | [A comprovar] |
 | [T-M07-04](T-M07-04.md) | Pàgines, versions i blocs; publicar i tornar a una versió | 24/11/2026 11:42 | 6cbb8859 | 17 noves | [A comprovar] |
 | [T-M07-07](T-M07-07.md) | Fotos de la web: models i servei, sense rutes | 24/11/2026 12:39 | 66704ddb | 15 noves | [A comprovar] |
