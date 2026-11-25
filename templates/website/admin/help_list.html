@@ -7,12 +7,12 @@
     <p class="etiqueta-seccio">{% translate "Web pública" %}</p>
     <h1>{% translate "Preguntes freqüents" %}</h1>
     <p class="text-2">{% translate "A l'ajuda només surten les publicades. Una pregunta retirada no s'esborra: es pot tornar a publicar." %}</p>
+    {% if can_write and topics %}<div class="accions"><a class="boto boto-principal" href="{% url 'administration:website_help_add' %}">{% translate "Pregunta nova" %}</a></div>{% endif %}{# T-DX-149 i 150: l'acció del llistat, a la capçalera (§5.3) #}
   </header>
   {% for message in messages %}
     {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
     {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
   {% endfor %}
-  {% if can_write and topics %}<div class="accions"><a class="boto boto-principal" href="{% url 'administration:website_help_add' %}">{% translate "Pregunta nova" %}</a></div>{% endif %}
 
   {% for topic in topics %}
     <section class="targeta" aria-labelledby="tema-{{ topic.pk }}">

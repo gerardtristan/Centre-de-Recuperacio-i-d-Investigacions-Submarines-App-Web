@@ -73,3 +73,16 @@ def test_the_entry_of_the_section_is_current_on_its_sub_pages(
 def test_no_menu_on_the_policies_page(member_account, template):
     html = render(template, member_account, reverse("members:accept_policies"))
     assert "<nav" not in html
+
+
+@pytest.mark.parametrize("template", NAVS)
+def test_newsletter_entry_only_with_the_setting(member_account, template):
+    """T-DX-148: «Butlletí» surt amb `website.newsletter_enabled` encès (com la vista) i queda
+    marcat a la seva pàgina; apagat, el menú no hi enllaça."""
+    from apps.core.models import Setting
+    from apps.website import newsletter
+
+    url = reverse("website:my_newsletter")
+    assert url not in render(template, member_account, reverse("core:home"))
+    Setting.objects.filter(key=newsletter.ENABLED).update(initial_value=True)
+    assert set(current_links(render(template, member_account, url))) == {url}
