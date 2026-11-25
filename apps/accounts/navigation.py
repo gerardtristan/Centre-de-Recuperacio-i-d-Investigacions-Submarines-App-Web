@@ -51,6 +51,7 @@ BASE_ROUTES = {
     "administration:website_newsletters": ((("website.newsletter", READ),),),  # WP6 (T-DX-145)
     "administration:website_news": ((("website.news", READ),),),  # WP2 (T-DX-149)
     "administration:website_help": ((("website.help", READ),),),  # WP4 (T-DX-150)
+    "administration:website_tutorials": ((("website.help", READ),),),  # WP4 (T-DX-151)
     # T-M04-22 (T-DX-118): T3 o T2 d'escriptura, com `structure_view`.
     "administration:treasury_structure": (
         (("treasury.cost_centres.manage", WRITE),),
@@ -115,6 +116,15 @@ ENTRIES = (
             "administration:website_help_publish",
         ),
     ),  # T-DX-150
+    (
+        "administration:website_tutorials",
+        _("Tutorials"),
+        (
+            "administration:website_tutorial_add",
+            "administration:website_tutorial_edit",
+            "administration:website_tutorial_publish",
+        ),
+    ),  # T-DX-151
     (
         "administration:website_contact",
         _("Missatges de contacte"),
@@ -490,6 +500,7 @@ GROUPS = (
         (
             "administration:website_news",
             "administration:website_help",
+            "administration:website_tutorials",
             "administration:website_contact",
             "administration:website_contact_reasons",
             "administration:website_newsletters",
