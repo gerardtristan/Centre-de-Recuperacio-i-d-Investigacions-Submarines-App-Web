@@ -23,7 +23,8 @@ def test_a_screen_that_already_works_is_no_longer_under_construction():
     `/gestio/permisos/` (T-RP-03), i la de prova es retira (T-DX-74). Les del 02 (T-DX-95): la
     fitxa i la inscripció són a `/activitats/` (#497, #498) i «Activitats» del soci és «Les meves
     activitats» (`activities:mine`, #499). Transferències i pagaments a revisar (T-DX-121): la
-    conciliació (T-M04-14) i els pagaments (T-M05b-16) ja tenen la seva llista «a revisar»."""
+    conciliació (T-M04-14) i els pagaments (T-M05b-16) ja tenen la seva llista «a revisar».
+    El dashboard és a `/gestio/dashboard/` (T-DX-146)."""
     for name in (
         "rols_permisos",
         "activitats",
@@ -31,6 +32,7 @@ def test_a_screen_that_already_works_is_no_longer_under_construction():
         "fitxa_activitat",
         "inscripcio",
         "revisar_pagaments",
+        "dashboard",
     ):
         assert name not in SCREENS
 
