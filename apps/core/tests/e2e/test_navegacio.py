@@ -140,8 +140,9 @@ def test_personal_menu_logs_out_with_the_keyboard(page, live_server, builder, me
 
 
 def test_admin_menu_groups_and_tablet_rail(page, live_server, review):
-    """T-DX-62: a l'escriptori, els grups plegables amb el de la pantalla actual obert; a la tauleta,
-    un carril amb la icona de cada grup que n'obre les entrades al costat (Esc el tanca)."""
+    """T-DX-62: a l'escriptori, els grups plegables, amb el de la pantalla actual obert; a la
+    tauleta, un carril amb la icona de cada grup, que n'obre les entrades al costat (Esc el
+    tanca)."""
     admin = make_admin("admin.grups", "administrator", "treasurer")
     login_admin(page, live_server.url, admin.login)
     sidebar = page.locator("#barra-lateral")
