@@ -27,3 +27,7 @@ No és una tasca del pla: és l'eina perquè el propietari i la junta provin la 
 - `test_seed_demo_data_staging.py` i `test_seed_demo_data.py` (29) en verd.
 - Prova manual amb Docker (19/11/2026): els cinc serveis arrenquen; les dades inventades es carreguen; sense contrasenya del davant, 401; entrada a l'administració amb `admin-demo` i el doble factor del servidor, amb els estils carregats (captura a 1280 px, mirada); simulant el túnel (`X-Forwarded-Proto: https` i un host `.trycloudflare.com`), la galeta CSRF és segura i l'entrada funciona, i un origen estrany rep 403; en reiniciar, les migracions s'apliquen i les dades es conserven.
 - No provat aquí: el túnel real de Cloudflare (el contenidor no pot publicar adreces) ni els scripts de PowerShell (no hi ha Windows). [A comprovar] al portàtil.
+
+## Ajust per a 4 GB (25/11/2026)
+- El portàtil servidor és un ThinkPad 11e (Celeron N4100, 4 GB) amb Windows 10. gunicorn passa a un procés amb quatre fils i PostgreSQL a `shared_buffers=64MB`; la guia afegeix la BIOS (VT-x), el Windows 22H2 i el `.wslconfig` que limita Docker a 2 GB.
+- Provat amb Docker sobre `master` (#607): els cinc serveis ocupen uns 280 MB i l'entrada a l'administració amb el doble factor funciona.
