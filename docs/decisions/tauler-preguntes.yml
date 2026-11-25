@@ -1376,6 +1376,34 @@ opcions:
     perque: >-
       Cap foto pública no ha de portar el GPS ni el número de sèrie del mòbil; el JPEG i el PNG cobreixen les fotos del club,
       i la biblioteca nova ja és a la proposta de la decisió 106.
+  P-630:
+    opcions:
+      A: "El correu d'entrada del compte personal (únic i verificat)."
+      B: "El correu de contacte de la persona."
+      C: "Que el soci triï entre tots dos."
+    recomanada: A
+    perque: >-
+      És l'únic correu únic i verificat de la persona; el de contacte pot ser compartit (famílies, P-624) i obriria la porta
+      a subscriure algú altre.
+    data: 2026-11-25
+  P-631:
+    opcions:
+      A: "Doble confirmació també des de l'àrea: l'enllaç al correu d'entrada i, en prémer el botó, la subscripció i el consentiment de la 00."
+      B: "Subscripció immediata: el correu d'entrada ja és verificat i el soci actua amb la seva sessió."
+    recomanada: A
+    perque: >-
+      És un consentiment (irreversible, D2): l'opció conservadora és la mateixa doble confirmació que a la web, i el consentiment
+      de la 00 només queda donat quan la persona prem el botó; la B és més còmoda i es pot triar després.
+    data: 2026-11-25
+  P-632:
+    opcions:
+      A: "No: el consentiment de l'alta no crea cap subscripció; el soci se subscriu des de la seva àrea."
+      B: "Sí: en aprovar l'alta, la casella marcada crea una subscripció confirmada amb el correu d'entrada."
+      C: "Es treu la casella del butlletí de «Fer-se soci» i el soci se subscriu des de la seva àrea."
+    recomanada: C
+    perque: >-
+      Tenir una casella que no fa res confon el soci; un sol lloc per subscriure's, amb el text i la baixa del 07, evita
+      dues fonts del mateix consentiment.
     data: 2026-11-25
 
 noves:

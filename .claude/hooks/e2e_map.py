@@ -344,6 +344,11 @@ MAP = {
         "templates/website/help.html",
         "static/css/recoveco.css",
     ),
+    "test_butlleti_soci.py": (
+        "apps/website/views.py",
+        "apps/website/newsletter.py",
+        "templates/website/my_newsletter.html",
+    ),
     "test_web_fluxos_07.py": (
         "apps/website/views.py",
         "apps/website/admin_views.py",
