@@ -1367,6 +1367,17 @@ opcions:
       compartida surt al resum perquè ho revisi una persona; C deixaria sense esborrar els missatges dels visitants sense compte.
     data: 2026-11-24
 
+  P-633:
+    opcions:
+      A: "Rebutjar el WebP fins que hi hagi una biblioteca d'imatge (decisió 106); JPEG i PNG, nets sense biblioteca nova."
+      B: "Acceptar el WebP sense treure'n les metadades."
+      C: "Afegir ara Pillow per tornar a codificar totes les fotos (dependència nova, PR risc:alt pròpia)."
+    recomanada: A
+    perque: >-
+      Cap foto pública no ha de portar el GPS ni el número de sèrie del mòbil; el JPEG i el PNG cobreixen les fotos del club,
+      i la biblioteca nova ja és a la proposta de la decisió 106.
+    data: 2026-11-25
+
 noves:
   P-412:
     opcions:
