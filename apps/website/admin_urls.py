@@ -4,6 +4,7 @@ dins de l'espai de noms `administration`. Totes demanen sessió i permís."""
 from django.urls import path
 
 from . import admin_views as views
+from . import news_admin_views as news_views
 
 urlpatterns = [
     path("web/contacte/", views.inbox_view, name="website_contact"),
@@ -23,4 +24,12 @@ urlpatterns = [
     path(
         "web/butlleti/<int:pk>/envia/", views.newsletter_send_view, name="website_newsletter_send"
     ),
+    # T-M07-08 (WP2): notícies.
+    path("web/noticies/", news_views.admin_list_view, name="website_news"),
+    path("web/noticies/nova/", news_views.admin_edit_view, name="website_news_add"),
+    path("web/noticies/<int:pk>/", news_views.admin_edit_view, name="website_news_edit"),
+    path(
+        "web/noticies/<int:pk>/publica/", news_views.admin_publish_view, name="website_news_publish"
+    ),
+    path("web/noticies/<int:pk>/retira/", news_views.admin_retire_view, name="website_news_retire"),
 ]

@@ -1,0 +1,47 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# P-M07-B (WP2; RN-M07-02, 05 i 14): redactar una notícia, publicar-la i retirar-la amb motiu. Una foto sense autor, permís o consentiment no es pot publicar (ho comprova el servidor). Una retirada ja no es canvia. #}
+{% block title %}{% if item %}{{ item.title }}{% else %}{% translate "Notícia nova" %}{% endif %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio"><a href="{% url 'administration:website_news' %}">{% translate "Notícies" %}</a></p>
+    <h1>{% if item %}{{ item.title }}{% else %}{% translate "Notícia nova" %}{% endif %}</h1>
+    {% if item %}<p class="text-2">{{ item.get_status_display }}</p>{% endif %}
+  </header>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
+  {% if item.status == "retired" %}
+    <div class="avis avis-avis" role="status">{% blocktranslate with reason=item.retired_reason %}Retirada: {{ reason }}{% endblocktranslate %}</div>
+  {% else %}
+    <section class="targeta" aria-labelledby="titol-redactar">
+      <h2 id="titol-redactar">{% translate "Redactar" %}</h2>
+      <form class="formulari" method="post" action="{% if item %}{% url 'administration:website_news_edit' item.pk %}{% else %}{% url 'administration:website_news_add' %}{% endif %}" novalidate>
+        {% csrf_token %}
+        {% include "_errata.html" %}
+        {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+        <div class="accions"><button class="boto{% if not item %} boto-principal{% endif %}" type="submit">{% translate "Desa" %}</button></div>
+      </form>
+    </section>
+    {% if item.status == "draft" %}
+      <section class="targeta" aria-labelledby="titol-publica">
+        <h2 id="titol-publica">{% translate "Publicar" %}</h2>
+        <form method="post" action="{% url 'administration:website_news_publish' item.pk %}">
+          {% csrf_token %}
+          <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Publica la notícia" %}</button></div>
+        </form>
+      </section>
+    {% elif item.status == "published" %}
+      <section class="targeta" aria-labelledby="titol-retira">
+        <h2 id="titol-retira">{% translate "Retirar" %}</h2>
+        <form class="formulari" method="post" action="{% url 'administration:website_news_retire' item.pk %}" novalidate>
+          {% csrf_token %}
+          {% with form=retire_form %}{% include "_errata.html" %}{% endwith %}
+          {% for field in retire_form %}{% include "accounts/_camp.html" %}{% endfor %}
+          <div class="accions"><button class="boto" type="submit">{% translate "Retira la notícia" %}</button></div>
+        </form>
+      </section>
+    {% endif %}
+  {% endif %}
+{% endblock %}
