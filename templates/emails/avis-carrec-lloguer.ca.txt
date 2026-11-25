@@ -1,0 +1,7 @@
+{% load i18n %}{# T-M03-11 (RN-M03-11, CA-M03-13): avís al participant del càrrec del material llogat. TEXT PROVISIONAL [A validar: junta i tresorer, S-M03-03]. Només l'activitat, el tipus de material, l'import i l'enllaç a la pantalla de pagament, amb sessió. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate %}Per a «{{ title }}» t'hem llogat material ({{ equipment }}). El lloguer té un càrrec de {{ amount }}, a part de la inscripció.{% endblocktranslate %}
+{% blocktranslate %}El pots pagar aquí: {{ link }}{% endblocktranslate %}
+
+{% translate "Si tens cap dubte, respon aquest correu." %}
+{% endautoescape %}

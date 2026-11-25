@@ -1683,3 +1683,14 @@ noves:
       Qui té DB1 ja té accés als mòduls d'on surten les xifres; B i C compliquen molt la lectura i el
       càlcul per a un risc petit, i D trauria informació útil a la junta.
     data: 2026-11-24
+  P-662:
+    opcions:
+      A: "L'administrador i el tresorer, amb l'apartat de material amb «Cons.»."
+      B: "Només el tresorer."
+      C: "Només l'administrador, per decisió de la junta."
+      D: "El tresorer i el responsable de material."
+    recomanada: A
+    perque: >-
+      És un canvi de diners que veuran els socis: el tresorer en respon i l'administrador l'encén
+      quan la junta ho decideixi; el responsable de material no porta els cobraments.
+    data: 2026-11-25
