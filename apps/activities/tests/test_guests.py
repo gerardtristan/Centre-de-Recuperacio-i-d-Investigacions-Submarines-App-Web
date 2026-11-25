@@ -262,3 +262,24 @@ def test_with_a_minimum_age_the_birth_date_replaces_the_box(manager):
     born = datetime.date(1990, 5, 1)
     row = guests.enrol_guest(outing, data(adult_declared=False, birth_date=born), now=NOW)
     assert not adult_consent(row.person).exists()
+
+
+def test_a_desk_guest_gets_the_guest_link_and_no_link_that_needs_a_session(manager):
+    """Revisió de la #596: inscrit al taulell (canal DESK) i sense compte, només l'enllaç segur,
+    també en acceptar una plaça oferta."""
+    from apps.activities import deadlines, notifications
+    from apps.core.models import OutgoingEmail
+
+    outing = an_open_outing(manager, open_to_non_members=True, max_places=1)
+    first = guests.enrol_guest(outing, data(), by=manager, now=NOW)
+    assert first.channel == "desk"
+    assert not OutgoingEmail.objects.filter(template=notifications.PAYMENT).exists()
+    waiting = guests.enrol_guest(
+        outing, data(contact_email="taulell@example.org"), by=manager, now=NOW
+    )
+    later = NOW + datetime.timedelta(hours=73)
+    deadlines.run_deadlines(now=later)
+    waiting.refresh_from_db()
+    accepted = deadlines.accept_offer(waiting, actor=manager, now=later)
+    assert GuestLink.objects.get(charge=accepted.charge).person == waiting.person
+    assert not OutgoingEmail.objects.filter(template=notifications.PAYMENT).exists()

@@ -36,6 +36,7 @@ from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
+from apps.accounts.invitations import has_active_personal_account
 from apps.accounts.models import Account
 from apps.core import audit, business_settings, charges, guest_links
 from apps.core.models import Charge
@@ -114,8 +115,8 @@ def accept_offer(enrolment, *, actor, now=None, request=None) -> Enrolment:
         row, target, actor=actor, details={"charge": row.charge_id}, request=request
     )
     row.save()
-    if row.channel == Enrolment.Channel.GUEST and row.charge_id:
-        # Un convidat no té compte: paga amb l'enllaç de convidat, com en inscriure's (P-457).
+    if row.charge_id and not has_active_personal_account(row.person):
+        # Sense compte (convidat web o del taulell): l'enllaç de convidat (P-457).
         guest_links.create(row.person, row.charge, by=SYSTEM, request=request)
     if row.status == S.CONFIRMED:
         extensions.enrolment_confirmed.send(sender=Enrolment, enrolment=row)
