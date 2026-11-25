@@ -48,7 +48,7 @@
     <tbody>
       {% for item in messages_list %}
         <tr>
-          <th scope="row" class="cel-nom"><a href="{% url 'administration:website_contact_message' item.pk %}"><time datetime="{{ item.created_at|date:'c' }}">{{ item.created_at|date:"d/m/Y H:i" }}</time></a></th>
+          <th scope="row" class="cel-nom"><a class="enllac-fila" href="{% url 'administration:website_contact_message' item.pk %}"><time datetime="{{ item.created_at|date:'c' }}">{{ item.created_at|date:"d/m/Y H:i" }}</time></a></th>
           <td data-etiqueta="{% translate 'Motiu' %}">{{ item.reason.name }}</td>
           <td data-etiqueta="{% translate 'Nom' %}">{{ item.name }}</td>
           <td data-etiqueta="{% translate 'Estat' %}">{% include "website/admin/_contact_status.html" with status=item.status label=item.get_status_display %}</td>

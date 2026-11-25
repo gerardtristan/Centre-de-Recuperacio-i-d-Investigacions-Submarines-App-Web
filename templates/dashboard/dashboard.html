@@ -1,7 +1,8 @@
 {% extends "base_admin.html" %}
-{% load i18n %}
+{% load i18n static %}
 {# P-M08-A i B (DB1; RN-M08-01 a 05, 08, 09 i 11): un panell del dashboard. Només xifres agregades: cap nom, correu ni document. Els grups petits ja arriben amagats del servidor («menys de N»). Un bloc enllaça al detall només si el compte té el permís del mòdul, i el mòdul el torna a comprovar. Sense gràfics fins a la T-M08-11: xifres i taules. #}
 {% block title %}{% translate "Dashboard" %} · C.R.I.S.{% endblock %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/parrilla.css' %}">{% endblock %}
 {% block content %}
   <header class="capcalera-pagina">
     <p class="etiqueta-seccio">{% translate "Dashboard" %}</p>
@@ -9,8 +10,9 @@
     <p class="text-2">{% blocktranslate with start=starts_on|date:"d/m/Y" end=ends_on|date:"d/m/Y" time=computed_at|time:"H:i" %}Del {{ start }} al {{ end }}. Dades calculades a les {{ time }}.{% endblocktranslate %}</p>
   </header>
 
-  <nav class="accions" aria-label="{% translate 'Panells' %}">
-    {% for code, name in panels.items %}<a class="boto boto-text" href="{% url 'administration:dashboard_panel' code %}?periode={{ period }}"{% if code == panel %} aria-current="page"{% endif %}>{{ name }}</a>{% endfor %}
+  {# T-DX-122: pestanyes d'enllaços (cada panell és una pàgina); la xifra gran és la de Parrilla (§T-DX-35) i els blocs, en una reixa #}
+  <nav class="pestanyes" aria-label="{% translate 'Panells' %}">
+    {% for code, name in panels.items %}<a class="pestanya" href="{% url 'administration:dashboard_panel' code %}?periode={{ period }}"{% if code == panel %} aria-current="page"{% endif %}>{{ name }}</a>{% endfor %}
   </nav>
 
   <form class="formulari barra-filtres" method="get" action="{% url 'administration:dashboard_panel' panel %}" novalidate>
@@ -24,6 +26,7 @@
     <div class="accions"><button class="boto" type="submit">{% translate "Mostra" %}</button></div>
   </form>
 
+  <div class="graella-targetes">
   {% for block in blocks %}
     <section class="targeta" aria-labelledby="bloc-{{ block.code }}">
       <h2 id="bloc-{{ block.code }}">{% if block.link %}<a href="{{ block.link }}">{{ block.name }}</a>{% else %}{{ block.name }}{% endif %}</h2>
@@ -40,7 +43,7 @@
           </table>
         {% endfor %}
       {% else %}
-        <p class="{% if block.unit == 'cents' %}import{% else %}xifra-viva{% endif %}">{{ block.value }}</p>
+        <p class="parrilla-xifra {% if block.unit == 'cents' %}import{% else %}xifra-viva{% endif %}">{{ block.value }}</p>
       {% endif %}
       <p class="text-2"><strong>{% translate "Què vol dir?" %}</strong> {{ block.definition }}</p>
       {% if block.help %}<p class="text-2">{{ block.help }}</p>{% endif %}
@@ -48,4 +51,5 @@
   {% empty %}
     <p class="text-2">{% translate "Aquest panell encara no té cap bloc." %}</p>
   {% endfor %}
+  </div>
 {% endblock %}
