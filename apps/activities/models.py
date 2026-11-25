@@ -781,7 +781,7 @@ class DiverCertification(models.Model):
 class EnvironmentalResult(models.Model):
     """Resultats d'una sortida de medi ambient (T-M02-20; M02-6; P-M02-G; S-M02-14): residus,
     espècies observades i observacions. Un per sortida. No es publica enlloc des del 02
-    (RN-M02-23). Les fotos encara no existeixen (vegeu `environment.py`)."""
+    (RN-M02-23). Les fotos són a `EnvironmentalPhoto`."""
 
     activity = models.OneToOneField(
         Activity,
@@ -809,6 +809,50 @@ class EnvironmentalResult(models.Model):
 
     def __str__(self):
         return str(self.activity)
+
+
+class EnvironmentalPhoto(models.Model):
+    """Foto d'una sortida de medi ambient (T-M02-20; M02-6; CA-M02-22; P-41, oberta). Xifrada a
+    l'aplicació (`core.files`, tipus `environment_photo`), mai amb adreça pública: només la
+    desxifra la vista de fitxers amb AC14 i registre. Ús intern; cap pantalla no la publica
+    (RN-M02-23). Es retira amb motiu i no s'esborra."""
+
+    class Status(models.TextChoices):
+        ACTIVE = "active", _("Activa")
+        RETIRED = "retired", _("Retirada")
+
+    result = models.ForeignKey(
+        EnvironmentalResult, on_delete=models.PROTECT, related_name="photos",
+        verbose_name=_("resultats"),
+    )  # fmt: skip
+    file = models.OneToOneField(
+        "core.PrivateFile", on_delete=models.PROTECT, related_name="+", verbose_name=_("fitxer")
+    )
+    content_type = models.CharField(_("tipus de contingut"), max_length=100)
+    author = models.CharField(_("autor"), max_length=120)
+    usage_permission = models.BooleanField(_("permís d'ús de l'autor"), default=False)
+    shows_people = models.BooleanField(_("s'hi veuen persones"), default=False)
+    people_consent = models.BooleanField(_("consentiment de les persones"), default=False)
+    # CA-M02-22: només es pot marcar amb autor, permís i, si hi surten persones, consentiment. Ni
+    # així no es publica des del 02 (RN-M02-23).
+    publishable = models.BooleanField(_("publicable"), default=False)
+    status = models.CharField(
+        _("estat"), max_length=10, choices=Status.choices, default=Status.ACTIVE
+    )
+    retired_reason = models.CharField(_("motiu de la retirada"), max_length=300, blank=True)
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+",
+        verbose_name=_("pujada per"),
+    )  # fmt: skip
+    uploaded_at = models.DateTimeField(_("pujada"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("foto d'una sortida de medi ambient")
+        verbose_name_plural = _("fotos de les sortides de medi ambient")
+        ordering = ["uploaded_at", "pk"]
+
+    def __str__(self):
+        return f"{self.result} · {self.author}"
 
 
 class Enrolment(models.Model):

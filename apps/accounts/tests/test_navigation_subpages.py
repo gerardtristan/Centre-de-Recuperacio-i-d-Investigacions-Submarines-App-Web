@@ -10,6 +10,9 @@ from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 
 # Pantalles sense menú: entrar, sortir, el doble factor de la primera entrada i els fitxers privats.
 STANDALONE = {
+    # T-M02-20 (P-41): només POST, des de la pantalla de resultats ambientals.
+    "administration:activity_environment_photo",
+    "administration:activity_environment_photo_retire",
     # T-M07-08b (WP2) i T-M07-09b (WP4): fins que DISSENY hi posi les entrades (DX.md, T-DX-149).
     "administration:website_news",
     "administration:website_news_add",

@@ -17,11 +17,8 @@
 - Les dades que es registren són les del supòsit S-M02-14 (residus, espècies i observacions)
   [A validar: junta].
 
-**Fotos amb permís** (`EnvironmentalPhoto`, CA-M02-22): fora d'aquesta peça. Necessiten fitxers
-privats d'un mòdul (avui la 00 només en té per a l'exportació RGPD) i treure la geolocalització en
-pujar-les (M02-12), que demana una dependència nova; totes dues són del nucli. El lligam per quan
-hi siguin és `photos_for(activity)`, que de moment no en torna cap. Cap codi no simula la pujada
-ni el permís de publicació.
+**Fotos amb permís** (`EnvironmentalPhoto`, CA-M02-22): `environment_photos.py`, darrere d'un
+interruptor apagat fins que es respongui la P-41.
 """
 
 from dataclasses import dataclass
@@ -75,11 +72,6 @@ def clean_species(text) -> str:
             seen.add(name.casefold())
             lines.append(name)
     return "\n".join(lines)
-
-
-def photos_for(activity) -> tuple:
-    """Lligam de les fotos de la sortida (CA-M02-22): encara no n'hi ha (vegeu el principi)."""
-    return ()
 
 
 def results_for(activity) -> EnvironmentalResult | None:

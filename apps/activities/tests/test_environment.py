@@ -151,5 +151,7 @@ def test_a_project_without_outings_adds_up_to_zero(project):
     )  # fmt: skip
 
 
-def test_no_photos_yet(manager):
-    assert environment.photos_for(env_outing(manager)) == ()
+def test_no_photos_without_results(manager):
+    from apps.activities import environment_photos
+
+    assert not environment_photos.photos_for(env_outing(manager)).exists()

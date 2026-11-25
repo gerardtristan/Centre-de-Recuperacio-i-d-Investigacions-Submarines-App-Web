@@ -6,12 +6,13 @@
 - Només s'hi arriba amb una URL signada de curta durada (`PRIVATE_FILES_SIGNED_URL_TTL`,
   5 minuts), que es genera després de comprovar el compte i l'objecte (`can_access`). Sense
   permís, «no trobat».
-- Els tipus d'`ENCRYPTED_KINDS` (documents de justificació de la 051, factures emeses i fotos de
-  titulacions de la 104; T-M09-25a) es xifren a l'aplicació abans de desar-los, amb la clau
-  pròpia `FILE_ENCRYPTION_KEYS`. No tenen mai URL signada: només surten desxifrats per la vista
-  `private_file`, amb `open_decrypted`, que comprova `can_access` i deixa cada obertura al
-  registre d'activitat. Els documents de justificació no els torna a obrir qui els ha pujat:
-  només els comptes d'administrador amb el permís (RN-M09-23).
+- Els tipus d'`ENCRYPTED_KINDS` (documents de justificació de la 051, factures emeses, fotos de
+  titulacions de la 104 i fotos de les sortides de medi ambient; T-M09-25a i T-M02-20) es
+  xifren a l'aplicació abans de desar-los, amb la clau pròpia `FILE_ENCRYPTION_KEYS`. No tenen
+  mai URL signada: només surten desxifrats per la vista `private_file`, amb `open_decrypted`,
+  que comprova `can_access` i deixa cada obertura al registre d'activitat. Els documents de
+  justificació no els torna a obrir qui els ha pujat: només els comptes d'administrador amb el
+  permís (RN-M09-23).
 - Clau i identificador aleatoris: cap nom previsible, cap dada personal a la ruta.
 - Els fitxers pujats es comproven pel contingut i per la mida (`validate_upload`; checklist C10).
 - L'exportació RGPD caduca als `GDPR_EXPORT_RETENTION_DAYS` dies i la tasca diària l'esborra.
@@ -73,6 +74,7 @@ _KIND_PERMISSION = {
     PrivateFile.Kind.GRANT_PACKAGE: "grants.documents.open",  # AJ12
     PrivateFile.Kind.ISSUED_INVOICE: "expenses.invoices.issue",  # MG9; el client, amb el personal
     PrivateFile.Kind.CERTIFICATION_PHOTO: "activities.card_photos.view",  # AC24 (RN-M02-48)
+    PrivateFile.Kind.ENVIRONMENT_PHOTO: "activities.environment.manage",  # AC14 (T-M02-20; P-41)
 }
 
 # Xifrats a l'aplicació abans de desar-los (051 i 104): mai URL signada.
@@ -84,6 +86,7 @@ ENCRYPTED_KINDS = frozenset(
         PrivateFile.Kind.ISSUED_INVOICE,
         PrivateFile.Kind.GRANT_PACKAGE,
         PrivateFile.Kind.CERTIFICATION_PHOTO,
+        PrivateFile.Kind.ENVIRONMENT_PHOTO,
     }
 )
 # El titular (qui l'ha pujat) no el torna a obrir amb el compte personal (RN-M09-23).
@@ -93,6 +96,9 @@ _ADMIN_ONLY_KINDS = frozenset(
         PrivateFile.Kind.EXPENSE_BANK_PROOF,
         PrivateFile.Kind.EXPENSE_MASKED_COPY,
         PrivateFile.Kind.GRANT_PACKAGE,
+        # La foto d'una sortida és del club: el propietari és qui l'ha pujat, que no l'obre amb
+        # el compte personal (T-M02-20; P-41).
+        PrivateFile.Kind.ENVIRONMENT_PHOTO,
     }
 )
 
