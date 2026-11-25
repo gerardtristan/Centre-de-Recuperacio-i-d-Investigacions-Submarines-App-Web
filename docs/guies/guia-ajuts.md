@@ -1,6 +1,6 @@
 # Guia d'ajuts per al tresorer i la junta
 
-**Per a qui és:** el tresorer i la junta (i qui sigui responsable d'una sol·licitud). **Estat:** esborrany de la T-M09A-14 [A validar: tresorer i junta]. Està escrita a partir dels serveis que ja funcionen, de la prova de principi a fi dels ajuts i de la primera pantalla, el **«Calendari d'ajuts»** (T-M09A-05); la resta de pantalles (convocatòries, sol·licituds i justificació) encara no estan fetes. Les regles són al [pla, apartat d'ajuts](../planning.md#M09-ajuts-5-processos). Per a despeses i marges, vegeu la [guia de despeses i marges](guia-despeses-i-marges.md).
+**Per a qui és:** el tresorer i la junta (i qui sigui responsable d'una sol·licitud). **Estat:** esborrany de la T-M09A-14 [A validar: tresorer i junta]. Està escrita a partir dels serveis que ja funcionen, de la prova de principi a fi dels ajuts i de les pantalles **«Calendari d'ajuts»** (T-M09A-05) i **«Justificació de l'ajut»** (T-M09A-10c), posada al dia el 25/11/2026; les pantalles de convocatòries i de sol·licituds encara no estan fetes. Les regles són al [pla, apartat d'ajuts](../planning.md#M09-ajuts-5-processos). Per a despeses i marges, vegeu la [guia de despeses i marges](guia-despeses-i-marges.md).
 
 ## 1. Els estats d'una sol·licitud
 | Estat | Què vol dir |
@@ -43,10 +43,13 @@ Quan arriba l'ingrés (una o més vegades: bestreta i saldo), el tresorer el reg
 2. Quan l'organisme fa un **requeriment d'esmena**, es registra amb la data límit (si la convocatòria té termini d'esmena, es proposa sola), qui l'ha de respondre i, després, la resposta. Una pròrroga de la justificació porta el motiu.
 3. Amb una sol·licitud ja justificada, les despeses lligades només es poden canviar si hi ha un requeriment obert.
 
-*El paquet de justificació (resum, llistat de factures i ZIP) espera el xifratge dels documents (T-M09-25).*
+4. **El paquet de justificació** es fa a la pantalla **«Justificació de l'ajut»**: s'hi arriba des del «Calendari d'ajuts», amb l'enllaç de la sol·licitud (només les concedides i les justificades). Hi surten les **«Despeses incloses»** amb l'import imputat i les **«Despeses excloses»**, pel número i el motiu (cap nom de persona).
+   - **«Genera el paquet»** fa una versió nova amb el resum, el llistat de factures, els comprovants i les **«Còpies amb l'IBAN tapat»** (o els **«Originals»**, si la convocatòria no accepta còpies). Es descarrega amb **«Descarrega el ZIP»**: queda xifrat i al registre, i només el baixa qui té el permís.
+   - **«Envia'l i marca l'ajut com a justificat»** apunta la **«Data d'enviament a l'organisme»**. Un cop enviada, una versió nova només es pot enviar lligada a un requeriment obert (**«Requeriment que respon»** → **«Envia aquesta versió»**).
+   - Si es marca il·legible una factura d'una versió ja enviada, el tresorer en rep un avís.
 
 ## 7. Qui ho pot fer
 Els permisos AJ1 a AJ13 són dades que l'administrador assigna: d'inici, el tresorer i l'administrador gestionen els ajuts, i la junta hi té consulta i les accions de les sol·licituds de què és responsable. Cap eina d'IA rep els documents de justificació.
 
 ## 8. Què encara no fa la plataforma
-Les pantalles de convocatòries, sol·licituds i justificació; el paquet de justificació i adjuntar documents xifrats (T-M09-25); els avisos dins l'app (ara només per correu).
+Les pantalles de convocatòries i de sol·licituds (alta, elegibilitat, documents a punt, presentació, resolució i cobrament: avui només els serveis), lligar les despeses a l'ajut des d'una pantalla i registrar els requeriments; els avisos dins l'app (ara només per correu). [A validar: tresorer i junta, com es fa mentrestant.]

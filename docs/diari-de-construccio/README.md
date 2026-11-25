@@ -629,3 +629,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M08-03b](T-M08-03b.md) | Dashboard: grups petits que sumen menys de N i zeros (revisió del pilot; carril B) | 24/11/2026 23:53 | 5d84a677 | 3 noves i 1 canviada | [A comprovar] |
 | [torn-nucli-25-11](torn-nucli-25-11.md) | Torn del nucli: «Llocs» als ajustos (T-M02-39), avís del càrrec del lloguer i permís de l'interruptor (T-M03-11) i dades inventades del 07 (T-M07-17) | 25/11/2026 01:20 | (vegeu la PR) | 7 noves i 1 fila de la matriu | [A comprovar] |
 | [T-M09-06](T-M09-06.md) | Despesa des del mòbil: e2e de CA-M09-27 i la despesa nova sense MG2 va als seus documents (carril B) | 25/11/2026 01:21 | a1adf045 | 2 noves i 1 e2e | [A comprovar] |
+| [T-M02-27, T-M09-24 i T-M09A-14](guies-T-M02-27-T-M09-24-T-M09A-14.md) | Guies de cursos i sortides, del tresorer i d'ajuts al dia amb les pantalles (carril B; feta en part) | 25/11/2026 01:14 | 45566d8d | — | [A comprovar] |
