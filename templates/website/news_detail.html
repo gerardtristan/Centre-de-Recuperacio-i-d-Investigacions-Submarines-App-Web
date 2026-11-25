@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M07-08 (P-M07-B; RN-M07-02, 05 i 10): una notícia publicada. El text s'escapa (RN-M07-10) i cada línia en blanc fa un paràgraf. La foto, per la vista pública que la comprova a cada petició (P-489), amb el text alternatiu i l'autor; amb `website.public_images_enabled` apagat (D2), la notícia es veu sense. #}
+{% block title %}{{ item.title }} · C.R.I.S.{% endblock %}
+{% block titol_zona %}{% translate "Notícies" %}{% endblock %}
+{% block content %}
+  <article aria-labelledby="titol-noticia">
+    <p class="etiqueta-seccio"><a href="{% url 'website:news_list' %}">{% translate "Notícies" %}</a></p>
+    <h1 id="titol-noticia">{{ item.title }}</h1>
+    <p class="text-2"><time datetime="{{ item.date|date:'Y-m-d' }}">{{ item.date|date:"d/m/Y" }}</time></p>
+    {% if images_on and item.image.publishable %}
+      <figure>
+        <img src="{% url 'website:media' item.image.key %}" alt="{{ item.image.alt_text }}">
+        <figcaption class="text-2">{% if item.image.credit %}{{ item.image.credit }}{% else %}{% blocktranslate with author=item.image.author %}Foto: {{ author }}{% endblocktranslate %}{% endif %}</figcaption>
+      </figure>
+    {% endif %}
+    {{ item.body|linebreaks }}
+  </article>
+{% endblock %}

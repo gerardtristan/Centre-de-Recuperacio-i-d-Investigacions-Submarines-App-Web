@@ -59,6 +59,14 @@ def has_personal_account(person) -> bool:
     return Account.objects.filter(person=person, kind=Account.Kind.PERSONAL).exists()
 
 
+def has_active_personal_account(person) -> bool:
+    """Pot entrar a l'àrea personal (p. ex. per pagar un càrrec amb sessió); si no, cal l'enllaç
+    de convidat."""
+    return Account.objects.filter(
+        person=person, kind=Account.Kind.PERSONAL, status=Account.Status.ACTIVE
+    ).exists()
+
+
 def eligible(person, *, today=None) -> bool:
     """Pot rebre una invitació: persona activa, amb correu propi, de 14 anys o més (amb l'edat
     desconeguda no es bloqueja, RN-M01-55) i sense compte personal."""

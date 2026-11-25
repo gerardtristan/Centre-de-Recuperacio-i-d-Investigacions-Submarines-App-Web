@@ -176,3 +176,28 @@ def test_menu_without_any_settings_section_hides_the_entry_instead_of_failing(
     monkeypatch.setitem(navigation.BASE_ROUTES, "administration:settings", ())
     home = admin_client(make_admin(R.ADMINISTRATOR)).get(reverse("administration:home"))
     assert home.status_code == 200 and b"/ajustos/" not in home.content
+
+
+def test_t_m02_39_the_places_link_shows_only_with_ac21(make_admin):
+    index = reverse("administration:settings")
+    places = reverse("administration:places")
+    page = admin_client(make_admin(R.COURSES_MANAGER)).get(index).content.decode()
+    assert f'href="{places}"' in page
+    # El Secretari té apartats d'ajustos, però no AC21.
+    response = admin_client(make_admin(R.SECRETARY)).get(index)
+    assert (
+        response.status_code in (200, 404) and f'href="{places}"' not in response.content.decode()
+    )
+    # Amb AC21 i cap apartat d'ajustos, la pantalla també hi és (com els textos legals): el
+    # Departament d'Història no té cap apartat; se li dona només AC21.
+    from apps.core.models import Role, RolePermission
+
+    historian = make_admin(R.HISTORY_DEPARTMENT)
+    assert admin_client(historian).get(index).status_code == 404
+    RolePermission.objects.create(
+        role=Role.objects.get(code=R.HISTORY_DEPARTMENT),
+        permission_code="activities.places.view",
+        scope="all",
+    )
+    page = admin_client(historian).get(index).content.decode()
+    assert f'href="{places}"' in page and "/ajustos/" not in page.split("<main", 1)[1]

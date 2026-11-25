@@ -3,7 +3,7 @@ Les d'administració (`/gestio/web/`) s'inclouran a `accounts/admin_urls.py` (to
 
 from django.urls import path
 
-from . import views
+from . import help_views, news_views, views
 
 app_name = "website"
 
@@ -23,4 +23,13 @@ urlpatterns = [
         views.newsletter_unsubscribe_view,
         name="newsletter_unsubscribe",
     ),
+    # T-M07-08 (RN-M07-01 i 02): les notícies publicades, i les fotos de les pàgines i de les
+    # notícies publicades (P-489), comprovades a cada petició.
+    path("noticies/", news_views.public_list_view, name="news_list"),
+    path("noticies/<slug:slug>/", news_views.public_detail_view, name="news_detail"),
+    path("web/fotos/<uuid:key>/", news_views.media_view, name="media"),
+    # T-M07-09 (RN-M07-12): les preguntes freqüents publicades i el cercador.
+    path("ajuda/", help_views.help_view, name="help"),
+    # T-M07-13 (P-492): el butlletí des de l'àrea del soci (sessió obligatòria; no és pública).
+    path("socis/butlleti/", views.my_newsletter_view, name="my_newsletter"),
 ]

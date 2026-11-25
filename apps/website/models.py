@@ -323,3 +323,68 @@ class NewsletterDelivery(models.Model):
 
     def __str__(self):
         return f"{self.newsletter} · {self.pk}"
+
+
+class NewsItem(models.Model):
+    """Notícia (M07-6, P-M07-B). Només es veu publicada (RN-M07-02); retirar-la demana motiu."""
+
+    class Status(models.TextChoices):
+        DRAFT = "draft", _("Esborrany")
+        PUBLISHED = "published", _("Publicada")
+        RETIRED = "retired", _("Retirada")
+
+    title = models.CharField(_("títol"), max_length=200)
+    slug = models.SlugField(_("adreça"), max_length=80, unique=True)
+    date = models.DateField(_("data"))
+    body = models.TextField(_("cos"))
+    image = models.ForeignKey(
+        MediaAsset, on_delete=models.PROTECT, null=True, blank=True, related_name="+",
+        verbose_name=_("foto"),
+    )  # fmt: skip
+    status = models.CharField(
+        _("estat"), max_length=20, choices=Status.choices, default=Status.DRAFT
+    )
+    retired_reason = models.CharField(_("motiu de la retirada"), max_length=300, blank=True)
+
+    class Meta:
+        verbose_name = _("notícia")
+        verbose_name_plural = _("notícies")
+        ordering = ["-date", "-pk"]
+
+    def __str__(self):
+        return self.title
+
+
+class FaqTopic(models.Model):
+    """Tema de les preguntes freqüents (M07-6, M07b)."""
+
+    name = models.CharField(_("nom"), max_length=100, unique=True)
+    order = models.PositiveSmallIntegerField(_("ordre"), default=0)
+
+    class Meta:
+        verbose_name = _("tema de l'ajuda")
+        verbose_name_plural = _("temes de l'ajuda")
+        ordering = ["order", "name"]
+
+    def __str__(self):
+        return self.name
+
+
+class FaqEntry(models.Model):
+    """Pregunta freqüent (M07-6). Només es veu publicada; el text s'escapa en mostrar-lo."""
+
+    topic = models.ForeignKey(
+        FaqTopic, on_delete=models.PROTECT, related_name="entries", verbose_name=_("tema")
+    )
+    question = models.CharField(_("pregunta"), max_length=300)
+    answer = models.TextField(_("resposta"))
+    order = models.PositiveSmallIntegerField(_("ordre"), default=0)
+    published = models.BooleanField(_("publicada"), default=False)
+
+    class Meta:
+        verbose_name = _("pregunta freqüent")
+        verbose_name_plural = _("preguntes freqüents")
+        ordering = ["topic__order", "topic__name", "order", "pk"]
+
+    def __str__(self):
+        return self.question

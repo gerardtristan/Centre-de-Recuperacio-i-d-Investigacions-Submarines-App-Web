@@ -26,8 +26,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from apps.core import audit, business_settings, mail
-from apps.core.models import OutgoingEmail
+from apps.core import audit, business_settings, consents, mail
+from apps.core.models import Consent, OutgoingEmail
 from apps.core.permissions import has_perm
 from apps.core.persons import ANONYMOUS_EMAIL_DOMAIN
 
@@ -105,6 +105,11 @@ def confirm(token: str, *, now=None) -> NewsletterSubscription | None:
     NewsletterEvent.objects.create(
         subscription=subscription, kind=Kind.CONFIRMED, legal_text=subscription.legal_text
     )
+    # P-492 i P-631: si l'adreça és la d'entrada d'un compte personal, el consentiment de la 00
+    # queda donat en prémer el botó, no abans.
+    # La versió que va acceptar en subscriure's, no la vigent en confirmar (revisió de la 13c).
+    if (person := _member_person(subscription.email)) is not None:
+        consents.grant_accepted(person, subscription.legal_text, channel=Consent.Channel.WEB)
     return subscription
 
 
@@ -113,7 +118,10 @@ def unsubscribe(token: str, *, now=None) -> None:
     """Immediata; sense resposta diferent si l'enllaç no existeix (RN-M07-08)."""
     subscription = _by_token(token)
     if subscription is not None:
+        person = _member_person(subscription.email)
         forget(subscription, now=now)
+        if person is not None:
+            consents.withdraw(person, TEXT_KIND, channel=Consent.Channel.WEB)
 
 
 def forget(subscription: NewsletterSubscription, *, now=None) -> None:
@@ -125,6 +133,52 @@ def forget(subscription: NewsletterSubscription, *, now=None) -> None:
         NewsletterEvent.objects.create(subscription=subscription, kind=Kind.UNSUBSCRIBED)
     subscription.email = f"baixa-{subscription.pk}@{ANONYMOUS_EMAIL_DOMAIN}"
     subscription.save(update_fields=["status", "unsubscribed_at", "email"])
+
+
+# --- Des de l'àrea del soci (T-M07-13; P-492, opció A; P-631) --------------------------------
+# La fila és la del 07, amb el correu d'entrada del compte personal (verificat, únic; P-630). Doble
+# confirmació també aquí (P-631, D2): l'enllaç va al correu i, en prémer el botó, la subscripció i
+# el consentiment de la 00 queden confirmats (`confirm`). La baixa retira el consentiment.
+
+
+def _member_person(email: str):
+    """La persona del compte personal actiu (correu verificat) que entra amb aquest correu. Un
+    compte pendent o desactivat no compta: si no, qui creés un compte amb el correu d'una altra
+    persona s'emportaria el seu consentiment."""
+    from apps.accounts.models import Account
+
+    account = (
+        Account.objects.filter(
+            kind=Account.Kind.PERSONAL, status=Account.Status.ACTIVE, login__iexact=email
+        )
+        .select_related("person")
+        .first()
+    )
+    if account is None or account.person.status != account.person.Status.ACTIVE:
+        return None
+    return account.person
+
+
+def member_subscription(account) -> NewsletterSubscription | None:
+    return NewsletterSubscription.objects.filter(email=normalise(account.login)).first()
+
+
+def subscribe_member(account) -> tuple[NewsletterSubscription, bool]:
+    """Com `subscribe`, amb el correu d'entrada: torna si cal enviar l'enllaç (ho fa la vista,
+    amb els límits del formulari públic)."""
+    text = consents.current_text(TEXT_KIND)
+    if text is None:
+        raise ValidationError(_("Ara mateix no et pots subscriure."))
+    return subscribe(account.login, legal_text=text)
+
+
+@transaction.atomic
+def unsubscribe_member(account, *, request=None) -> None:
+    subscription = member_subscription(account)
+    if subscription is not None:
+        forget(subscription)
+    consents.withdraw(account.person, TEXT_KIND, channel=Consent.Channel.WEB, by=account,
+                      request=request)  # fmt: skip
 
 
 def recipients():

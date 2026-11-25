@@ -260,6 +260,13 @@ MAP = {
         "apps/expenses/admin_urls.py",
         "templates/expenses/*",
     ),
+    "test_despesa_mobil.py": (
+        "apps/expenses/views.py",
+        "apps/expenses/documents.py",
+        "templates/expenses/documents.html",
+        "static/js/zona-magnetica.js",
+        "apps/core/files.py",
+    ),
     "test_marge_activitat.py": (
         "apps/margins/views.py",
         "apps/margins/admin_urls.py",
@@ -324,6 +331,23 @@ MAP = {
         "apps/website/urls.py",
         "apps/website/newsletter.py",
         "templates/website/newsletter*.html",
+    ),
+    "test_web_noticies.py": (
+        "apps/website/news.py",
+        "apps/website/news_views.py",
+        "apps/website/media.py",
+        "templates/website/news_*.html",
+    ),
+    "test_web_ajuda.py": (
+        "apps/website/help.py",
+        "apps/website/help_views.py",
+        "templates/website/help.html",
+        "static/css/recoveco.css",
+    ),
+    "test_butlleti_soci.py": (
+        "apps/website/views.py",
+        "apps/website/newsletter.py",
+        "templates/website/my_newsletter.html",
     ),
     "test_web_fluxos_07.py": (
         "apps/website/views.py",

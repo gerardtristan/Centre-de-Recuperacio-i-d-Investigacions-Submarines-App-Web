@@ -70,5 +70,5 @@
       {% endif %}
     </section>
   {% endfor %}
-  <p class="enllacos"><a href="{% url 'administration:expenses_without_invoice' %}">{% translate "Torna a les despeses sense factura" %}</a></p>
+  {% if can_list %}<p class="enllacos"><a href="{% url 'administration:expenses_without_invoice' %}">{% translate "Torna a les despeses sense factura" %}</a></p>{% endif %}
 {% endblock %}

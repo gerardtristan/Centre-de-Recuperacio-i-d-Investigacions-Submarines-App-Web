@@ -66,6 +66,8 @@ SETTINGS = {
     "settings.edit.equipment.review_notice_days": (_, _, _, Y, _, _, _, _, _),  # AJ03-1, VC-29
     "settings.edit.equipment.unreturned_after_days": (_, _, _, Y, _, _, _, _, _),  # AJ03-2, VC-29
     "settings.edit.equipment.usage_rates": (_, _, _, _, Y, _, _, _, _),  # AJ03-3, VC-28
+    # AJ03-4, T-M03-11: interruptor del càrrec del lloguer (P-662).
+    "settings.edit.equipment.rental_charges_enabled": (_, _, _, _, Y, _, Y, _, _),
 }
 SETTINGS_CELLS = [
     (code, role, row[i]) for code, row in SETTINGS.items() for i, role in enumerate(ROLES)
@@ -77,3 +79,19 @@ SETTINGS_CELLS = [
 )
 def test_settings_cell(make_admin, code, role, expected):  # noqa: F811
     assert scope_for(make_admin(role), code) == expected
+
+
+def test_t_m03_11_the_treasurer_turns_on_the_rental_charges_switch_with_a_trace(make_admin):  # noqa: F811
+    from django.urls import reverse
+
+    from apps.core import business_settings
+    from apps.core.tests.test_guest_links import admin_client
+
+    key = "equipment.rental_charges_enabled"
+    url = reverse("administration:setting_detail", args=["equipment", key])
+    keeper = admin_client(make_admin(R.EQUIPMENT_MANAGER))
+    assert keeper.post(url, {"value": "1", "note": "Prova"}).status_code == 404
+    assert business_settings.get(key) is False  # apagat d'inici
+    treasurer = admin_client(make_admin(R.TREASURER))
+    response = treasurer.post(url, {"value": "1", "note": "Prova"})
+    assert response.status_code == 302 and business_settings.get(key) is True

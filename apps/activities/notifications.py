@@ -21,6 +21,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
+from apps.accounts.invitations import has_active_personal_account
 from apps.core import audit, business_settings, charges, mail
 from apps.members import recipients
 
@@ -157,8 +158,9 @@ def on_confirmed(sender, enrolment, **kwargs) -> None:
 
 
 def notify_payment(enrolment) -> bool:
-    """La plaça reservada i el termini per pagar-la. Un convidat ja rep l'enllaç per pagar."""
-    if enrolment.channel == Enrolment.Channel.GUEST or not enrolment.charge_id:
+    """La plaça reservada i el termini per pagar-la. Sense compte personal actiu (un convidat, web o
+    del taulell), la pantalla de pagament demana sessió: ja rep l'enllaç segur de convidat."""
+    if not enrolment.charge_id or not has_active_personal_account(enrolment.person):
         return False
     link = settings.PUBLIC_SITE_URL + reverse("payments:charge", args=[enrolment.charge_id])
     context = {

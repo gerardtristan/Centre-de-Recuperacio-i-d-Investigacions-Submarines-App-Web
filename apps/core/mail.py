@@ -106,6 +106,7 @@ TEMPLATE_PRIORITIES = {
     "resultat-curs": _Priority.CONFIRMATION,  # P-M02-F pas 5, a l'alumne (T-M02-21)
     "certificat-emes": _Priority.CONFIRMATION,  # P-M02-F pas 6, RN-M02-16 (T-M02-21)
     "reforc-confirmat": _Priority.CONFIRMATION,  # P-M02-F pas 4, dates i preu (T-M02-21)
+    "avis-carrec-lloguer": _Priority.CONFIRMATION,  # RN-M03-11, CA-M03-13 (T-M03-11)
     "avis-llicencia-pagada": _Priority.CONFIRMATION,  # CA-M06-07, a la secretaria (T-M06-05)
     "avis-devolucio-llicencia": _Priority.CONFIRMATION,  # CA-M06-13, al tresorer (T-M06-12)
     "avis-llicencia-no-tramitada": _Priority.CONFIRMATION,  # CA-M06-23, a qui tramita (T-M06-19)

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M07-08 (P-M07-B; RN-M07-01 i 02, CA-M07-01): les notícies publicades, de la més recent a la més antiga. Pública declarada; cap esborrany ni retirada. Sense recurs assignat al mapa (DX.md). #}
+{% block title %}{% translate "Notícies" %} · C.R.I.S.{% endblock %}
+{% block titol_zona %}{% translate "Notícies" %}{% endblock %}
+{% block content %}
+  <h1>{% translate "Notícies" %}</h1>
+  <table class="taula">
+    <caption>{% blocktranslate count total=items|length %}{{ total }} notícia{% plural %}{{ total }} notícies{% endblocktranslate %}</caption>
+    <thead><tr><th scope="col">{% translate "Notícia" %}</th><th scope="col">{% translate "Data" %}</th></tr></thead>
+    <tbody>
+      {% for item in items %}
+        <tr>
+          <th scope="row" class="cel-nom"><a href="{% url 'website:news_detail' item.slug %}">{{ item.title }}</a></th>
+          <td data-etiqueta="{% translate 'Data' %}"><time datetime="{{ item.date|date:'Y-m-d' }}">{{ item.date|date:"d/m/Y" }}</time></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="2">{% translate "Encara no hi ha cap notícia." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

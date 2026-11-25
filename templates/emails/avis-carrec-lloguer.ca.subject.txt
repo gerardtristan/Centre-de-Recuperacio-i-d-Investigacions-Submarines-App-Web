@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M03-11: TEXT PROVISIONAL [A validar: junta i tresorer, S-M03-03]. #}{% autoescape off %}{% blocktranslate %}Lloguer de material: {{ title }}{% endblocktranslate %}{% endautoescape %}
