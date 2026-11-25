@@ -120,11 +120,19 @@ def test_with_mg2_the_documents_page_links_back_to_the_list(as_role):
     assert reverse("administration:expenses_without_invoice") in html
 
 
-def test_with_mg2_read_only_the_documents_page_also_links_back_to_the_list(as_role):
-    """MG2 «Cons.» obre la llista i la redirecció ja hi porta: l'enllaç de tornada també hi ha de
-    ser (revisió de la #595)."""
+def test_with_mg2_read_only_the_documents_page_also_links_back_to_the_list(as_role, monkeypatch):
+    """Si MG2 admetés «Cons.» (avui el catàleg només li permet «tot»), la llista s'obriria i la
+    redirecció hi portaria: l'enllaç de tornada també hi ha de ser (revisió de la #595)."""
+    import dataclasses
+
+    from apps.core import permissions
     from apps.core.models import RolePermission
-    from apps.core.permission_catalog import SCOPE_READ
+    from apps.core.permission_catalog import SCOPE_ALL, SCOPE_READ
+
+    pay = dataclasses.replace(
+        permissions.CATALOG["expenses.pay"], allowed_scopes=(SCOPE_ALL, SCOPE_READ)
+    )
+    monkeypatch.setattr(permissions, "CATALOG", {**permissions.CATALOG, "expenses.pay": pay})
 
     RolePermission.objects.update_or_create(
         role=Role.objects.get(code=R.PRESIDENT), permission_code="expenses.pay",
