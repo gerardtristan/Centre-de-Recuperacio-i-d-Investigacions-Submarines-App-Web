@@ -1,0 +1,23 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# P-M07-G (WP4): crear o canviar una pregunta freqüent. Una pregunta nova es desa sense publicar; es publica des de la llista. El text es desa sense HTML i s'escapa en mostrar-lo (RN-M07-10). #}
+{% block title %}{% if entry %}{% translate "Pregunta freqüent" %}{% else %}{% translate "Pregunta nova" %}{% endif %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio"><a href="{% url 'administration:website_help' %}">{% translate "Preguntes freqüents" %}</a></p>
+    <h1>{% if entry %}{{ entry.question }}{% else %}{% translate "Pregunta nova" %}{% endif %}</h1>
+    {% if entry %}<p class="text-2">{% if entry.published %}{% translate "Publicada a l'ajuda." %}{% else %}{% translate "No publicada: no surt a l'ajuda." %}{% endif %}</p>{% endif %}
+  </header>
+  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+  <section class="targeta">
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% include "_errata.html" %}
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions">
+        <button class="boto boto-principal" type="submit">{% translate "Desa" %}</button>
+        <a class="boto boto-text" href="{% url 'administration:website_help' %}">{% translate "Torna a la llista" %}</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}
