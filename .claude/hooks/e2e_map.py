@@ -351,6 +351,13 @@ MAP = {
         "templates/website/help.html",
         "static/css/recoveco.css",
     ),
+    "test_web_tutorials.py": (
+        "apps/website/help.py",
+        "apps/website/help_views.py",
+        "templates/website/tutorial.html",
+        "templates/website/_mira_com_es_fa.html",
+        "templates/payments/charge.html",
+    ),
     "test_butlleti_soci.py": (
         "apps/website/views.py",
         "apps/website/newsletter.py",

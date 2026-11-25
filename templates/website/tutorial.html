@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M07-10 (P-M07-G; RN-M07-10 i 11): un tutorial publicat, amb els passos escrits (text escapat). La foto, per la vista pública que la comprova a cada petició (P-489), només amb les fotos públiques enceses (D2) i si encara es pot publicar. El vídeo espera la decisió 106. #}
+{% block title %}{{ tutorial.title }} · C.R.I.S.{% endblock %}
+{% block titol_zona %}{% translate "Ajuda" %}{% endblock %}
+{% block content %}
+  <article aria-labelledby="titol-tutorial">
+    <p class="etiqueta-seccio"><a href="{% url 'website:help' %}">{% translate "Ajuda" %}</a></p>
+    <h1 id="titol-tutorial">{{ tutorial.title }}</h1>
+    {% if images_on and tutorial.image.publishable %}
+      <figure>
+        <img src="{% url 'website:media' tutorial.image.key %}" alt="{{ tutorial.image.alt_text }}">
+        <figcaption class="text-2">{% if tutorial.image.credit %}{{ tutorial.image.credit }}{% else %}{% blocktranslate with author=tutorial.image.author %}Foto: {{ author }}{% endblocktranslate %}{% endif %}</figcaption>
+      </figure>
+    {% endif %}
+    <h2>{% translate "Pas a pas" %}</h2>
+    <ol class="passos">{% for step in tutorial.step_list %}<li>{{ step }}</li>{% endfor %}</ol>
+  </article>
+{% endblock %}

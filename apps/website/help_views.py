@@ -9,6 +9,7 @@ from apps.core import business_settings
 
 from . import contact
 from . import help as faq
+from .news_views import IMAGES
 
 
 @login_not_required
@@ -20,5 +21,18 @@ def help_view(request):
         "query": query,
         "entries": entries,
         "contact_on": business_settings.get(contact.ENABLED),
+        "tutorials": [] if query else list(faq.published_tutorials()),
     }
     return render(request, "website/help.html", context)
+
+
+@login_not_required
+@require_GET
+def tutorial_view(request, slug):
+    """Un tutorial publicat (T-M07-10; RN-M07-11): els passos i, amb les fotos públiques
+    enceses (D2), la foto."""
+    context = {
+        "tutorial": faq.get_published_tutorial(slug),
+        "images_on": business_settings.get(IMAGES),
+    }
+    return render(request, "website/tutorial.html", context)

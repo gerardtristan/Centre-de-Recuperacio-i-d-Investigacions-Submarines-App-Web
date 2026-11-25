@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n static %}
-{# T-M07-09 (P-M07-G; RN-M07-10 i 12, CA-M07-16): les preguntes freqüents publicades, per temes, amb Recoveco (T-DX-28) i el cercador del servidor a la pregunta i a la resposta. Sense resultats, l'enllaç al contacte (només si és encès). Text escapat; cap dada de cap compte. #}
+{# T-M07-09 (P-M07-G; RN-M07-10 i 12, CA-M07-16): les preguntes freqüents publicades, per temes, amb Recoveco (T-DX-28) i el cercador del servidor a la pregunta i a la resposta. Sense resultats, l'enllaç al contacte (només si és encès). Sense cerca, la llista de tutorials publicats (T-M07-10). Text escapat; cap dada de cap compte. #}
 {% block title %}{% translate "Preguntes freqüents" %} · C.R.I.S.{% endblock %}
 {% block titol_zona %}{% translate "Ajuda" %}{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
@@ -27,6 +27,12 @@
           <div class="accions"><button class="boto" type="submit">{% translate "Cerca" %}</button></div>
         </form>
         {% if query %}<p class="text-2" role="status">{% blocktranslate count n=entries|length with q=query %}{{ n }} resposta per «{{ q }}».{% plural %}{{ n }} respostes per «{{ q }}».{% endblocktranslate %}</p>{% endif %}
+        {% if tutorials %}
+          <section class="recoveco-grup" aria-labelledby="tutorials-h">
+            <h2 id="tutorials-h">{% translate "Tutorials" %}</h2>
+            <ul class="enllacos">{% for tutorial in tutorials %}<li><a href="{% url 'website:tutorial' tutorial.slug %}">{{ tutorial.title }}</a></li>{% endfor %}</ul>
+          </section>
+        {% endif %}
         {% for group in groups %}
           <section class="recoveco-grup" id="tema-{{ group.grouper.pk }}" aria-labelledby="tema-{{ group.grouper.pk }}-h">
             <h2 id="tema-{{ group.grouper.pk }}-h">{{ group.grouper.name }}</h2>

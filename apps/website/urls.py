@@ -30,6 +30,8 @@ urlpatterns = [
     path("web/fotos/<uuid:key>/", news_views.media_view, name="media"),
     # T-M07-09 (RN-M07-12): les preguntes freqüents publicades i el cercador.
     path("ajuda/", help_views.help_view, name="help"),
+    # T-M07-10 (RN-M07-11): un tutorial publicat.
+    path("ajuda/tutorials/<slug:slug>/", help_views.tutorial_view, name="tutorial"),
     # T-M07-13 (P-492): el butlletí des de l'àrea del soci (sessió obligatòria; no és pública).
     path("socis/butlleti/", views.my_newsletter_view, name="my_newsletter"),
 ]
