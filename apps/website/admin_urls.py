@@ -6,6 +6,7 @@ from django.urls import path
 from . import admin_views as views
 from . import help_admin_views as help_views
 from . import news_admin_views as news_views
+from . import tutorial_admin_views as tutorial_views
 
 urlpatterns = [
     path("web/contacte/", views.inbox_view, name="website_contact"),
@@ -39,4 +40,13 @@ urlpatterns = [
     path("web/ajuda/nova/", help_views.admin_edit_view, name="website_help_add"),
     path("web/ajuda/<int:pk>/", help_views.admin_edit_view, name="website_help_edit"),
     path("web/ajuda/<int:pk>/publica/", help_views.admin_publish_view, name="website_help_publish"),
+    # T-M07-10b (WP4): tutorials.
+    path("web/tutorials/", tutorial_views.admin_list_view, name="website_tutorials"),
+    path("web/tutorials/nou/", tutorial_views.admin_edit_view, name="website_tutorial_add"),
+    path("web/tutorials/<int:pk>/", tutorial_views.admin_edit_view, name="website_tutorial_edit"),
+    path(
+        "web/tutorials/<int:pk>/publica/",
+        tutorial_views.admin_publish_view,
+        name="website_tutorial_publish",
+    ),
 ]

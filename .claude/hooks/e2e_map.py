@@ -358,6 +358,11 @@ MAP = {
         "templates/website/_mira_com_es_fa.html",
         "templates/payments/charge.html",
     ),
+    "test_tutorials_admin.py": (
+        "apps/website/tutorial_admin_views.py",
+        "apps/website/help.py",
+        "templates/website/admin/tutorial_*.html",
+    ),
     "test_butlleti_soci.py": (
         "apps/website/views.py",
         "apps/website/newsletter.py",
