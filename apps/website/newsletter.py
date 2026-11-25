@@ -105,6 +105,10 @@ def confirm(token: str, *, now=None) -> NewsletterSubscription | None:
     NewsletterEvent.objects.create(
         subscription=subscription, kind=Kind.CONFIRMED, legal_text=subscription.legal_text
     )
+    # P-492 i P-631: si l'adreça és la d'entrada d'un compte personal, el consentiment de la 00
+    # queda donat en prémer el botó, no abans.
+    if (person := _member_person(subscription.email)) is not None:
+        consents.grant(person, TEXT_KIND, channel=Consent.Channel.WEB)
     return subscription
 
 
@@ -113,7 +117,10 @@ def unsubscribe(token: str, *, now=None) -> None:
     """Immediata; sense resposta diferent si l'enllaç no existeix (RN-M07-08)."""
     subscription = _by_token(token)
     if subscription is not None:
+        person = _member_person(subscription.email)
         forget(subscription, now=now)
+        if person is not None:
+            consents.withdraw(person, TEXT_KIND, channel=Consent.Channel.WEB)
 
 
 def forget(subscription: NewsletterSubscription, *, now=None) -> None:
@@ -127,35 +134,37 @@ def forget(subscription: NewsletterSubscription, *, now=None) -> None:
     subscription.save(update_fields=["status", "unsubscribed_at", "email"])
 
 
-# --- Des de l'àrea del soci (T-M07-13; P-492, opció A) ---------------------------------------
-# La fila és la del 07, amb el correu d'entrada del compte personal (verificat; P-630), i també
-# el consentiment de la 00. El compte ja ha verificat l'adreça: es confirma sense l'enllaç del
-# correu (P-631).
+# --- Des de l'àrea del soci (T-M07-13; P-492, opció A; P-631) --------------------------------
+# La fila és la del 07, amb el correu d'entrada del compte personal (verificat, únic; P-630). Doble
+# confirmació també aquí (P-631, D2): l'enllaç va al correu i, en prémer el botó, la subscripció i
+# el consentiment de la 00 queden confirmats (`confirm`). La baixa retira el consentiment.
+
+
+def _member_person(email: str):
+    """La persona del compte personal que entra amb aquest correu, si n'hi ha i és activa."""
+    from apps.accounts.models import Account
+
+    account = (
+        Account.objects.filter(kind=Account.Kind.PERSONAL, login__iexact=email)
+        .select_related("person")
+        .first()
+    )
+    if account is None or account.person.status != account.person.Status.ACTIVE:
+        return None
+    return account.person
 
 
 def member_subscription(account) -> NewsletterSubscription | None:
     return NewsletterSubscription.objects.filter(email=normalise(account.login)).first()
 
 
-@transaction.atomic
-def subscribe_member(account, *, request=None) -> NewsletterSubscription:
+def subscribe_member(account) -> tuple[NewsletterSubscription, bool]:
+    """Com `subscribe`, amb el correu d'entrada: torna si cal enviar l'enllaç (ho fa la vista,
+    amb els límits del formulari públic)."""
     text = consents.current_text(TEXT_KIND)
     if text is None:
         raise ValidationError(_("Ara mateix no et pots subscriure."))
-    email, now = normalise(account.login), timezone.now()
-    subscription = NewsletterSubscription.objects.select_for_update().filter(email=email).first()
-    if subscription is None or subscription.status != Status.CONFIRMED:
-        subscription = subscription or NewsletterSubscription(email=email)
-        subscription.status, subscription.legal_text = Status.CONFIRMED, text
-        subscription.token, subscription.requested_at = secrets.token_urlsafe(32), now
-        subscription.confirmed_at = now
-        subscription.save()
-        for kind in (Kind.REQUESTED, Kind.CONFIRMED):
-            NewsletterEvent.objects.create(subscription=subscription, kind=kind, legal_text=text)
-    consents.grant(
-        account.person, TEXT_KIND, channel=Consent.Channel.WEB, by=account, request=request
-    )
-    return subscription
+    return subscribe(account.login, legal_text=text)
 
 
 @transaction.atomic

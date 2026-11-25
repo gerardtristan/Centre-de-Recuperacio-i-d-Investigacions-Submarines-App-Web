@@ -150,7 +150,8 @@ def newsletter_unsubscribe_view(request, token):
 @require_http_methods(["GET", "POST"])
 def my_newsletter_view(request):
     """Àrea del soci (T-M07-13; P-492, opció A): subscriure's o donar-se de baixa amb el compte
-    personal; també el consentiment de la 00. Sessió obligatòria (no és pública)."""
+    personal, amb doble confirmació (P-631); el consentiment de la 00, en confirmar-la. Sessió
+    obligatòria (no és pública)."""
     account = request.user
     if getattr(account, "kind", None) != Account.Kind.PERSONAL:
         raise Http404
@@ -160,14 +161,22 @@ def my_newsletter_view(request):
             newsletter.unsubscribe_member(account, request=request)
             messages.success(request, _("T'has donat de baixa del butlletí."))
         elif request.POST.get("accept_newsletter"):
-            newsletter.subscribe_member(account, request=request)
-            messages.success(request, _("Ja estàs subscrit al butlletí."))
+            with transaction.atomic():
+                subscription, needs = newsletter.subscribe_member(account)
+                # P-631: l'enllaç a la cua, amb els mateixos límits que el formulari públic.
+                accepted = limits.start_join(client_ip(request)) if needs else None
+                if accepted is not None and limits.join_receipt_allowed(accepted, account.login):
+                    newsletter.send_confirmation(subscription)
+            if needs:
+                messages.success(request, _("T'hem enviat un correu per confirmar la subscripció."))
+            else:
+                messages.success(request, _("Ja estàs subscrit al butlletí."))
         else:
             messages.error(request, _("Cal acceptar el text del butlletí."))
         response = redirect("website:my_newsletter")
         response.status_code = 303
         return response
     subscription = newsletter.member_subscription(account)
-    subscribed = subscription is not None and subscription.status == subscription.Status.CONFIRMED
-    context = {"text": text, "subscribed": subscribed, "email": account.login}
+    status = subscription.status if subscription is not None else ""
+    context = {"text": text, "status": status, "email": account.login}
     return render(request, "website/my_newsletter.html", context)

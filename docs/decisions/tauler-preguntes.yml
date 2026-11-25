@@ -1379,12 +1379,12 @@ opcions:
     data: 2026-11-25
   P-631:
     opcions:
-      A: "Confirmada al moment: el correu d'entrada ja és verificat i el soci actua amb la seva sessió."
-      B: "Doble confirmació igualment, amb l'enllaç del correu."
+      A: "Doble confirmació també des de l'àrea: l'enllaç al correu d'entrada i, en prémer el botó, la subscripció i el consentiment de la 00."
+      B: "Subscripció immediata: el correu d'entrada ja és verificat i el soci actua amb la seva sessió."
     recomanada: A
     perque: >-
-      La doble confirmació serveix per provar que qui escriu l'adreça n'és l'amo, i el soci ja ho ha provat en verificar
-      el compte; el consentiment queda igualment a la 00 amb la versió del text.
+      És un consentiment (irreversible, D2): l'opció conservadora és la mateixa doble confirmació que a la web, i el consentiment
+      de la 00 només queda donat quan la persona prem el botó; la B és més còmoda i es pot triar després.
     data: 2026-11-25
   P-632:
     opcions:
