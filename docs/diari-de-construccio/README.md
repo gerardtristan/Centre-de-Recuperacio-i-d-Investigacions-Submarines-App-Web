@@ -627,3 +627,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M08-14](T-M08-14.md) | Dashboard: prova de principi a fi amb la llavor (carril B; la T-M08-13 passa a DISSENY, T-DX-146) | 24/11/2026 23:40 | 15ed7df3 | 3 noves i 2 e2e | [A comprovar] |
 | [T-M07-17](T-M07-17.md) | Proves de principi a fi del contacte i del butlletí (en part: «publicar → veure» espera l'editor; carril A) | 24/11/2026 23:31 | (vegeu la PR) | 2 e2e | [A comprovar] |
 | [T-M08-03b](T-M08-03b.md) | Dashboard: grups petits que sumen menys de N i zeros (revisió del pilot; carril B) | 24/11/2026 23:53 | 5d84a677 | 3 noves i 1 canviada | [A comprovar] |
+| [T-M07-08](T-M07-08.md) | Notícies: model, servei, llista i detall públics i vista pública de les fotos (en part: pantalles de WP2, torn del nucli; carril A) | 25/11/2026 01:26 | (vegeu la PR) | 11 noves i 1 e2e | [A comprovar] |
