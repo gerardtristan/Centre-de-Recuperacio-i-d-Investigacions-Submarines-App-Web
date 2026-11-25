@@ -135,6 +135,7 @@ def test_rn_m07_10_the_body_is_escaped(client, editor):
 
 
 def test_p489_the_public_photo_view_checks_at_every_request(client, editor):
+    Setting.objects.filter(key="website.public_images_enabled").update(initial_value=True)
     photo = _photo(editor, author="Autora Inventada", licence_note="Cedida al club")
     url = f"/web/fotos/{photo.key}/"
     assert client.get(url).status_code == 404  # encara no surt enlloc
@@ -145,3 +146,13 @@ def test_p489_the_public_photo_view_checks_at_every_request(client, editor):
     assert f'src="{url}"' in client.get(f"/noticies/{item.slug}/").content.decode()
     news.retire(item, actor=editor, reason="Ja ha passat")
     assert client.get(url).status_code == 404
+
+
+def test_d2_switched_off_public_photos_are_not_found_and_news_show_without_them(client, editor):
+    """Pla d'acceleració F2-6 (D2): les imatges públiques, darrere d'un interruptor apagat."""
+    assert Setting.objects.get(key="website.public_images_enabled").initial_value is False
+    photo = _photo(editor, author="Autora Inventada", licence_note="Cedida al club")
+    item = news.publish(_item(editor, image=photo), actor=editor)
+    assert client.get(f"/web/fotos/{photo.key}/").status_code == 404
+    page = client.get(f"/noticies/{item.slug}/").content.decode()
+    assert item.title in page and "/web/fotos/" not in page
