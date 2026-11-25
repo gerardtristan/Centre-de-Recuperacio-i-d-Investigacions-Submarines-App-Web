@@ -166,6 +166,9 @@ class ValueForm(forms.Form):
         return value
 
 
+PLACES_PERMISSION = "activities.places.view"  # AC21; la 00 no importa el 02
+
+
 @never_cache
 @require_GET
 def settings_index_view(request):
@@ -177,9 +180,12 @@ def settings_index_view(request):
     ]
     # T-M00-08b: els textos legals (M12) s'hi enllacen, però tenen la seva pantalla.
     legal = permissions.has_perm(request.user, consents.PUBLISH_PERMISSION, permissions=perms)
-    if not sections and not legal:
+    # T-M02-39: l'apartat «Llocs» del 02 té la seva pantalla i el seu permís (AC21).
+    places = permissions.has_perm(request.user, PLACES_PERMISSION, permissions=perms)
+    if not sections and not legal and not places:
         raise Http404
-    return render(request, "core/settings_index.html", {"sections": sections, "legal": legal})
+    context = {"sections": sections, "legal": legal, "places": places}
+    return render(request, "core/settings_index.html", context)
 
 
 @never_cache

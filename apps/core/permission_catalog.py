@@ -1550,6 +1550,16 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial={R.TREASURER: _ALL},
         touches_money=True,
     ),
+    # T-M03-11: l'interruptor del càrrec del lloguer al participant (RN-M03-11 [A validar]). El pla
+    # no diu qui el canvia: d'inici, l'administrador i el tresorer (P-662).
+    _perm(
+        "settings.edit.equipment.rental_charges_enabled",
+        "AJ03-4",
+        _("Cobrar al participant el material llogat"),
+        requires=("settings.section.equipment",),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
     # Facturació (09; T-M09-26): VC-34 l'activa l'administrador per decisió de la junta, quan es
     # responguin la P-02 i la P-47 (RN-M09-19).
     _perm(

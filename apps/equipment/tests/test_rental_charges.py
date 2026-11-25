@@ -84,3 +84,60 @@ def test_a_paid_rental_charge_is_not_voided(manager, keeper, centre, switch_on):
     handover.cancel(row, by=keeper, reason="Canvi de pla (inventat).")
     row.charge.refresh_from_db()
     assert row.charge.status == "paid"  # la devolució és P-531
+
+
+def _with_email(enrolment, address, channel="account"):
+    enrolment.person.contact_email = address
+    enrolment.person.save(update_fields=["contact_email"])
+    enrolment.channel = channel
+    enrolment.save(update_fields=["channel"])
+    return enrolment
+
+
+def test_the_participant_gets_the_notice_of_the_rental_charge(manager, keeper, centre, switch_on):  # noqa: F811
+    from django.urls import reverse
+
+    from apps.accounts.models import Account
+    from apps.core.models import OutgoingEmail
+
+    activity = outing(manager)
+    enrolment = _with_email(enrolled(activity, "Alumna"), "alumna.inventada@example.org")
+    account = Account.objects.create_personal(enrolment.person, "alumna.inventada@example.org")
+    Account.objects.filter(pk=account.pk).update(status=Account.Status.ACTIVE)
+    row = assignments.assign_rented(enrolment, kind("Jaquet"), centre, by=keeper)
+    email = OutgoingEmail.objects.get(template=rental_charges.NOTICE_TEMPLATE)
+    assert email.to_address == "alumna.inventada@example.org" and email.person == enrolment.person
+    assert "30,00" in email.body_text and "Jaquet" in email.body_text
+    assert reverse("payments:charge", args=[row.charge_id]) in email.body_text
+
+
+def test_a_guest_gets_the_guest_link_of_the_rental_charge(manager, keeper, centre, switch_on):  # noqa: F811
+    from apps.core.models import GuestLink, OutgoingEmail
+
+    activity = outing(manager)
+    enrolment = _with_email(enrolled(activity, "Convidada"), "convidada@example.org", "guest")
+    row = assignments.assign_rented(enrolment, kind("Jaquet"), centre, by=keeper)
+    assert GuestLink.objects.get().charge_id == row.charge_id
+    assert not OutgoingEmail.objects.filter(template=rental_charges.NOTICE_TEMPLATE).exists()
+    assert OutgoingEmail.objects.get().to_address == "convidada@example.org"
+
+
+def test_switched_off_nobody_gets_a_notice(manager, keeper, centre):  # noqa: F811
+    from apps.core.models import OutgoingEmail
+
+    activity = outing(manager)
+    enrolment = _with_email(enrolled(activity, "Alumna"), "alumna.inventada@example.org")
+    assignments.assign_rented(enrolment, kind("Jaquet"), centre, by=keeper)
+    assert not OutgoingEmail.objects.exists()
+
+
+def test_without_an_active_account_the_guest_link(manager, keeper, centre, switch_on):  # noqa: F811
+    """Revisió de la #596: un no soci inscrit al taulell (canal DESK) no pot obrir la pantalla de
+    pagament amb sessió."""
+    from apps.core.models import GuestLink, OutgoingEmail
+
+    activity = outing(manager)
+    enrolment = _with_email(enrolled(activity, "Taulell"), "taulell@example.org", "desk")
+    row = assignments.assign_rented(enrolment, kind("Jaquet"), centre, by=keeper)
+    assert GuestLink.objects.get().charge_id == row.charge_id
+    assert not OutgoingEmail.objects.filter(template=rental_charges.NOTICE_TEMPLATE).exists()
