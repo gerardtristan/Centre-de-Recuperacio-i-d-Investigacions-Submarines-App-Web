@@ -1101,6 +1101,7 @@ class PrivateFile(models.Model):
         ISSUED_INVOICE = "issued_invoice", _("PDF d'una factura emesa")
         GRANT_PACKAGE = "grant_package", _("Paquet de justificació d'un ajut")
         CERTIFICATION_PHOTO = "certification_photo", _("Foto del carnet d'una titulació")  # 104
+        ENVIRONMENT_PHOTO = "environment_photo", _("Foto d'una sortida de medi ambient")  # P-41
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     storage_key = models.CharField(_("clau a l'emmagatzematge"), max_length=100, unique=True)
@@ -1132,6 +1133,7 @@ class PrivateFile(models.Model):
                         "issued_invoice",
                         "grant_package",
                         "certification_photo",
+                        "environment_photo",
                     ]
                 ),
                 name="private_file_kind_valid",

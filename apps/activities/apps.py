@@ -40,6 +40,10 @@ class ActivitiesConfig(AppConfig):
         files.register_access_guard(
             PrivateFile.Kind.CERTIFICATION_PHOTO, card_photos.photos_enabled
         )
+        # T-M02-20 (P-41): amb l'interruptor apagat o la foto retirada, no s'obre.
+        from . import environment_photos
+
+        files.register_access_guard(PrivateFile.Kind.ENVIRONMENT_PHOTO, environment_photos.enabled)
         business_settings.register_check(
             catalogue.LICENCE_CATEGORY_KEY, catalogue.check_licence_category
         )

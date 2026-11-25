@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M02-20b (AC14; S-M02-14; RN-M02-23): resultats d'una sortida de medi ambient. Amb «Cons.» només es veuen; amb edició es registren quan la sortida ja s'ha fet i es corregeixen (cada canvi, al registre amb el valor anterior). Cap dada de salut. No es publica res. Les fotos encara no existeixen. #}
+{# T-M02-20b (AC14; S-M02-14; RN-M02-23): resultats d'una sortida de medi ambient. Amb «Cons.» només es veuen; amb edició es registren quan la sortida ja s'ha fet i es corregeixen (cada canvi, al registre amb el valor anterior). Cap dada de salut. No es publica res. Fotos (CA-M02-22; P-41 oberta): només amb l'interruptor encès; ús intern, s'obren per la vista de fitxers privats (AC14, amb registre); pujar i retirar, amb AC14 (el servidor ho torna a comprovar). #}
 {% block title %}{% translate "Resultats ambientals" %} · {{ activity.title }} · C.R.I.S.{% endblock %}
 {% block content %}
   <header class="capcalera-pagina">
@@ -28,6 +28,46 @@
       {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
       <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Desa els resultats" %}</button></div>
     </form>
+  {% endif %}
+  {% if photos is not None %}
+    <section class="targeta" aria-labelledby="titol-fotos">
+      <h2 id="titol-fotos">{% translate "Fotos de la sortida" %}</h2>
+      <p class="text-2">{% translate "Ús intern del club: aquestes fotos no es publiquen enlloc." %}</p>
+      <table class="taula">
+        <thead><tr><th scope="col">{% translate "Foto" %}</th><th scope="col">{% translate "Autor" %}</th><th scope="col">{% translate "Persones" %}</th>{% if retire_form %}<th scope="col">{% translate "Retirar" %}</th>{% endif %}</tr></thead>
+        <tbody>
+          {% for photo in photos %}
+            <tr>
+              <th scope="row" class="cel-nom"><a href="{% url 'administration:private_file' photo.file_id %}">{% blocktranslate with day=photo.uploaded_at|date:"d/m/Y" %}Foto del {{ day }}{% endblocktranslate %}</a></th>
+              <td data-etiqueta="{% translate 'Autor' %}">{{ photo.author }}</td>
+              <td data-etiqueta="{% translate 'Persones' %}">{% if not photo.shows_people %}{% translate "No n'hi surten" %}{% elif photo.people_consent %}{% translate "Amb consentiment" %}{% else %}{% translate "Sense consentiment" %}{% endif %}</td>
+              {% if retire_form %}
+                <td data-etiqueta="{% translate 'Retirar' %}">
+                  <form class="formulari" method="post" action="{% url 'administration:activity_environment_photo_retire' activity.pk photo.pk %}" novalidate>
+                    {% csrf_token %}
+                    {% for field in retire_form %}{% include "accounts/_camp.html" %}{% endfor %}
+                    <div class="accions"><button class="boto" type="submit">{% translate "Retira-la" %}</button></div>
+                  </form>
+                </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr><td colspan="{% if retire_form %}4{% else %}3{% endif %}">{% translate "Encara no hi ha cap foto." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if photo_form %}
+        <form class="formulari" method="post" enctype="multipart/form-data" action="{% url 'administration:activity_environment_photo' activity.pk %}" novalidate>
+          {% csrf_token %}
+          <h3>{% translate "Afegeix una foto" %}</h3>
+          {% for field in photo_form %}{% include "accounts/_camp.html" %}{% endfor %}
+          <p class="text-2">{% translate "En desar-la se'n treuen les dades de l'arxiu (lloc, càmera i data)." %}</p>
+          <div class="accions"><button class="boto" type="submit">{% translate "Desa la foto" %}</button></div>
+        </form>
+      {% elif retire_form and not result %}
+        <p class="text-2">{% translate "Per afegir fotos, primer registra els resultats." %}</p>
+      {% endif %}
+    </section>
   {% endif %}
   <p class="enllacos">
     {% if activity.project_id %}<a href="{% url 'administration:environmental_project' activity.project_id %}">{% blocktranslate with name=activity.project.name %}Projecte «{{ name }}»{% endblocktranslate %}</a>{% endif %}

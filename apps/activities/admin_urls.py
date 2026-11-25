@@ -90,6 +90,17 @@ urlpatterns = [
         environment.results_view,
         name="activity_environment",
     ),
+    # T-M02-20 (P-41): fotos d'una sortida de medi ambient, darrere de l'interruptor
+    path(
+        "activitats/<int:pk>/medi-ambient/fotos/",
+        environment.photo_upload_view,
+        name="activity_environment_photo",
+    ),
+    path(
+        "activitats/<int:pk>/medi-ambient/fotos/<int:photo_id>/retira/",
+        environment.photo_retire_view,
+        name="activity_environment_photo_retire",
+    ),
     path(
         "activitats/projectes/<int:pk>/",
         environment.project_view,

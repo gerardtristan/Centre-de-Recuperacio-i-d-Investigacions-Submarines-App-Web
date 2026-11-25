@@ -111,6 +111,8 @@ opcions:
     perque: >-
       B permet tenir galeria des del primer dia sense haver de gestionar consentiments; A és la regla per a
       quan s'hi vulguin afegir fotos amb persones.
+      Construïda per defecte (25/11/2026, T-M02-20): les fotos de les sortides de medi ambient, amb
+      autor i permís d'ús obligatoris, ús intern i mai públiques, darrere d'un interruptor apagat.
     data: 2026-11-12
 
   P-48:
