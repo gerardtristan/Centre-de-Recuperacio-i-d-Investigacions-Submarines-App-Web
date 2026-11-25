@@ -118,3 +118,23 @@ def test_with_mg2_the_documents_page_links_back_to_the_list(as_role):
         client.get(reverse("administration:expense_documents", args=[expense.pk])).content.decode()
     )
     assert reverse("administration:expenses_without_invoice") in html
+
+
+def test_with_mg2_read_only_the_documents_page_also_links_back_to_the_list(as_role):
+    """MG2 «Cons.» obre la llista i la redirecció ja hi porta: l'enllaç de tornada també hi ha de
+    ser (revisió de la #595)."""
+    from apps.core.models import RolePermission
+    from apps.core.permission_catalog import SCOPE_READ
+
+    RolePermission.objects.update_or_create(
+        role=Role.objects.get(code=R.PRESIDENT), permission_code="expenses.pay",
+        defaults={"scope": SCOPE_READ},
+    )  # fmt: skip
+    client = as_role(R.PRESIDENT)
+    response = client.post(reverse("administration:expense_new"), data())
+    assert response.url == reverse("administration:expenses_without_invoice")
+    expense = Expense.objects.get()
+    html = main_of(
+        client.get(reverse("administration:expense_documents", args=[expense.pk])).content.decode()
+    )
+    assert reverse("administration:expenses_without_invoice") in html

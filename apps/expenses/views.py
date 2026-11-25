@@ -214,7 +214,9 @@ def documents_view(request, pk):
         "amount": euros(expense.amount_cents),
         "rows": rows,
         "can_open": can_open,
-        "can_list": can[services.PAY],  # «Despeses sense factura» és de MG2
+        # «Despeses sense factura» s'obre amb MG2, també «Cons.»: la mateixa comprovació que la
+        # redirecció després de registrar una despesa.
+        "can_list": has_perm(request.user, services.PAY, permissions=perms),
         "treasurer": live and can[services.PAY] and can_open,
         "accept": ",".join(sorted(documents.DOCUMENT_TYPES)),
     }
