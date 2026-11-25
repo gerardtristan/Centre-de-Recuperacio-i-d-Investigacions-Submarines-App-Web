@@ -579,8 +579,9 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-118](T-DX-118.md) | «Departaments, centres de cost i comptes» al menú, i revisió de l'estructura | 24/11/2026 21:01 | 716b5fbe | 1 + e2e | [A comprovar] |
 | [T-DX-120](T-DX-120.md) | Revisió de la T-M02-49: fotos del carnet, homologació i primera estrella | 24/11/2026 23:05 | 14af7085 | e2e | [A comprovar] |
 | [T-DX-121](T-DX-121.md) | Es retira la pantalla en construcció «Transferències i pagaments a revisar» | 24/11/2026 21:13 | 9fe31d74 | 1 | [A comprovar] |
-| [T-DX-119](T-DX-119.md) | Contacte (07): sense recurs de moment | 24/11/2026 23:33 | 216ed418 | — | [A comprovar] |
-| [T-DX-140](T-DX-140.md) | Menú del 07 i el 08 (T-DX-140 a 146), i es retira la pantalla en construcció del dashboard | 25/11/2026 01:20 | 9d5de083 | 3 + e2e | [A comprovar] |
+| [T-DX-119](T-DX-119.md) | Contacte (07): sense recurs de moment | 24/11/2026 23:33 | a447c953 | — | [A comprovar] |
+| [T-DX-140](T-DX-140.md) | Menú del 07 i el 08 (T-DX-140 a 146), i es retira la pantalla en construcció del dashboard | 25/11/2026 01:20 | 5995eb6b | 3 + e2e | [A comprovar] |
+| [T-DX-122](T-DX-122.md) | Revisió B, C i D del 07 i el 08: dashboard, safata, fitxa i motius de contacte, i butlletí | 25/11/2026 01:30 | 1fcca690 | e2e | [A comprovar] |
 | [T-M07-03](T-M07-03.md) | App `website` i ajustos del 07, amb el butlletí i el contacte apagats | 24/11/2026 10:57 | 90f1821e | 25 noves | [A comprovar] |
 | [T-M07-04](T-M07-04.md) | Pàgines, versions i blocs; publicar i tornar a una versió | 24/11/2026 11:42 | 6cbb8859 | 17 noves | [A comprovar] |
 | [T-M07-07](T-M07-07.md) | Fotos de la web: models i servei, sense rutes | 24/11/2026 12:39 | 66704ddb | 15 noves | [A comprovar] |
