@@ -28,4 +28,6 @@ urlpatterns = [
     path("noticies/", news_views.public_list_view, name="news_list"),
     path("noticies/<slug:slug>/", news_views.public_detail_view, name="news_detail"),
     path("web/fotos/<uuid:key>/", news_views.media_view, name="media"),
+    # T-M07-09 (RN-M07-12): les preguntes freqüents publicades i el cercador.
+    path("ajuda/", news_views.help_view, name="help"),
 ]

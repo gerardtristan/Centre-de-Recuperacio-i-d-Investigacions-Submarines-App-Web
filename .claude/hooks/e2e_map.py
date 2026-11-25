@@ -331,6 +331,12 @@ MAP = {
         "apps/website/media.py",
         "templates/website/news_*.html",
     ),
+    "test_web_ajuda.py": (
+        "apps/website/help.py",
+        "apps/website/news_views.py",
+        "templates/website/help.html",
+        "static/css/recoveco.css",
+    ),
     "test_web_fluxos_07.py": (
         "apps/website/views.py",
         "apps/website/admin_views.py",

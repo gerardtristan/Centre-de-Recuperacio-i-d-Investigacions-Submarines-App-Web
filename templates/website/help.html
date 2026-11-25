@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{# T-M07-09 (P-M07-G; RN-M07-10 i 12, CA-M07-16): les preguntes freqüents publicades, per temes, amb Recoveco (T-DX-28) i el cercador del servidor a la pregunta i a la resposta. Sense resultats, l'enllaç al contacte (només si és encès). Text escapat; cap dada de cap compte. #}
+{% block title %}{% translate "Preguntes freqüents" %} · C.R.I.S.{% endblock %}
+{% block titol_zona %}{% translate "Ajuda" %}{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/recoveco.css' %}">{% endblock %}
+{% block content %}
+  <section class="recoveco" aria-labelledby="titol-ajuda">
+    <h1 id="titol-ajuda">{% translate "Preguntes freqüents" %}</h1>
+    {% regroup entries by topic as groups %}
+    <div class="recoveco-app">
+      {% if groups %}<nav class="recoveco-index" aria-label="{% translate 'Temes' %}">
+        <p class="recoveco-index-t">{% translate "Índex" %}</p>
+        <ol class="recoveco-temes">
+          {% for group in groups %}
+            <li><a href="#tema-{{ group.grouper.pk }}">{{ group.grouper.name }}<span class="recoveco-n">{% blocktranslate count n=group.list|length %}{{ n }} pregunta{% plural %}{{ n }} preguntes{% endblocktranslate %}</span></a></li>
+          {% endfor %}
+        </ol>
+      </nav>{% endif %}
+      <div class="recoveco-cos">
+        <form class="formulari recoveco-cerca" method="get" role="search">
+          <div class="camp">
+            <label for="ajuda-q">{% translate "Cercar a les preguntes i a les respostes" %}</label>
+            <input id="ajuda-q" name="q" type="search" value="{{ query }}" maxlength="100" autocomplete="off">
+          </div>
+          <div class="accions"><button class="boto" type="submit">{% translate "Cerca" %}</button></div>
+        </form>
+        {% if query %}<p class="text-2" role="status">{% blocktranslate count n=entries|length with q=query %}{{ n }} resposta per «{{ q }}».{% plural %}{{ n }} respostes per «{{ q }}».{% endblocktranslate %}</p>{% endif %}
+        {% for group in groups %}
+          <section class="recoveco-grup" id="tema-{{ group.grouper.pk }}" aria-labelledby="tema-{{ group.grouper.pk }}-h">
+            <h2 id="tema-{{ group.grouper.pk }}-h">{{ group.grouper.name }}</h2>
+            {% for entry in group.list %}
+              <details class="recoveco-p"{% if query %} open{% else %} name="tema-{{ group.grouper.pk }}"{% if forloop.parentloop.first and forloop.first %} open{% endif %}{% endif %}>
+                <summary><span>{{ entry.question }}</span><span class="recoveco-mes" aria-hidden="true"></span></summary>
+                <div class="recoveco-resp">{{ entry.answer|linebreaks }}</div>
+              </details>
+            {% endfor %}
+          </section>
+        {% empty %}
+          <div class="avis avis-avis" role="status">
+            {% if query %}{% translate "No hem trobat cap resposta." %}{% else %}{% translate "Encara no hi ha cap pregunta publicada." %}{% endif %}
+            {% if contact_on %}<a href="{% url 'website:contact' %}">{% translate "Escriu al club" %}</a>{% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endblock %}
