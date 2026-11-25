@@ -260,6 +260,13 @@ MAP = {
         "apps/expenses/admin_urls.py",
         "templates/expenses/*",
     ),
+    "test_despesa_mobil.py": (
+        "apps/expenses/views.py",
+        "apps/expenses/documents.py",
+        "templates/expenses/documents.html",
+        "static/js/zona-magnetica.js",
+        "apps/core/files.py",
+    ),
     "test_marge_activitat.py": (
         "apps/margins/views.py",
         "apps/margins/admin_urls.py",
