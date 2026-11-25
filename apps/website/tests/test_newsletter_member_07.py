@@ -54,7 +54,7 @@ def test_p631_subscribing_sends_the_link_and_the_button_confirms_it_with_the_con
     assert not Consent.objects.filter(person=member.person).exists()
     email = OutgoingEmail.objects.get(template=newsletter.CONFIRMATION_TEMPLATE)
     assert email.to_address == member.login and subscription.token in email.body_text
-    assert "Revisa el correu" in client.get(URL).content.decode()
+    assert "Pendent de confirmar" in client.get(URL).content.decode()
 
     confirm = reverse("website:newsletter_confirm", args=[subscription.token])
     client.post(confirm)

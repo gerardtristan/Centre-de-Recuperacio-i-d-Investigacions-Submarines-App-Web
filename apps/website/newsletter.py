@@ -107,8 +107,9 @@ def confirm(token: str, *, now=None) -> NewsletterSubscription | None:
     )
     # P-492 i P-631: si l'adreça és la d'entrada d'un compte personal, el consentiment de la 00
     # queda donat en prémer el botó, no abans.
+    # La versió que va acceptar en subscriure's, no la vigent en confirmar (revisió de la 13c).
     if (person := _member_person(subscription.email)) is not None:
-        consents.grant(person, TEXT_KIND, channel=Consent.Channel.WEB)
+        consents.grant_accepted(person, subscription.legal_text, channel=Consent.Channel.WEB)
     return subscription
 
 
@@ -141,11 +142,15 @@ def forget(subscription: NewsletterSubscription, *, now=None) -> None:
 
 
 def _member_person(email: str):
-    """La persona del compte personal que entra amb aquest correu, si n'hi ha i és activa."""
+    """La persona del compte personal actiu (correu verificat) que entra amb aquest correu. Un
+    compte pendent o desactivat no compta: si no, qui creés un compte amb el correu d'una altra
+    persona s'emportaria el seu consentiment."""
     from apps.accounts.models import Account
 
     account = (
-        Account.objects.filter(kind=Account.Kind.PERSONAL, login__iexact=email)
+        Account.objects.filter(
+            kind=Account.Kind.PERSONAL, status=Account.Status.ACTIVE, login__iexact=email
+        )
         .select_related("person")
         .first()
     )

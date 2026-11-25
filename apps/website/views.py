@@ -161,16 +161,7 @@ def my_newsletter_view(request):
             newsletter.unsubscribe_member(account, request=request)
             messages.success(request, _("T'has donat de baixa del butlletí."))
         elif request.POST.get("accept_newsletter"):
-            with transaction.atomic():
-                subscription, needs = newsletter.subscribe_member(account)
-                # P-631: l'enllaç a la cua, amb els mateixos límits que el formulari públic.
-                accepted = limits.start_join(client_ip(request)) if needs else None
-                if accepted is not None and limits.join_receipt_allowed(accepted, account.login):
-                    newsletter.send_confirmation(subscription)
-            if needs:
-                messages.success(request, _("T'hem enviat un correu per confirmar la subscripció."))
-            else:
-                messages.success(request, _("Ja estàs subscrit al butlletí."))
+            messages.success(request, _subscribe_member(request, account))
         else:
             messages.error(request, _("Cal acceptar el text del butlletí."))
         response = redirect("website:my_newsletter")
@@ -180,3 +171,20 @@ def my_newsletter_view(request):
     status = subscription.status if subscription is not None else ""
     context = {"text": text, "status": status, "email": account.login}
     return render(request, "website/my_newsletter.html", context)
+
+
+def _subscribe_member(request, account) -> str:
+    """P-631: el límit per origen abans de res (com el formulari públic), la petició i, si cal,
+    l'enllaç a la cua amb el límit per destinatari. Torna el missatge, que no diu «enviat» si
+    no ho és."""
+    with transaction.atomic():
+        accepted = limits.start_join(client_ip(request))
+        if accepted is None:
+            return _("Ara no s'ha pogut enviar l'enllaç. Torna-ho a provar més tard.")
+        subscription, needs = newsletter.subscribe_member(account)
+        if not needs:
+            return _("Ja estàs subscrit al butlletí.")
+        if not limits.join_receipt_allowed(accepted, account.login):
+            return _("Ara no s'ha pogut enviar l'enllaç. Torna-ho a provar més tard.")
+        newsletter.send_confirmation(subscription)
+    return _("T'hem enviat un correu per confirmar la subscripció.")
