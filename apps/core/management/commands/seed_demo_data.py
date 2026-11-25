@@ -9,8 +9,9 @@ moviments, liquidacions, extractes en CSV i Norma 43, conciliació i remeses. El
 (T-M05b-17, `apps/payments/demo_data.py`): intents en cada estat, notificacions, una remesa
 liquidada, retornats, una devolució, convidats i mandats. I les activitats (T-M02-25,
 `apps/activities/demo_data.py`): catàleg, llocs, activitats en cada estat, inscrits i avaluacions,
-amb l'instructor de prova soci i amb llicència tècnica (T-M02-30). Tot passa pels serveis, perquè
-el registre d'activitat quedi com quedaria de debò.
+amb l'instructor de prova soci i amb llicència tècnica (T-M02-30). I la web pública (T-M07-17,
+`apps/website/demo_data.py`): contacte en cada estat, subscripcions i un butlletí en esborrany.
+Tot passa pels serveis, perquè el registre d'activitat quedi com quedaria de debò.
 
 Comptes de prova (074, punt 21): un d'administració per a cada rol de la revisió, amb la
 contrasenya de proves i el mateix secret TOTP públic de prova, i comptes personals per a alguns
@@ -52,6 +53,7 @@ from apps.members import demo_data
 from apps.members.join import OPTIONAL_TEXT_CONTENT
 from apps.payments import demo_data as payments_demo
 from apps.treasury import demo_data as treasury_demo
+from apps.website import demo_data as website_demo
 
 ORIGIN = "seed_demo_data"
 ADMIN_LOGIN = "admin-demo"
@@ -192,6 +194,11 @@ class Command(BaseCommand):
         out(
             f"Mòdul 02: {activities.entries} fitxes del catàleg, {activities.activities} "
             f"activitats i {activities.enrolments} inscripcions."
+        )
+        website = counts["website"]
+        out(
+            f"Mòdul 07: {website['messages']} missatges de contacte, "
+            f"{website['subscriptions']} subscripcions al butlletí i un butlletí en esborrany."
         )
         out("")
         out(f"Administració: {reverse('administration:login')}  (contrasenya: {PASSWORD})")
@@ -361,4 +368,8 @@ class Command(BaseCommand):
         counts = {"people": len(people), "charges": n_charges, "consents": n_consents}
         counts |= {"treasury": treasury, "payments": payments, "activities": activities_result}
         counts["equipment"] = equipment
+        # Web pública (T-M07-17): contacte en cada estat, subscripcions i un butlletí esborrany.
+        counts["website"] = website_demo.create(
+            secretary=accounts[Role.Code.SECRETARY], admin=admin
+        )
         return counts, review
