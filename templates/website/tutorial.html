@@ -4,7 +4,7 @@
 {% block title %}{{ tutorial.title }} · C.R.I.S.{% endblock %}
 {% block titol_zona %}{% translate "Ajuda" %}{% endblock %}
 {% block content %}
-  <article aria-labelledby="titol-tutorial">
+  <article class="columna-principal" aria-labelledby="titol-tutorial">{# T-DX-151: els blocs, espaiats com al cos (l'article no és fill directe de .cos-compte) #}
     <p class="etiqueta-seccio"><a href="{% url 'website:help' %}">{% translate "Ajuda" %}</a></p>
     <h1 id="titol-tutorial">{{ tutorial.title }}</h1>
     {% if images_on and tutorial.image.publishable %}
