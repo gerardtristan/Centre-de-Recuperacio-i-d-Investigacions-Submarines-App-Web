@@ -1802,6 +1802,13 @@ PERMISSIONS: tuple[Permission, ...] = (
         _("Motius de contacte i a qui arriba cada un"),
         initial={R.ADMINISTRATOR: _ALL},
     ),
+    # Addenda 106 (T-M07-21): la configuració inicial de l'actual WP1.
+    _perm(
+        "website.chrome",
+        "WP9",
+        _("Menús, capçalera, peu i blocs compartits de la web"),
+        initial=dict.fromkeys(_WP1, _ALL),
+    ),
     # Ajustos de la web (M07-6; T-M07-03): «Cons.» per a qui hi edita algun valor. WP1 (Admin. i
     # Pres.) edita la portada i les dades de contacte; els interruptors i els terminis, l'Admin.
     _perm(

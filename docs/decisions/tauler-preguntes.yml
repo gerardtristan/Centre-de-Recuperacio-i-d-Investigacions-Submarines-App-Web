@@ -1740,3 +1740,25 @@ noves:
       fa rebutjar molts PDF fets amb Word sense que l'usuari entengui per què, i C deixa el risc a
       qui no el veu. Fins a la resposta, la pujada de PDF és apagada.
     data: 2026-11-27
+  P-700:
+    opcions:
+      A: "Menú mínim (Inici, Notícies i Ajuda) fins que arribin les pàgines inicials amb el menú de cris1954.cat; a partir del setè enllaç, «Més» per ordre."
+      B: "Copiar ara el menú de cris1954.cat a la migració de dades."
+      C: "Cap menú inicial: el primer el fa qui té WP9."
+      D: "Triar a mà quins enllaços van a «Més», amb un camp propi."
+    recomanada: A
+    perque: >-
+      El menú són dades editables i l'inventari de la web actual es fa a part; una migració mínima
+      no s'ha de desfer, i «Més» per ordre compleix la 034 sense un camp més.
+    data: 2026-11-27
+  P-701:
+    opcions:
+      A: "Un text de la capçalera i un del peu, en text pla, amb versions."
+      B: "També els enllaços del peu (un menú «peu») i les xarxes socials ara."
+      C: "Capçalera i peu fets amb blocs del catàleg."
+      D: "Res editable: la capçalera i el peu, a la plantilla."
+    recomanada: A
+    perque: >-
+      És el mínim que l'addenda demana i es pot ampliar sense tocar dades: un menú «peu» fa servir
+      el mateix model quan es demani.
+    data: 2026-11-27

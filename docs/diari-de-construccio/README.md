@@ -656,3 +656,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [dep-pillow](dep-pillow.md) | Pillow per a les pujades de la web (decisió 106) | 27/11/2026 22:14 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [T-M07-07b](T-M07-07b.md) | Pujades de la web: Pillow, punt focal i mides en WebP (RN-M07-19; P-633 A de la 108; carril B) | 27/11/2026 22:46 | (vegeu la PR) | 11 noves, 4 adaptades i 1 e2e | [A comprovar] |
 | [T-M02-55](T-M02-55.md) | La foto del carnet de titulació es redueix pel costat llarg (P-551 A de la 108; carril B) | 27/11/2026 22:54 | (vegeu la PR) | 2 noves, 2 adaptades i 2 e2e | [A comprovar] |
+| [T-M07-21](T-M07-21.md) | Menús, capçalera i peu de la web pública, i WP9 (torn del nucli; part a) | 27/11/2026 22:35 | (vegeu la PR) | 29 noves | [A comprovar] |
