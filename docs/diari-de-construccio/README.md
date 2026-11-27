@@ -646,3 +646,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [decisio-108](decisio-108.md) | Respostes del propietari del 27/11/2026: tauler, contingut de la web, butlletí i compte ràpid | 27/11/2026 22:37 | (vegeu la PR) | cap (document) | [A comprovar] |
 | [dep-markdown-it-py](dep-markdown-it-py.md) | markdown-it-py per al Markdown restringit (decisió 106) | 27/11/2026 22:14 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [dep-sortablejs](dep-sortablejs.md) | SortableJS per arrossegar blocs (decisió 106) | 27/11/2026 22:14 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [T-M07-36](T-M07-36.md) | Excepció de client de l'art. 21.2 LSSI, apagada fins a la P-710 (decisió 108, C.3; carril B) | 28/11/2026 00:35 | (vegeu la PR) | 11 noves | [A comprovar] |
