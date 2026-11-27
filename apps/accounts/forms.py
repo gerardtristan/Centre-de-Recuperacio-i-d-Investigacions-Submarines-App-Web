@@ -1,8 +1,10 @@
 from django import forms
+from django.contrib.auth import password_validation
 from django.contrib.auth.forms import SetPasswordForm
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
+from .models import Account
 from .security import AREA_ADMIN
 
 
@@ -151,3 +153,57 @@ class DisableTotpForm(CodeForm):
         widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}),
     )
     field_order = ["password", "code"]
+
+
+class SignupForm(forms.Form):
+    """Compte personal ràpid (T-M01-53; decisió 108, D.1): res més que això. La contrasenya, una
+    sola vegada, amb les regles de V-01 (AUTH_PASSWORD_VALIDATORS). Sense text vigent del
+    butlletí, la casella no existeix."""
+
+    accept_newsletter = forms.BooleanField(
+        label=_("Vull rebre les sortides, els cursos i les novetats del C.R.I.S."),
+        required=False,
+    )
+    first_name = forms.CharField(
+        label=_("Nom"), max_length=100, widget=forms.TextInput(attrs={"autocomplete": "given-name"})
+    )
+    last_name = forms.CharField(
+        label=_("Cognoms"),
+        max_length=150,
+        widget=forms.TextInput(attrs={"autocomplete": "family-name"}),
+    )
+    email = forms.EmailField(
+        label=_("Correu electrònic"),
+        max_length=254,
+        widget=forms.EmailInput(attrs={"autocomplete": "email"}),
+    )
+    password = forms.CharField(
+        label=_("Contrasenya"),
+        strip=False,
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
+    )
+    accept_privacy = forms.BooleanField(
+        label=_("Política de privacitat"),  # surt al resum d'errors (Errata, T-DX-06)
+        error_messages={
+            "required": _("Cal acceptar la política de privacitat per crear el compte.")
+        },
+    )
+
+    def __init__(self, *args, texts, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.texts = texts
+        if "newsletter" not in texts:
+            del self.fields["accept_newsletter"]
+        self.fields["password"].help_text = password_validation.password_validators_help_text_html()
+
+    def clean(self):
+        data = super().clean()
+        password, email = data.get("password"), data.get("email")
+        if password:
+            # Les regles de V-01, comparades també amb el correu escrit.
+            probe = Account(login=email or "")
+            try:
+                password_validation.validate_password(password, probe)
+            except forms.ValidationError as error:
+                self.add_error("password", error)
+        return data

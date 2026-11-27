@@ -1,0 +1,8 @@
+{% load i18n %}{% autoescape off %}{% translate "Hola," %}
+
+{% translate "Algú ha provat de crear un compte a la plataforma del C.R.I.S. amb aquesta adreça, però ja n'hi ha un. No s'ha creat res de nou." %}
+
+{% translate "Si has estat tu, entra a l'àrea de socis amb aquesta adreça. Si no recordes la contrasenya, a l'entrada tens «He oblidat la contrasenya»." %}
+
+{% translate "Si no has estat tu, no cal que facis res: aquest correu no porta cap enllaç i el teu compte no ha canviat." %}
+{% endautoescape %}

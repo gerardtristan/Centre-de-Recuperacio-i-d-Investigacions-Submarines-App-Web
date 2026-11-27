@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{# T-M01-53 (108, D.1 i D.4): el compte personal en una sola pantalla. Només nom, cognoms, correu, contrasenya, la casella del butlletí (no marcada, el pas més destacat, C.2) i la política de privacitat. La confirmació és la mateixa tant si el correu ja té compte com si no. El compte queda pendent fins que es confirma el correu (RN-18). #}
+{% block cos_classe %}cos-estret{% endblock %}
+{% block title %}{% translate "Crea el compte" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <h1>{% translate "Crea el teu compte" %}</h1>
+  {% if sent %}
+    <div class="avis avis-ok" role="status">
+      <strong>{% translate "Revisa el correu" %}</strong>
+      {% translate "Si l'adreça és correcta, t'hi hem enviat un enllaç per activar el compte. Obre'l i després entra." %}
+    </div>
+    <p class="enllacos"><a href="{% url 'accounts:login' %}">{% translate "Anar a l'entrada" %}</a></p>
+  {% elif unavailable %}
+    <div class="avis avis-avis" role="status">{% translate "Ara mateix no es pot crear cap compte des d'aquí. Torna-ho a provar més tard." %}</div>
+  {% else %}
+    <p class="text-2">{% translate "Amb el compte pots fer-te soci, veure el preu de la quota i apuntar-te a les activitats. La resta de dades te les demanarem només quan calguin." %}</p>
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+      {% include "_errata.html" %}
+      {% if form.accept_newsletter %}
+        <fieldset class="targeta">
+          <legend>{% translate "El butlletí del C.R.I.S." %}</legend>
+          {% include "accounts/_camp.html" with field=form.accept_newsletter %}
+          <p class="text-2">{% translate "És opcional i et pots donar de baixa quan vulguis." %} <a href="#text-newsletter" data-obre-text>{% translate "Llegeix el text del butlletí" %}</a></p>
+        </fieldset>
+      {% endif %}
+      {% for field in form %}{% if field.name != "accept_privacy" and field.name != "accept_newsletter" %}{% include "accounts/_camp.html" %}{% endif %}{% endfor %}
+      <fieldset>
+        <legend>{% translate "Textos legals" %}</legend>
+        {% translate "Accepto la" as intro %}{% translate "Política de privacitat" as label %}
+        {% include "members/_acceptacio.html" with field=form.accept_privacy kind="privacy" label=label text=texts.privacy intro=intro %}
+      </fieldset>
+      <p class="text-2">{% translate "Per crear un compte cal tenir 14 anys o més." %}</p>
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Crea el compte" %}</button></div>
+    </form>
+    <p class="enllacos"><a href="{% url 'accounts:login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">{% translate "Ja tinc compte: entra" %}</a></p>
+    <section class="textos-legals" aria-labelledby="textos-legals-titol" data-textos-legals data-tanca="{% translate 'Tanca' %}">
+      <h2 id="textos-legals-titol">{% translate "Textos legals" %}</h2>
+      {% for kind, text in texts.items %}
+        <article id="text-{{ kind }}" aria-labelledby="text-{{ kind }}-titol">
+          <h3 id="text-{{ kind }}-titol">{% if kind == "privacy" %}{% translate "Política de privacitat" %}{% else %}{% translate "Butlletí del club" %}{% endif %} <span class="text-2">{% blocktranslate with version=text.version %}(versió {{ version }}){% endblocktranslate %}</span></h3>
+          <div class="text-legal-cos">{{ text.content|linebreaks }}</div>
+        </article>
+      {% endfor %}
+    </section>
+    <script src="{% static 'js/textos-legals.js' %}" defer></script>
+  {% endif %}
+{% endblock %}

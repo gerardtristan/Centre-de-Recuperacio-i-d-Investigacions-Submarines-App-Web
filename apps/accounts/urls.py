@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import signup_views, views
 from .security import AREA_PERSONAL
 
 app_name = "accounts"
@@ -11,6 +11,8 @@ urlpatterns = [
     path("entrar/", views.login_view, {"area": AREA_PERSONAL}, name="login"),
     path("entrar/codi/", views.login_totp_view, {"area": AREA_PERSONAL}, name="login_totp"),
     path("sortir/", views.logout_view, {"area": AREA_PERSONAL}, name="logout"),
+    # T-M01-53 (108, D): crear el compte personal en una sola pantalla.
+    path("compte/nou/", signup_views.signup_view, name="signup"),
     path("compte/seguretat/", views.security_view, name="security"),
     path(
         "compte/seguretat/doble-factor/",

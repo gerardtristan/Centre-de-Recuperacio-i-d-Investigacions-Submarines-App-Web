@@ -1,0 +1,1 @@
+{% load i18n %}{% translate "Ja tens un compte a la plataforma del C.R.I.S." %}

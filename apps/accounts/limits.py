@@ -109,6 +109,7 @@ def recipient_limited(key: str, purpose: str, now=None, *, windows=RECIPIENT_WIN
 # Mateix mecanisme, amb llindars PROVISIONALS de la configuració [A validar] i comptadors propis.
 JOIN = EmailLinkRequest.Purpose.JOIN
 GUEST_LICENCE = EmailLinkRequest.Purpose.GUEST_LICENCE  # P-450: amb el seu propi compte
+SIGNUP = EmailLinkRequest.Purpose.SIGNUP  # T-M01-53: crear el compte personal, a part
 
 
 def _join_origin_window() -> Window:

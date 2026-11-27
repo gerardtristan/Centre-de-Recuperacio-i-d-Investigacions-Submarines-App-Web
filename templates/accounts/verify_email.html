@@ -15,7 +15,7 @@
   {% elif state == "done" %}
     <div>
       <div class="avis avis-ok" role="status">{% translate "Correu confirmat. Ja pots entrar a l'àrea de socis." %}</div>
-      <div class="accions"><a class="boto boto-principal" href="{% url 'accounts:login' %}">{% translate "Entrar" %}</a></div>
+      <div class="accions"><a class="boto boto-principal" href="{% url 'accounts:login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">{% translate "Entrar" %}</a></div>
     </div>
   {% else %}
     <div>

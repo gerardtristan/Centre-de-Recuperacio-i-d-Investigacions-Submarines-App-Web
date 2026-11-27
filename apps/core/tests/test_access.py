@@ -25,6 +25,7 @@ PUBLIC_ROUTES = {
     "accounts:password_reset",
     "accounts:password_reset_link",
     "accounts:password_reset_request",
+    "accounts:signup",  # T-M01-53 (108, D)
     "accounts:resend_verification",
     # Confirmació del correu d'entrada nou (RN-M01-79): el testimoni lliga el compte i l'adreça.
     "accounts:change_email",

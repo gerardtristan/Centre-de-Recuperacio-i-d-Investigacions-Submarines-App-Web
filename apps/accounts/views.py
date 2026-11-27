@@ -321,7 +321,9 @@ def verify_email_view(request):
         state = "ready"
     if state == "invalid":
         request.session.pop(email_links.VERIFY_SESSION_KEY, None)
-    return _same_origin_referrer(render(request, "accounts/verify_email.html", {"state": state}))
+    # T-M01-53: si el compte es va crear en aquest navegador, l'entrada torna on volia anar.
+    context = {"state": state, "next": request.session.get("signup_next", "")}
+    return _same_origin_referrer(render(request, "accounts/verify_email.html", context))
 
 
 @login_not_required
