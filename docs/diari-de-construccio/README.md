@@ -652,3 +652,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M07-22](T-M07-22.md) | Versions comparables, publicació programada i recuperar una pàgina retirada (carril E) | 27/11/2026 23:43 | (vegeu la PR) | 12 noves i 1 e2e | [A comprovar] |
 | [T-M07-25](T-M07-25.md) | Revisor de qualitat abans de publicar (carril E) | 27/11/2026 23:47 | (vegeu la PR) | 4 noves | [A comprovar] |
 | [T-M07-23](T-M07-23.md) | Bloc de vídeo: YouTube amb clic per carregar i vídeo propi (carril E) | 28/11/2026 00:34 | (vegeu la PR) | 13 noves i 1 e2e | [A comprovar] |
+| [T-M07-20a](T-M07-20a.md) | Patrons i blocs compartits (carril E) | 28/11/2026 00:43 | (vegeu la PR) | 15 noves | [A comprovar] |
