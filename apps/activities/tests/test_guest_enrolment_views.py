@@ -1,23 +1,25 @@
-"""Pantalles d'inscripció d'un convidat: el formulari públic i la inscripció presencial (T-M02-14 i
-T-M02-34; RN-M02-35; CA-M02-10, 11 i 37; P-458). El servei té les seves proves a
-`test_guests.py`. Només dades inventades."""
+"""Inscripció d'un no soci: des del web, amb la sessió del compte personal (T-M02-54; decisió
+108, C.1), i la inscripció presencial (T-M02-14 i T-M02-34; RN-M02-35; CA-M02-37; P-458).
+El servei té les seves proves a `test_guests.py`. Només dades inventades."""
 
 import html
+from urllib.parse import parse_qs, urlsplit
 
 import pytest
 from django.urls import reverse
 
-from apps.accounts.security import AREA_ADMIN
+from apps.accounts.security import AREA_ADMIN, AREA_PERSONAL
 from apps.activities import guests
 from apps.activities.models import Enrolment
-from apps.core.models import Consent, GuestLink, LegalText, Person, Role
+from apps.core.models import Consent, LegalText, Person, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 
-from .helpers import an_open_outing, an_outing
+from .helpers import a_personal_account, an_open_outing, an_outing
 
 pytestmark = pytest.mark.django_db
 
 EMAIL = "convidada@example.org"
+PASSWORD = "contrasenya-de-proves-1954"  # noqa: S105 (dada inventada de proves)
 
 
 @pytest.fixture
@@ -41,44 +43,53 @@ def post_data(**fields):
     return {k: v for k, v in data.items() if v is not None}
 
 
-def test_ca_m02_11_a_guest_enrols_from_the_web_and_gets_the_link(client, manager):
-    publish("privacy", guests.ADULT)
+def test_t_m02_54_without_a_session_it_goes_to_log_in_and_comes_back(client, manager):
+    """Decisió 108, C.1: apuntar-se com a no soci demana el compte personal. Cap formulari."""
     outing = an_open_outing(manager, open_to_non_members=True)
-    page = html.unescape(client.get(url(outing)).content.decode())
-    assert "Soc major d'edat" in page and guests.ADULT_PROPOSAL in page
-    response = client.post(url(outing), post_data())
-    assert response.status_code == 303 and response["Location"] == url(outing)
-    row = Enrolment.objects.get()
-    assert (row.channel, row.person.contact_email) == (Enrolment.Channel.GUEST, EMAIL)
-    assert GuestLink.objects.filter(person=row.person).exists()
-    assert "Inscripció enviada" in client.get(url(outing)).content.decode()
+    response = client.get(url(outing))
+    assert response.status_code == 302
+    login = urlsplit(response["Location"])
+    assert login.path == reverse("accounts:login")
+    assert parse_qs(login.query)["next"] == [url(outing)]  # torna a l'activitat
+    assert client.post(url(outing), post_data()).status_code == 405
+    assert (
+        not Enrolment.objects.exists() and not Person.objects.filter(contact_email=EMAIL).exists()
+    )
 
 
-def test_ca_m02_37_without_the_adult_box_nobody_is_enrolled(client, manager):
-    publish("privacy", guests.ADULT)
+def test_t_m02_54_after_logging_in_it_returns_to_the_activity(client, manager):
     outing = an_open_outing(manager, open_to_non_members=True)
-    response = client.post(url(outing), post_data(adult_declared=None))
-    assert response.status_code == 200 and not Person.objects.filter(contact_email=EMAIL).exists()
-    assert "major d'edat" in html.unescape(response.content.decode())
+    account = a_personal_account()
+    account.set_password(PASSWORD)
+    account.save()
+    response = client.post(
+        reverse("accounts:login"),
+        {"login": account.login, "password": PASSWORD, "next": url(outing)},
+    )
+    assert response.status_code == 302 and response["Location"] == url(outing)
+    enrol = reverse("activities:member_enrol", args=[outing.pk])
+    assert client.get(url(outing))["Location"] == enrol
 
 
-def test_p_458_without_the_published_adult_text_the_form_rejects(client, manager):
-    """A producció, fins que la junta validi el text (P-458): cap inscripció de convidat."""
-    publish("privacy")
+def test_t_m02_54_next_never_goes_outside(client, manager):
+    account = a_personal_account()
+    account.set_password(PASSWORD)
+    account.save()
+    response = client.post(
+        reverse("accounts:login"),
+        {"login": account.login, "password": PASSWORD, "next": "https://exemple.cat/"},
+    )
+    assert response.status_code == 302 and "exemple.cat" not in response["Location"]
+
+
+def test_t_m02_54_with_a_session_it_goes_to_the_personal_area(login_as, manager):
     outing = an_open_outing(manager, open_to_non_members=True)
-    assert "Inscriu-me" not in client.get(url(outing)).content.decode()
-    response = client.post(url(outing), post_data())
-    assert response.status_code == 200 and not Enrolment.objects.exists()
-    assert not Person.objects.filter(contact_email=EMAIL).exists()
+    client = login_as(a_personal_account(), AREA_PERSONAL)
+    response = client.get(url(outing))
+    assert response["Location"] == reverse("activities:member_enrol", args=[outing.pk])
 
 
-def test_ca_m02_10_members_only_and_non_public_activities(client, manager):
-    publish("privacy", guests.ADULT)
-    members_only = an_open_outing(manager)
-    page = html.unescape(client.get(url(members_only)).content.decode())
-    assert "només per a socis" in page and "Inscriu-me" not in page
-    assert client.post(url(members_only), post_data()).status_code == 200
-    assert not Enrolment.objects.exists()
+def test_ca_m02_10_a_non_public_activity_is_not_found(client, manager):
     draft = an_outing(manager, open_to_non_members=True)
     assert client.get(url(draft)).status_code == 404
 

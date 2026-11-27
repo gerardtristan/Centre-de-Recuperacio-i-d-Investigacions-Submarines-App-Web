@@ -1,9 +1,11 @@
-"""Inscripció d'un convidat al navegador (T-M02-14 i T-M02-34): una persona que no és soci
-s'inscriu des del web a una sortida oberta a no socis (sense marcar «Soc major d'edat», error;
-marcant-la, enviada) i el responsable n'inscriu una altra en persona des de la fitxa.
-Pantalles a 1280, 390 i 320 px (clar i fosc). Només dades inventades."""
+"""Inscripció d'un no soci al navegador. Des del web demana el compte personal (T-M02-54;
+decisió 108, C.1): sense sessió, «Inscriu-te sense ser soci» porta a entrar i, en entrar, torna a
+l'activitat, a la inscripció de l'àrea personal amb el preu de no soci. El responsable n'inscriu
+una altra en persona des de la fitxa (T-M02-14). Pantalles a 1280, 390 i 320 px (clar i fosc).
+Només dades inventades."""
 
 import datetime
+import re
 
 import pytest
 from django.urls import reverse
@@ -12,7 +14,9 @@ from playwright.sync_api import expect
 
 from apps.activities import catalogue, guests, services, states
 from apps.activities.models import Enrolment, OutingType
+from apps.activities.tests.helpers import a_personal_account
 from apps.core.models import LegalText
+from conftest import PASSWORD
 
 from .conftest import login_admin, make_admin
 
@@ -33,19 +37,23 @@ def test_a_guest_online_and_another_at_the_desk(page, live_server, transactional
     )  # fmt: skip
     states.publish(outing, by=manager)
 
-    page.goto(f"{live_server.url}{reverse('activities:guest_enrol', args=[outing.pk])}")
+    account = a_personal_account()  # una persona no sòcia amb compte personal
+    account.set_password(PASSWORD)
+    account.save()
+    page.goto(f"{live_server.url}{reverse('activities:public_detail', args=[outing.pk])}")
+    expect(
+        page.get_by_text("Per inscriure't cal entrar amb el teu compte personal.")
+    ).to_be_visible()
+    review("inscripcio-no-soci-detall")
+    page.get_by_role("link", name="Inscriu-te sense ser soci").click()
+    expect(page).to_have_url(re.compile(r"/entrar/\?next="))
+    page.get_by_label("Correu electrònic").fill(account.login)
+    page.get_by_label("Contrasenya").fill(PASSWORD)
+    page.get_by_role("button", name="Entrar").click()
+    enrol = reverse("activities:member_enrol", args=[outing.pk])
+    expect(page).to_have_url(f"{live_server.url}{enrol}")
     expect(page.get_by_role("heading", name="Sortida inventada oberta")).to_be_visible()
-    page.get_by_label("Nom", exact=True).fill("Mar")
-    page.get_by_label("Cognoms").fill("Convidada Inventada")
-    page.get_by_label("Correu electrònic").fill("mar@example.org")
-    page.locator("#id_accept_privacy").check()
-    page.get_by_role("button", name="Inscriu-me").click()
-    expect(page.locator("[data-errata]")).to_contain_text("major d'edat")
-    review("inscripcio-convidat-error")
-    page.locator("#id_adult_declared").check()
-    page.get_by_role("button", name="Inscriu-me").click()
-    expect(page.get_by_text("Inscripció enviada")).to_be_visible()
-    review("inscripcio-convidat-enviada")
+    review("inscripcio-no-soci-amb-sessio")
 
     login_admin(page, live_server.url, manager.login)
     page.goto(f"{live_server.url}{reverse('administration:activity_detail', args=[outing.pk])}")

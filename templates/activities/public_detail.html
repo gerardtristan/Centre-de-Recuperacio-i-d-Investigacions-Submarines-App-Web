@@ -14,6 +14,8 @@
         <a class="boto boto-principal boto-gran" href="{% url 'activities:member_enrol' activity.pk %}">{% translate "Inscriu-te com a soci" %}</a>
         {% if activity.open_to_non_members %}<a class="boto" href="{% url 'activities:guest_enrol' activity.pk %}">{% translate "Inscriu-te sense ser soci" %}</a>{% endif %}
       </div>
+      {# T-M02-54 (decisió 108, C.1): inscriure's, també sense ser soci, demana entrar amb el compte personal. #}
+      {% if not user.is_authenticated %}<p class="text-2">{% translate "Per inscriure't cal entrar amb el teu compte personal. En acabar, tornaràs a aquesta activitat." %}</p>{% endif %}
     {% else %}
       <div class="avis avis-avis" role="status">{% translate "Les inscripcions d'aquesta activitat no són obertes." %}</div>
     {% endif %}

@@ -1685,3 +1685,14 @@ noves:
       L'MP4 es reprodueix a tots els navegadors i un sol format es comprova millor; fins a la resposta,
       la pujada de vídeo no s'encén a producció, i C o D són més restrictives si no es vol cap vídeo pujat.
     data: 2026-11-24
+  P-692:
+    opcions:
+      A: "S'accepta fins a la T-M01-53: la plataforma no és a producció i el compte ràpid ho resol."
+      B: "Avançar la T-M01-53 abans d'obrir res de la web pública."
+      C: "Tornar a obrir el formulari de convidat sense compte fins que hi hagi el compte ràpid."
+      D: "Afegir ara a l'entrada un enllaç a «Fer-se soci» com a única manera de crear compte."
+    recomanada: A
+    perque: >-
+      És una qüestió d'ordre de tasques: res no és a producció i la T-M01-53 ja és al pla. C desfaria
+      la decisió 108 i D faria creure que cal fer-se soci per apuntar-se a una activitat.
+    data: 2026-11-27
