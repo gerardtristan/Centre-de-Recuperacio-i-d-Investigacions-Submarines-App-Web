@@ -4,7 +4,7 @@ crida."""
 from procrastinate import RetryStrategy
 from procrastinate.contrib.django import app
 
-from . import email_links, limits
+from . import email_links, limits, signup
 
 
 # T-M01-39b: «He oblidat la contrasenya». 3 reintents en menys d'un minut (als 7, 9 i 13 s);
@@ -25,3 +25,11 @@ def send_password_reset(request_id: int) -> None:
 @app.task(name="accounts.purge_email_link_requests", queue="maintenance")
 def purge_email_link_requests(timestamp: int) -> None:
     limits.purge_old()
+
+
+# T-M01-53 (revisió A): cada dia, els comptes pendents de «Crea el compte» que no s'han confirmat
+# en el termini de la verificació s'anonimitzen i l'adreça queda lliure.
+@app.periodic(cron="20 3 * * *")
+@app.task(name="accounts.purge_expired_signups", queue="maintenance")
+def purge_expired_signups(timestamp: int) -> None:
+    signup.purge_expired()

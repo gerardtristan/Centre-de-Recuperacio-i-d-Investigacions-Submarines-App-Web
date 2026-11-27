@@ -1750,4 +1750,15 @@ noves:
     perque: >-
       Reaprofita els enllaços del correu que ja hi ha (límits, testimoni signat d'un sol ús) i no
       deixa entrar sense prémer el botó; el codi és útil, però cal un comptador d'intents propi.
+  P-740:
+    opcions:
+      A: "Verificació des d'un altre navegador amb contrasenya nova, reenviament a una adreça pendent, purga a les 48 hores i invitació a la persona que ja existeix."
+      B: "Treure la contrasenya de «Crea el compte» i triar-la sempre en verificar el correu."
+      C: "Esborrar del tot (no anonimitzar) els comptes pendents caducats."
+      D: "Deixar-ho com abans de la revisió."
+    recomanada: A
+    perque: >-
+      Tanca l'ocupació de l'adreça sense afegir cap pas a qui verifica des del mateix navegador;
+      B també és segur però contradiu els camps de la 108 (D.1), i C no és possible amb els
+      consentiments, que només s'afegeixen.
     data: 2026-11-28

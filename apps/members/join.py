@@ -208,7 +208,8 @@ def submit(
     if web and passport in (fields["id_document_type"], guardian["guardian_id_document_type"]):
         raise ValidationError("El passaport només s'admet a l'alta presencial (Q-017).")
     origin = Person.Origin.WEB if web else Person.Origin.IN_PERSON
-    if account is not None and data.get("for_whom") == "self":
+    for_self = account is not None and data.get("for_whom") == "self"
+    if for_self:
         # T-M01-53 (108, C.1): l'alta «per a mi» va a la persona del compte personal.
         if age < fee_rules.FULL_TYPE_MIN_AGE:
             raise ValidationError("Alta «per a mi» d'un menor de 14 anys (Q-012).")
@@ -259,7 +260,10 @@ def submit(
             else JoinAcceptance.AcceptedBy.APPLICANT
         )
         accepted = [(kind, accepted_by) for kind in kinds] + [
-            (kind, optional_by) for kind in OPTIONAL_TEXTS if data.get(f"accept_{kind}") is True
+            (kind, optional_by)
+            for kind in OPTIONAL_TEXTS
+            # Revisió F: a «per a mi» el butlletí ja és consentiment de la 00 (`_subscribe`).
+            if data.get(f"accept_{kind}") is True and not (for_self and kind == "newsletter")
         ]
         for kind, who in accepted:
             text = consents.current_text(kind)

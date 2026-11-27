@@ -27,9 +27,13 @@ def texts(make_admin):  # noqa: F811
         consents.publish_text(kind, f"Text de prova: {kind}.", by=publisher)
 
 
+def _versions():
+    return ";".join(f"{k}:{t.version}" for k, t in signup.current_texts().items())
+
+
 def _data(**overrides):
     data = {"first_name": "Nura", "last_name": "Blau Fons", "email": EMAIL, "password": PASSWORD,
-            "accept_privacy": "on"}  # fmt: skip
+            "accept_privacy": "on", "text_versions": _versions()}  # fmt: skip
     data.update(overrides)
     return {k: v for k, v in data.items() if v is not None}
 
@@ -79,9 +83,10 @@ def test_the_newsletter_box_only_saves_the_choice(texts):
     assert not NewsletterSubscription.objects.exists()  # la subscripció és de la T-M07-32
 
 
-def test_an_existing_email_gets_the_same_answer_and_only_a_notice(texts):
+def test_an_active_account_email_gets_the_same_answer_and_only_a_notice(texts):
     person = Person.objects.create(first_name="Ja", origin=Person.Origin.WEB)
-    Account.objects.create_personal(person, EMAIL, PASSWORD)
+    existing = Account.objects.create_personal(person, EMAIL, PASSWORD)
+    Account.objects.filter(pk=existing.pk).update(status=Account.Status.ACTIVE)
     before = Person.objects.count()
     client = Client()
     fresh = Client()
@@ -153,3 +158,79 @@ def test_next_is_validated_and_the_confirmed_email_returns_there(texts, next_url
 def test_the_login_page_offers_to_create_the_account_keeping_next():
     html = Client().get(reverse("accounts:login") + "?next=/fer-se-soci/").content.decode()
     assert f"{URL}?next=/fer-se-soci/" in html
+
+
+# --- Revisió independent (28/11/2026) -------------------------------------------------------
+
+
+def _verify(client, account, data=None):
+    session = client.session
+    session[email_links.VERIFY_SESSION_KEY] = tokens.make_token(account, tokens.VERIFY_EMAIL)
+    session.save()
+    return client.post(reverse("accounts:verify_email"), data or {})
+
+
+def test_a_squatter_password_never_activates_the_account(texts):
+    """(A) Algú crea el compte amb el correu d'una altra persona: la víctima, des d'un altre
+    navegador, l'activa només triant-hi una contrasenya nova; la de l'atacant deixa de valer."""
+    Client().post(URL, _data())  # l'atacant
+    account = Account.objects.get(login=EMAIL)
+    victim = Client()
+    assert _verify(victim, account).status_code == 200  # sense contrasenya nova, res
+    account.refresh_from_db()
+    assert account.status == Account.Status.PENDING
+    new = "contrasenya-de-proves-1954-nova"  # noqa: S105 gitleaks:allow (dada inventada)
+    _verify(victim, account, {"new_password1": new, "new_password2": new})
+    account.refresh_from_db()
+    assert account.status == Account.Status.ACTIVE
+    assert account.check_password(new) and not account.check_password(PASSWORD)
+
+
+def test_a_pending_address_gets_the_verification_again_not_a_dead_end(texts):
+    """(A) Si l'adreça ja té un compte pendent, rep l'enllaç de verificació (que deixa triar la
+    contrasenya), no l'avís sense enllaç."""
+    Client().post(URL, _data())
+    Client().post(URL, _data())
+    sent = OutgoingEmail.objects.filter(to_address=EMAIL)
+    assert sent.filter(template="verificacio-correu").count() == 2
+    assert not sent.filter(template=signup.EXISTING_TEMPLATE).exists()
+
+
+def test_expired_pending_signups_are_purged_and_free_the_address(texts):
+    """(A) Passat el termini de la verificació, el compte pendent i la persona d'aquesta pantalla
+    s'anonimitzen i l'adreça torna a estar lliure."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    Client().post(URL, _data())
+    account = Account.objects.get(login=EMAIL)
+    Account.objects.filter(pk=account.pk).update(created_at=timezone.now() - timedelta(hours=49))
+    assert signup.purge_expired() == 1
+    account.refresh_from_db()
+    assert account.status == Account.Status.DISABLED and account.login != EMAIL
+    assert account.person.status == Person.Status.ANONYMISED
+    assert Client().post(URL, _data()).status_code == 303
+    assert Account.objects.filter(login=EMAIL, status=Account.Status.PENDING).exists()
+
+
+def test_an_existing_person_without_account_gets_the_invitation_not_a_duplicate(texts):
+    """(C) Una persona activa amb aquest correu i sense compte personal (p. ex. un soci importat):
+    cap persona nova; rep la invitació, i la resposta és la mateixa."""
+    person = Person.objects.create(
+        first_name="Ja", origin=Person.Origin.IN_PERSON, contact_email=EMAIL
+    )
+    before = Person.objects.count()
+    client = Client()
+    assert client.post(URL, _data()).status_code == 303
+    assert Person.objects.count() == before and not Account.objects.filter(login=EMAIL).exists()
+    assert OutgoingEmail.objects.filter(template="invitacio-compte", person=person).count() == 1
+    assert "Revisa el correu" in _confirmation(client)
+
+
+def test_a_new_privacy_version_between_get_and_post_is_rejected(texts, make_admin):  # noqa: F811
+    """(D) Es desa la versió exacta que la persona ha vist."""
+    shown = consents.current_text("privacy").version
+    consents.publish_text("privacy", "Text de prova: privacy v2.", by=make_admin("administrator"))
+    response = Client().post(URL, _data(text_versions=f"privacy:{shown};newsletter:1"))
+    assert response.status_code == 200 and not Account.objects.filter(login=EMAIL).exists()

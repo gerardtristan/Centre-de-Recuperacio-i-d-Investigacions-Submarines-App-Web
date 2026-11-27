@@ -18,6 +18,7 @@
     <form class="formulari" method="post" novalidate>
       {% csrf_token %}
       {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+      <input type="hidden" name="text_versions" value="{{ form.fields.text_versions.initial }}">
       {% include "_errata.html" %}
       {% if form.accept_newsletter %}
         <div class="targeta">
@@ -26,7 +27,7 @@
           <p class="text-2">{% translate "És opcional i et pots donar de baixa quan vulguis." %} <a href="#text-newsletter" data-obre-text>{% translate "Llegeix el text del butlletí" %}</a></p>
         </div>
       {% endif %}
-      {% for field in form %}{% if field.name != "accept_privacy" and field.name != "accept_newsletter" %}{% include "accounts/_camp.html" %}{% endif %}{% endfor %}
+      {% for field in form %}{% if field.name != "accept_privacy" and field.name != "accept_newsletter" and field.name != "text_versions" %}{% include "accounts/_camp.html" %}{% endif %}{% endfor %}
       <fieldset>
         <legend>{% translate "Textos legals" %}</legend>
         {% translate "Accepto la" as intro %}{% translate "Política de privacitat" as label %}
