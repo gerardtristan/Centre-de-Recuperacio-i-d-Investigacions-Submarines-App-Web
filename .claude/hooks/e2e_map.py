@@ -557,6 +557,7 @@ MAP = {
         "static/css/oleaje.css",
     ),
     "test_previews.py": ("apps/previews/*", "templates/previews/*"),
+    "test_wireframes_editor_web.py": ("design/wireframes/editor-web.html",),
     "test_vigencia.py": (
         "apps/members/templatetags/vigencia.py",
         "templates/members/_vigencia.html",
