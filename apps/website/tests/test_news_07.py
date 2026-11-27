@@ -146,7 +146,7 @@ def test_p489_the_public_photo_view_checks_at_every_request(client, editor):
     item = news.publish(_item(editor, image=photo), actor=editor)
     response = client.get(url)
     assert response.status_code == 200 and response["X-Content-Type-Options"] == "nosniff"
-    assert b"".join(response.streaming_content) == PNG
+    assert b"".join(response.streaming_content).startswith(b"\x89PNG")  # tornada a codificar
     assert f'src="{url}"' in client.get(f"/noticies/{item.slug}/").content.decode()
     news.retire(item, actor=editor, reason="Ja ha passat")
     assert client.get(url).status_code == 404

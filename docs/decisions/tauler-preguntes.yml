@@ -1315,6 +1315,38 @@ opcions:
       variant més prudent si la gestoria vol un límit de temps. Fins a la resposta, l'interruptor és apagat (D).
     data: 2026-11-27
 
+  P-680:
+    opcions:
+      A: "En desar l'esborrany, només es rebutja el que és fora d'esquema; els camps obligatoris buits, en publicar."
+      B: "La mateixa validació sencera en desar i en publicar (el desat automàtic pot fallar amb un bloc a mig fer)."
+      C: "Com A, però l'esborrany marca a l'editor els blocs incomplets."
+    recomanada: A
+    perque: >-
+      Compleix CA-M07-23 (res fora d'esquema es desa mai) sense que el desat automàtic perdi la feina
+      d'un bloc acabat d'afegir; C és la mateixa regla amb una ajuda a la pantalla que pot venir amb la
+      T-M07-06a o el revisor de qualitat (T-M07-25).
+    data: 2026-11-27
+  P-681:
+    opcions:
+      A: "Codis en anglès com els camps (none, soft, marine, accent…) i títols per defecte per als blocs antics."
+      B: "Codis en català (cap, suau, mari, accent…)."
+      C: "Com A, però els blocs antics sense títol es llegeixen amb el títol buit i el revisor ho avisa."
+    recomanada: A
+    perque: >-
+      Els noms dels camps i dels tipus ja són en anglès (`kind`, `width`, `image_text`): barrejar-hi
+      codis en català seria incoherent. Els títols per defecte només afecten pàgines encara no
+      publicades al públic i es poden canviar a l'editor.
+    data: 2026-11-27
+  P-682:
+    opcions:
+      A: "Ara, la secció no s'afegeix; una que hi sigui es mou i se'n canvien les variants, sense tocar els blocs de dins."
+      B: "Editar els blocs de dins de cada columna a la mateixa llista, amb sagnat (un nivell)."
+      C: "Treure el bloc secció del catàleg i fer les columnes amb les plantilles de pàgina."
+    recomanada: A
+    perque: >-
+      És el que cap en una PR petita sense decidir la interacció; B és la bona a la llarga i
+      depèn del wireframe de l'editor (T-M07-01), i C canviaria el catàleg aprovat a la 106.
+    data: 2026-11-27
 noves:
   P-412:
     opcions:
@@ -1685,3 +1717,160 @@ noves:
       L'MP4 es reprodueix a tots els navegadors i un sol format es comprova millor; fins a la resposta,
       la pujada de vídeo no s'encén a producció, i C o D són més restrictives si no es vol cap vídeo pujat.
     data: 2026-11-24
+  P-690:
+    opcions:
+      A: "Sense l'autor: la foto d'activitat surt a la web sense crèdit."
+      B: "Amb l'autor com a crèdit, només si l'autor hi ha donat permís explícit."
+      C: "Amb un crèdit genèric («Foto: C.R.I.S.»)."
+      D: "Amb les inicials de l'autor."
+    recomanada: A
+    perque: >-
+      RP-M07-02 demana les dades del 02 sense noms; l'autor d'una foto de sortida és sovint un soci.
+      Treure'l no perd cap dada (es queda al 02) i es pot afegir després si la junta ho vol amb la P-41.
+    data: 2026-11-27
+  P-691:
+    opcions:
+      A: "Treure'n les metadades amb una biblioteca de PDF nova (pypdf, dependència risc:alt) en pujar-los."
+      B: "Rebutjar en pujar-lo un PDF que porti Author, Creator o Producer amb text."
+      C: "Encendre els PDF tal qual: qui el puja és responsable de les metadades (avís a la pantalla)."
+      D: "Cap PDF a la web pública: només enllaços a documents d'una altra web."
+    recomanada: A
+    perque: >-
+      Treure les metadades és el que ja es fa amb les fotos i no demana res a qui puja el fitxer; B
+      fa rebutjar molts PDF fets amb Word sense que l'usuari entengui per què, i C deixa el risc a
+      qui no el veu. Fins a la resposta, la pujada de PDF és apagada.
+    data: 2026-11-27
+  P-700:
+    opcions:
+      A: "Menú mínim (Inici, Notícies i Ajuda) fins que arribin les pàgines inicials amb el menú de cris1954.cat; a partir del setè enllaç, «Més» per ordre."
+      B: "Copiar ara el menú de cris1954.cat a la migració de dades."
+      C: "Cap menú inicial: el primer el fa qui té WP9."
+      D: "Triar a mà quins enllaços van a «Més», amb un camp propi."
+    recomanada: A
+    perque: >-
+      El menú són dades editables i l'inventari de la web actual es fa a part; una migració mínima
+      no s'ha de desfer, i «Més» per ordre compleix la 034 sense un camp més.
+    data: 2026-11-27
+  P-701:
+    opcions:
+      A: "Un text de la capçalera i un del peu, en text pla, amb versions."
+      B: "També els enllaços del peu (un menú «peu») i les xarxes socials ara."
+      C: "Capçalera i peu fets amb blocs del catàleg."
+      D: "Res editable: la capçalera i el peu, a la plantilla."
+    recomanada: A
+    perque: >-
+      És el mínim que l'addenda demana i es pot ampliar sense tocar dades: un menú «peu» fa servir
+      el mateix model quan es demani.
+    data: 2026-11-27
+  P-720:
+    opcions:
+      A: "Es manté: entrades de menú amb àncora a una secció de la portada (cal que `MenuItem` admeti `#secció`)."
+      B: "Pàgines pròpies «Qui som», «Serveis» i «On som / Contacte» (llista de F §8.2), amb el mateix ordre al menú."
+      C: "A per a les pàgines inicials i B quan hi hagi més contingut de cada secció."
+    recomanada: A
+    perque: >-
+      El propietari vol les pàgines inicials amb el mateix menú; una àncora és un camp de text més a `MenuItem` i passar a B més endavant és editar el menú, sense dades.
+    data: 2026-11-27
+  P-721:
+    opcions:
+      A: "Es manté: enllaços externs a OneDrive."
+      B: "El club passa els fitxers originals; el PDF va a la biblioteca de la web i el vídeo al servidor propi (quan la P-610 ho permeti), i el menú hi enllaça."
+      C: "Es treuen del menú i van a la pàgina d'Història (11) quan existeixi."
+    recomanada: B
+    perque: >-
+      Un fitxer en un compte personal pot desaparèixer o canviar de permisos sense avís; A val fins que el club passi els originals.
+    data: 2026-11-27
+  P-722:
+    opcions:
+      A: "Es manté: les botigues enllacen a Cluber fins que es deixi Cluber; «FES-TE SOCI» va al «Fer-se soci» propi."
+      B: "Es treuen les tres botigues del menú fins que hi hagi el mòdul 13."
+      C: "Una pàgina «Botiga» amb els productes i com comprar-los (contacte o pagament presencial) fins al mòdul 13."
+      D: "A fins al nivell 2 i C a partir d'aleshores."
+    recomanada: D
+    perque: >-
+      Mentre Cluber funcioni, la venda continua sense canvis; quan es deixi, els enllaços es trencarien i C manté la informació sense construir la botiga.
+    data: 2026-11-27
+  P-723:
+    opcions:
+      A: "Es manté: la pàgina «Galeria» amb els enllaços a les carpetes de Drive."
+      B: "Galeries pròpies (blocs `gallery`) amb una selecció de cada carpeta, i Drive desapareix de la web."
+      C: "Galeries pròpies amb una selecció i, al final, l'enllaç a l'arxiu complet de Drive."
+    recomanada: C
+    perque: >-
+      Les fotos destacades es veuen a la web sense dependre de Google i l'arxiu complet es manté on el club ja el gestiona.
+    data: 2026-11-27
+  P-724:
+    opcions:
+      A: "Es manté com a pàgina feta a mà (A per defecte), amb les activitats noves llegides del 02 a sobre."
+      B: "Es carreguen com a activitats fetes al 02 (amb data, lloc i cartell) perquè surtin al bloc `past_activities`."
+      C: "Es converteixen en notícies (`NewsItem`), una per activitat."
+      D: "No es migren: la pàgina comença amb les activitats del 02."
+    recomanada: A
+    perque: >-
+      Conserva la història recent sense crear dades falses al 02; les activitats noves ja hi entraran pel camí del pla.
+    data: 2026-11-27
+  P-725:
+    opcions:
+      A: "Es manté: enllaç extern dins del text quan l'organitza un tercer."
+      B: "Tota activitat del club, també les compartides, s'inscriu al 02."
+      C: "A quan l'organitza un tercer i B quan l'organitza el club."
+    recomanada: C
+    perque: >-
+      El club no pot obligar la FECDAS a fer servir la plataforma, però les dades de les inscripcions pròpies han de quedar a la UE i amb el RGPD de la plataforma, no en un formulari de Google.
+    data: 2026-11-27
+  P-726:
+    opcions:
+      A: "Es manté com a text a la pàgina, i qui edita la web actualitza els preus a mà."
+      B: "Text dels requisits a la pàgina, sense preus, i un bloc `upcoming_activities` filtrat per cursos amb el preu del 02."
+      C: "Es manté com ara, les imatges (sense text que llegeixin els lectors de pantalla)."
+      D: "A, més l'enllaç al PDF del dossier a la biblioteca."
+    recomanada: B
+    perque: >-
+      Un preu escrit dues vegades acaba desquadrat; el 02 ja té el preu de cada curs programat. C no és accessible.
+    data: 2026-11-27
+  P-727:
+    opcions:
+      A: "Es manté amb la coberta (cal el permís de la revista)."
+      B: "Es manté només amb text i l'enllaç, sense la coberta."
+      C: "Es treu."
+    recomanada: B
+    perque: >-
+      La recomanació no necessita la imatge, i així no cal demanar cap permís d'ús ni actualitzar la coberta cada mes.
+    data: 2026-11-27
+  P-728:
+    opcions:
+      A: "Adreça i enllaç extern al mapa, sense incrustar res."
+      B: "Imatge estàtica del mapa desada al servidor (OpenStreetMap, amb l'atribució) i l'enllaç."
+      C: "Mapa incrustat amb clic per carregar, com el vídeo de YouTube."
+      D: "Mapa incrustat directe (contradiu RN-M07-20)."
+    recomanada: A
+    perque: >-
+      Compleix RN-M07-20 sense cap bloc nou; B és bonic però demana generar i mantenir la imatge.
+    data: 2026-11-27
+  P-729:
+    opcions:
+      A: "Es manté igual."
+      B: "Es treu: la web nova no és la subvencionada."
+      C: "Es manté fins que la junta confirmi les condicions de la subvenció."
+    recomanada: C
+    perque: >-
+      Treure un reconeixement que la subvenció exigeix podria obligar a retornar-la; mantenir-lo no costa res mentre es confirma.
+    data: 2026-11-27
+  P-730:
+    opcions:
+      A: "Es mantenen les dues pàgines amb el text actual fins a la revisió."
+      B: "Textos nous a partir dels textos legals de la 00, revisats per la gestoria, abans d'obrir la web."
+      C: "Una pàgina «Avís legal i privacitat» i una de «Galetes» curta que digui que només hi ha galetes tècniques."
+    recomanada: B
+    perque: >-
+      Els textos actuals descriuen un altre allotjament i altres galetes: publicar-los a la web nova seria informar malament; la gestoria ja ha de revisar els textos legals de la 00.
+    data: 2026-11-27
+  P-731:
+    opcions:
+      A: "La del pla: motiu, nom, correu i missatge."
+      B: "Com A, amb un telèfon opcional."
+      C: "Com la web actual: cognoms i telèfon obligatori."
+    recomanada: A
+    perque: >-
+      Són dades personals que la resposta per correu no necessita (minimització, RGPD); afegir un camp és una migració i un canvi del text de privacitat.
+    data: 2026-11-27

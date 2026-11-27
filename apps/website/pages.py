@@ -2,13 +2,15 @@
 
 - `save_page(page, actor, **fields)`: desa les dades de la pàgina (plantilla, accent i adreça
   de llistes tancades o lliures, CA-M07-19) i torna els avisos de compartir (RN-M07-13).
+- `save_draft(page, blocks, actor)`: l'únic esborrany de la pàgina (RN-M07-16).
 - `publish_page(page, blocks, actor, note)`: versió nova; el públic veu aquesta (RN-M07-03).
-- `revert_to(version, actor)`: publica una còpia d'una versió anterior.
+- `revert_to(version, actor)`: publica una còpia d'una versió anterior (amb els tipus antics
+  traduïts al catàleg de la 106, `blocks.upgrade_all`).
+- `validate_blocks(blocks, publishing=...)`: l'esquema de cada tipus (`blocks.CATALOG`).
 
 Tots demanen WP1 (`website.pages`, «Sí») al servidor (catàleg i matriu inicial, T-M07-02).
 """
 
-from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Max
 from django.http import Http404
@@ -17,8 +19,9 @@ from django.utils.translation import gettext as _
 from apps.core import audit
 from apps.core.permissions import has_perm
 
+from . import blocks as catalog
 from . import media
-from .models import Page, PageVersion
+from .models import Page, PageDraft, PageVersion
 
 PERMISSION = "website.pages"  # WP1
 ACTION_PUBLISHED = "website.page_published"
@@ -26,18 +29,6 @@ ACTION_PUBLISHED = "website.page_published"
 SHARE_TITLE_MAX = 60
 SHARE_DESCRIPTION_MAX = 150
 
-# Tipus de bloc (M07-6, llista tancada) → camps de text que porta.
-BLOCK_KINDS = {
-    "text": ("title", "text"),
-    "image": ("media",),
-    "gallery": ("media",),
-    "activities": ("filters",),
-    "news": (),
-    "faq": ("topic",),
-    "join_button": (),
-    "contact_form": (),
-    "newsletter": (),
-}
 EDITABLE_FIELDS = {
     "slug", "title", "template", "accent", "menu_order", "in_menu", "share_title",
     "share_description",
@@ -80,19 +71,22 @@ def save_page(page: Page | None, *, actor, **fields) -> tuple[Page, list[str]]:
     return page, share_warnings(page)
 
 
-def validate_blocks(blocks) -> None:
-    if not isinstance(blocks, list):
-        raise ValidationError(_("Els blocs han de ser una llista."))
-    for block in blocks:
-        if not isinstance(block, dict) or block.get("kind") not in BLOCK_KINDS:
-            raise ValidationError(_("Hi ha un bloc d'un tipus que no existeix."))
-        extra = set(block) - {"kind", *BLOCK_KINDS[block["kind"]]}
-        if extra:
-            raise ValidationError(_("Un bloc porta camps que no són del seu tipus."))
-        # RN-M07-10: text sense format propi; s'escapa en mostrar-lo.
-        if any(not isinstance(block.get(f, ""), str) for f in ("title", "text")):
-            raise ValidationError(_("El text d'un bloc ha de ser text."))
-    media.check_publishable(media.block_media_keys(blocks))  # RN-M07-05
+def validate_blocks(blocks, *, publishing: bool) -> None:
+    """Esquema del catàleg (RN-M07-15, CA-M07-23) i, en publicar, les fotos (RN-M07-05)."""
+    catalog.validate(blocks, publishing=publishing)
+    if publishing:
+        media.check_publishable(media.block_media_keys(blocks))
+        media.check_publishable(media.block_file_keys(blocks), kind="file")
+
+
+def save_draft(page: Page, blocks, actor) -> PageDraft:
+    """RN-M07-16: l'únic esborrany de la pàgina, amb la validació de desar (CA-M07-23)."""
+    require(actor)
+    validate_blocks(blocks, publishing=False)
+    draft, _created = PageDraft.objects.update_or_create(
+        page=page, defaults={"blocks": blocks, "updated_by": actor}
+    )
+    return draft
 
 
 def current_version(page: Page) -> PageVersion | None:
@@ -103,7 +97,7 @@ def current_version(page: Page) -> PageVersion | None:
 def publish_page(page: Page, blocks, actor, note: str = "") -> PageVersion:
     """RN-M07-03: crea la versió següent i deixa la pàgina publicada. Cap versió no canvia."""
     require(actor)
-    validate_blocks(blocks)
+    validate_blocks(blocks, publishing=True)
     page = Page.objects.select_for_update().get(pk=page.pk)
     previous = page.versions.aggregate(n=Max("number"))["n"] or 0
     version = PageVersion.objects.create(
@@ -127,4 +121,4 @@ def publish_page(page: Page, blocks, actor, note: str = "") -> PageVersion:
 def revert_to(version: PageVersion, actor) -> PageVersion:
     """«Tornar a aquesta versió»: publica una còpia dels seus blocs (RN-M07-03)."""
     note = _("Torna a la versió %(n)s") % {"n": version.number}
-    return publish_page(version.page, list(version.blocks), actor, note)
+    return publish_page(version.page, catalog.upgrade_all(version.blocks), actor, note)

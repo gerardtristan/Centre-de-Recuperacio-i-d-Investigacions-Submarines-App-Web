@@ -14,7 +14,8 @@ from apps.website.routes import route_taken
 
 pytestmark = pytest.mark.django_db
 R = Role.Code
-TEXT = [{"kind": "text", "title": "Benvinguts", "text": "Text inventat."}]
+TEXT = [{"kind": "text", "title": "Benvinguts", "body": "Text inventat."}]
+JOIN = {"kind": "join_cta", "title": "Fes-te soci", "body": "Text inventat."}
 
 
 @pytest.fixture
@@ -40,9 +41,9 @@ def test_the_initial_pages_are_drafts_without_content_or_route_clash():
 
 def test_ca_m07_03_revert_publishes_a_copy_and_no_version_changes(page, editor):
     pages.publish_page(page, TEXT, editor, "Primera")
-    second = pages.publish_page(page, TEXT + [{"kind": "join_button"}], editor, "Segona")
+    second = pages.publish_page(page, TEXT + [JOIN], editor, "Segona")
     before = list(PageVersion.objects.values())
-    pages.publish_page(page, [{"kind": "text", "text": "Canvi"}], editor, "Tercera")
+    pages.publish_page(page, [{"kind": "text", "body": "Canvi"}], editor, "Tercera")
     fourth = pages.revert_to(second, editor)
     assert list(page.versions.values_list("number", flat=True)) == [1, 2, 3, 4]
     assert fourth.number == 4 and fourth.blocks == second.blocks
@@ -102,7 +103,7 @@ def test_ca_m07_22_long_share_texts_are_saved_with_a_warning(page, editor):
         {"kind": "text"},
         [{"kind": "script"}],
         [{"kind": "news", "text": "de més"}],
-        [{"kind": "text", "text": ["no"]}],
+        [{"kind": "text", "body": ["no"]}],
         ["text"],
     ],
 )
@@ -113,8 +114,8 @@ def test_blocks_out_of_the_closed_list_are_rejected(page, editor, blocks):
 
 
 def test_text_is_stored_as_written(page, editor):
-    """RN-M07-10: no es neteja ni es converteix; l'escapa la plantilla (CA-M07-13, T-M07-05)."""
-    blocks = [{"kind": "text", "text": "<script>alert(1)</script>"}]
+    """RN-M07-10: es desa tal qual; en mostrar-lo, el Markdown restringit l'escapa (CA-M07-24)."""
+    blocks = [{"kind": "text", "body": "<script>alert(1)</script>"}]
     assert pages.publish_page(page, blocks, editor).blocks == blocks
 
 

@@ -1,0 +1,7 @@
+{% load i18n %}
+{# T-M07-19 (RN-M07-15): avís destacat; `tone` info o warning, amb el símbol i el to en text, mai només el color. #}
+<aside class="bloc bloc-callout avis {% if block.tone == 'warning' %}avis-avis{% else %}avis-info{% endif %}">
+  <p class="bloc-callout-to"><span aria-hidden="true">{% if block.tone == 'warning' %}!{% else %}i{% endif %}</span> {% if block.tone == 'warning' %}{% translate "Atenció" %}{% else %}{% translate "Informació" %}{% endif %}</p>
+  {% if block.title %}<p class="bloc-callout-titol">{{ block.title }}</p>{% endif %}
+  <div class="bloc-prosa">{{ block.body }}</div>
+</aside>

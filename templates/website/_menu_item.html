@@ -1,0 +1,4 @@
+{% load i18n %}{# Un enllaç del menú públic (T-M07-21): amb submenú, <details>; un extern s'obre a la mateixa pestanya i no envia el referent. #}{% if item.subitems %}<details><summary>{{ item.label }}</summary><ul>
+  {% if item.href %}<li><a href="{{ item.href }}"{% if item.href == current %} aria-current="page"{% endif %}>{{ item.label }}</a></li>{% endif %}
+  {% for sub in item.subitems %}<li><a href="{{ sub.href }}"{% if sub.href == current %} aria-current="page"{% endif %}{% if sub.url|slice:":6"|lower == "https:" %} rel="noopener noreferrer"{% endif %}>{{ sub.label }}</a></li>
+  {% endfor %}</ul></details>{% else %}<a href="{{ item.href }}"{% if item.href == current %} aria-current="page"{% endif %}{% if item.url|slice:":6"|lower == "https:" %} rel="noopener noreferrer"{% endif %}>{{ item.label }}</a>{% endif %}

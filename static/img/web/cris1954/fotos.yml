@@ -1,0 +1,279 @@
+# Fotos de https://cris1954.cat/ (el mateix lloc que https://cris.barcelona/), decisió 107.
+# Inventari: docs/web/contingut-cris1954/. Reduïdes a 1.600 px i sense metadades.
+fotos:
+  - fitxer: qui-som-tres-bussejadors-historics.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Fotografia antiga en blanc i negre: tres bussejadors amb vestits d'època, drets dins l'aigua a la vora, un d'ells amb un equip de tres ampolles."
+    origen: https://cris1954.cat/wp-content/uploads/2024/12/PHOTO-2024-06-13-20-37-00.jpg
+  - fitxer: cursos-00-portada-i-index.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Portada del dossier «Informació cursos C.R.I.S.» amb el logotip del club, l'índex dels cursos i dos codis QR."
+    origen: https://cris1954.cat/wp-content/uploads/2026/03/Portada-amb-QR.jpg
+  - fitxer: cursos-01-batejos.png
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Fitxa del bateig de busseig: edat, xerrades, què inclou, preu de 100 € i lloc, amb dues fotos d'un bateig i una il·lustració d'una tortuga entre deixalles."
+    origen: https://cris1954.cat/wp-content/uploads/2026/09/x-1.png
+  - fitxer: cursos-02-bussejador-1-estrella.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Fitxa del curs de bussejador 1 estrella: certificació, edat, profunditat, requisits, què inclou i classes."
+    origen: https://cris1954.cat/wp-content/uploads/2026/03/B1E.jpg
+  - fitxer: cursos-03-bussejador-1-estrella-preu.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Continuació de la fitxa del curs 1 estrella: hores de formació, preu de 400 € i lloc, amb quatre fotos d'alumnes a la piscina, al vaixell i sota l'aigua."
+    origen: https://cris1954.cat/wp-content/uploads/2026/03/Al-final-daquest.jpg
+  - fitxer: cursos-04-suport-vital-basic.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Fitxa del curs de suport vital bàsic: edat, coneixements, preu de 75 € i lloc."
+    origen: https://cris1954.cat/wp-content/uploads/2026/03/Suport-Vital-Basic.jpg
+  - fitxer: cursos-05-bussejador-2-estrelles.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Fitxa del curs de bussejador 2 estrelles amb suport vital bàsic: certificació, edat, profunditat, requisits i classes."
+    origen: https://cris1954.cat/wp-content/uploads/2026/03/B2E-2.jpg
+  - fitxer: cursos-06-bussejador-2-estrelles-coneixements.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Continuació de la fitxa del curs 2 estrelles: coneixements teòrics, preus i lloc."
+    origen: https://cris1954.cat/wp-content/uploads/2026/03/Coneixaments-1.jpg
+  - fitxer: cursos-07-administracio-oxigen.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Fitxa del curs d'administració d'oxigen: edat, coneixements, casos pràctics, preu de 75 € i lloc."
+    origen: https://cris1954.cat/wp-content/uploads/2026/03/Administracio-oxigen.jpg
+  - fitxer: cursos-08-bussejador-3-estrelles.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Fitxa del curs de bussejador 3 estrelles: certificació, edat, profunditat, requisits i què inclou."
+    origen: https://cris1954.cat/wp-content/uploads/2026/03/B3E.jpg
+  - fitxer: cursos-09-bussejador-3-estrelles-coneixements.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Continuació de la fitxa del curs 3 estrelles: coneixements teòrics, preu de 400 € i lloc."
+    origen: https://cris1954.cat/wp-content/uploads/2026/03/Coneixament-teorics.jpg
+  - fitxer: cursos-10-instructor-1-estrella.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Fitxa del curs d'instructor 1 estrella: certificació, edat, profunditat, requisits i què inclou."
+    origen: https://cris1954.cat/wp-content/uploads/2026/03/I1E.jpg
+  - fitxer: cursos-11-instructor-1-estrella-formacio.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Continuació de la fitxa d'instructor 1 estrella: formació completa, especialitats i atribucions."
+    origen: https://cris1954.cat/wp-content/uploads/2026/03/Formacio-completa-I1E.jpg
+  - fitxer: cursos-12-instructor-2-estrelles.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Fitxa del curs d'instructor 2 estrelles: edat, profunditat, requisits i què inclou."
+    origen: https://cris1954.cat/wp-content/uploads/2026/03/I2E.jpg
+  - fitxer: cursos-13-instructor-2-estrelles-formacio.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Continuació de la fitxa d'instructor 2 estrelles: formació completa i atribucions."
+    origen: https://cris1954.cat/wp-content/uploads/2026/03/Formacio-I2E.jpg
+  - fitxer: cursos-14-instructor-3-estrelles.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Fitxa del curs d'instructor 3 estrelles: requisits, atribucions i què inclou."
+    origen: https://cris1954.cat/wp-content/uploads/2026/03/I3E.jpg
+  - fitxer: cursos-15-nitrox.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Fitxa del curs de busseig amb nitrox: requisits, atribucions, preu de 130 € i lloc, amb una foto d'alumnes a l'aula."
+    origen: https://cris1954.cat/wp-content/uploads/2026/03/Nitrox.jpg
+  - fitxer: cursos-16-reciclatges.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Fitxa dels reciclatges: requisits, què inclou i preu de 80 €, amb fotos de bussejadors preparant l'equip i a l'aigua en una cala."
+    origen: https://cris1954.cat/wp-content/uploads/2026/03/Reciclatges.jpg
+  - fitxer: activitat-2026-11-15-llosa-palamos.png
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell MINKA: el C.R.I.S. convoca la propera capbussada a la Llosa de Palamós, diumenge 15 de novembre de 2026 a les 11:30 h, a l'Anemone Diving Center."
+    origen: https://cris1954.cat/wp-content/uploads/2026/11/15-12-1.png
+  - fitxer: activitat-2026-11-15-ullastres.png
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell MINKA: propera capbussada al Projecte Ullastres, diumenge 15 de novembre de 2026 a les 8:00 h, a l'Anemone Diving Center de Palamós."
+    origen: https://cris1954.cat/wp-content/uploads/2026/11/15-12.png
+  - fitxer: curs-b2e-cartell.png
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell del curs de bussejador B2-E amb els requisits, les classes i el telèfon 624 430 268, i una foto de dos bussejadors sota l'aigua."
+    origen: https://cris1954.cat/wp-content/uploads/2026/10/Captura-de-pantalla-B2E.png
+  - fitxer: curs-b3e-administracio-oxigen-cartell.png
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell del curs B3-E amb administració d'oxigen: requisits, kit i classes, telèfon 624 430 268 i una foto de bussejadors en un vaixell."
+    origen: https://cris1954.cat/wp-content/uploads/2026/10/Captura-de-pantalla-B3E.png
+  - fitxer: guia-rapida-minka.png
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Guia ràpida en castellà per fer servir MINKA al cens de biodiversitat dels Ullastres: dotze passos, de crear el compte a publicar l'observació."
+    origen: https://cris1954.cat/wp-content/uploads/2026/09/Guia-Rapida-MINKA-QR.png
+  - fitxer: jornada-busseig-inclusiu.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell de la jornada de busseig inclusiu, dilluns 28 de setembre a les 10 h al Poliesportiu Municipal Marina Besòs, amb bussejadors a la piscina."
+    origen: https://cris1954.cat/wp-content/uploads/2026/09/INCLUSIU.jpg
+  - fitxer: activitat-2026-09-24-cova-del-dofi.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell: propera capbussada a la Cova del Dofí, dijous 24 de setembre de 2026 a les 9:00 h, a Varadero Dive, Sant Feliu de Guíxols."
+    origen: https://cris1954.cat/wp-content/uploads/2026/09/Captura-de-pantalla-2026-09-24-101521.jpg
+  - fitxer: activitat-2026-08-23-reciclatges-i-batejos.jpeg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell de reciclatges i batejos el 23 d'agost a Palamós, amb bussejadors a l'aigua d'una cala."
+    origen: https://cris1954.cat/wp-content/uploads/2026/08/3-1.jpeg
+  - fitxer: activitat-2026-08-22-minka-ullastres.jpeg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell del Projecte C.R.I.S. MINKA: cens de biodiversitat als Ullastres, dissabte 22 d'agost de 2026, trobada a les 8:15 h a l'Anemone Diving Center."
+    origen: https://cris1954.cat/wp-content/uploads/2026/08/1.jpeg
+  - fitxer: activitat-2026-08-22-minka-boreas-llosa.jpeg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell del Projecte C.R.I.S. MINKA: Boreas o Llosa de Palamós, dissabte 22 d'agost de 2026, trobada a les 11:15 h a l'Anemone Diving Center."
+    origen: https://cris1954.cat/wp-content/uploads/2026/08/2.jpeg
+  - fitxer: activitat-2026-08-23-reciclatges-i-batejos-quadrat.png
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell quadrat de reciclatges i batejos el 23 d'agost a Palamós."
+    origen: https://cris1954.cat/wp-content/uploads/2026/08/X.png
+  - fitxer: activitat-2026-08-06-ullastres.png
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell: propera capbussada als Ullastres, dijous 6 d'agost de 2026 a les 8:15 h, a l'Anemone Diving Center de Palamós."
+    origen: https://cris1954.cat/wp-content/uploads/2026/08/X-2.png
+  - fitxer: activitat-2026-06-13-cadaques.png
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell: propera capbussada a Cadaqués, dissabte 13 de juny de 2026 a les 9:30 h, per censar la biodiversitat marina."
+    origen: https://cris1954.cat/wp-content/uploads/2026/06/x-2.png
+  - fitxer: activitat-2026-05-31-cova-del-dofi.png
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell: propera capbussada a la Cova del Dofí, diumenge 31 de maig de 2026 a les 8:45 h, a Varadero Dive, Sant Feliu de Guíxols."
+    origen: https://cris1954.cat/wp-content/uploads/2026/06/x-1.png
+  - fitxer: activitat-2026-05-23-boreas.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell: propera capbussada al Boreas, dissabte 23 de maig de 2026 a les 8:15 h, a l'Anemone Diving Center de Palamós."
+    origen: https://cris1954.cat/wp-content/uploads/2026/05/1.jpg
+  - fitxer: activitat-2026-05-24-llosa-palamos.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell: propera capbussada a la Llosa de Palamós, diumenge 24 de maig de 2026 a les 8:15 h."
+    origen: https://cris1954.cat/wp-content/uploads/2026/05/2.jpg
+  - fitxer: activitat-2026-05-01-ullastres.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell: propera capbussada als Ullastres, divendres 1 de maig a les 8:15 h, a l'Anemone Diving Center de Palamós."
+    origen: https://cris1954.cat/wp-content/uploads/2026/04/x1.jpg
+  - fitxer: activitat-2026-05-02-gorgonies-formigues.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell: propera capbussada a Gorgònies i Formigues, dissabte 2 de maig a les 8:15 h, a l'Anemone Diving Center de Palamós."
+    origen: https://cris1954.cat/wp-content/uploads/2026/04/x2.jpg
+  - fitxer: activitat-2026-05-03-blanes.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell: propera capbussada diumenge 3 de maig de 2026 a les 9:30 h al Centre Blanes Sub, per censar la biodiversitat marina."
+    origen: https://cris1954.cat/wp-content/uploads/2026/04/x-2.jpg
+  - fitxer: activitat-2026-04-19-llosa-palamos.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell: propera capbussada a la Llosa de Palamós, diumenge 19 d'abril de 2026 a les 11:30 h."
+    origen: https://cris1954.cat/wp-content/uploads/2026/04/x-1.jpg
+  - fitxer: activitat-2026-04-11-platja-daro-aneris.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell: propera capbussada del Projecte ANERIS a Platja d'Aro, dissabte 11 d'abril de 2026 a les 8 h, 8 places."
+    origen: https://cris1954.cat/wp-content/uploads/2026/04/x.jpg
+  - fitxer: activitat-2026-04-04-boreas.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell: propera capbussada al Boreas, dissabte 4 d'abril de 2026 a les 10:30 h, a l'Anemone Diving Center de Palamós."
+    origen: https://cris1954.cat/wp-content/uploads/2026/03/Captura-de-pantalla-2026-03-30-213911.jpg
+  - fitxer: activitat-2026-03-29-boreas.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Cartell: propera capbussada al Boreas, diumenge 29 de març de 2026 a les 8 h, a l'Anemone Diving Center de Palamós."
+    origen: https://cris1954.cat/wp-content/uploads/2026/03/Boreas-29-03-26.jpg
+  - fitxer: activitat-2026-03-30-llosa-palamos.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell: propera capbussada a la Llosa de Palamós, dilluns 30 de març de 2026 a les 8 h."
+    origen: https://cris1954.cat/wp-content/uploads/2026/03/Llosa-Palamos-30-03-26.jpg
+  - fitxer: sorteig-fira-2026.jpeg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Cartell del sorteig a la fira: una quota d'un any de soci del C.R.I.S. i un dels productes del club (motxilla, dessuadora, samarreta i polo)."
+    origen: https://cris1954.cat/wp-content/uploads/2026/03/Sorteig.jpeg
+  - fitxer: curs-vestit-sec.jpeg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cartell del curs d'especialització de vestit sec: dos dies a Palamós, nivell B1-E, telèfon 624 430 268 i cris@cris.es."
+    origen: https://cris1954.cat/wp-content/uploads/2026/02/Curs-de-Vestit-Sec.jpeg
+  - fitxer: activitat-2026-02-08-llosa-palamos.jpeg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Cartell: propera capbussada a la Llosa de Palamós, diumenge 8 de febrer de 2026 a les 8 h, a l'Anemone Diving Center."
+    origen: https://cris1954.cat/wp-content/uploads/2026/02/Llosa-Palamos.jpeg
+  - fitxer: xerrada-mar-roig-2026-02-01.jpg
+    autor: C.R.I.S.
+    permis: «Publicada a la web del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Cartell «Parlem del Mar Roig!»: diumenge 1 de febrer de 2026 a les 9:30 h a la zona Fòrum, Moll de la Vela, 1, amb peixos de colors sobre un escull de corall."
+    origen: https://cris1954.cat/wp-content/uploads/2026/01/Mar-Roig.jpg

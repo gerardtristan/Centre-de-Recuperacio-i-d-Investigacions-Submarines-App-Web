@@ -19,6 +19,15 @@ STANDALONE = {
     "administration:change_temporary_credential",
     "administration:totp_enrol",
     "administration:private_file",
+    # T-M07-06a: l'editor de la web, fins que DISSENY hi posi l'entrada del menú (T-DX-160).
+    "administration:website_pages",
+    "administration:website_page_editor",
+    "administration:website_page_editor_action",
+    # T-M07-21 (WP9): fins que DISSENY hi posi l'entrada «Web pública › Menú» (T-DX-171).
+    "administration:website_menu",
+    "administration:website_menu_item_add",
+    "administration:website_menu_item_edit",
+    "administration:website_menu_item_remove",
 }
 
 

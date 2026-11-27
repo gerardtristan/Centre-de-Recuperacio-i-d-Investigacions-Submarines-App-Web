@@ -1,0 +1,5 @@
+{# T-M07-19 (RN-M07-10, 15): text en Markdown restringit. `body` arriba convertit i segur, o s'escapa. #}
+<section class="bloc bloc-text bloc-amplada-{{ block.width|default:'normal' }}">
+  {% if block.title %}<h2>{{ block.title }}</h2>{% endif %}
+  <div class="bloc-prosa">{{ block.body }}</div>
+</section>

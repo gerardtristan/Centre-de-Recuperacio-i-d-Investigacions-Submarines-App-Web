@@ -647,3 +647,18 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [dep-markdown-it-py](dep-markdown-it-py.md) | markdown-it-py per al Markdown restringit (decisió 106) | 27/11/2026 22:14 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [dep-sortablejs](dep-sortablejs.md) | SortableJS per arrossegar blocs (decisió 106) | 27/11/2026 22:14 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [dep-pillow](dep-pillow.md) | Pillow per a les pujades de la web (decisió 106) | 27/11/2026 22:14 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [dep-markdown-it-py](dep-markdown-it-py.md) | markdown-it-py per al Markdown restringit (decisió 106) | 27/11/2026 22:14 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [T-M07-04a](T-M07-04a.md) | Nucli de blocs (decisió 106): catàleg, validació i Markdown restringit (carril E) | 27/11/2026 22:33 | (vegeu la PR) | 68 noves i 6 adaptades | [A comprovar] |
+| [T-M07-04b](T-M07-04b.md) | Nucli de blocs (decisió 106): esborrany per pàgina i renderitzador únic (carril E) | 27/11/2026 22:38 | (vegeu la PR) | 9 noves | [A comprovar] |
+| [dep-sortablejs](dep-sortablejs.md) | SortableJS per arrossegar blocs (decisió 106) | 27/11/2026 22:14 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [T-M07-06a](T-M07-06a.md) | Editor de la web: pàgines, blocs, arrossegar i desfer (carril E) | 27/11/2026 22:59 | (vegeu la PR) | 46 noves i 1 e2e | [A comprovar] |
+| [T-M02-53](T-M02-53.md) | Activitats fetes i fotos publicables per a la web (RP-M07-02; carril B) | 27/11/2026 22:27 | (vegeu la PR) | 6 noves | [A comprovar] |
+| [dep-pillow](dep-pillow.md) | Pillow per a les pujades de la web (decisió 106) | 27/11/2026 22:14 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [T-M07-07b](T-M07-07b.md) | Pujades de la web: Pillow, punt focal i mides en WebP (RN-M07-19; P-633 A de la 108; carril B) | 27/11/2026 22:46 | (vegeu la PR) | 11 noves, 4 adaptades i 1 e2e | [A comprovar] |
+| [T-M02-55](T-M02-55.md) | La foto del carnet de titulació es redueix pel costat llarg (P-551 A de la 108; carril B) | 27/11/2026 22:54 | (vegeu la PR) | 2 noves, 2 adaptades i 2 e2e | [A comprovar] |
+| [T-M07-21](T-M07-21.md) | Menús, capçalera i peu de la web pública, i WP9 (torn del nucli; part a) | 27/11/2026 22:35 | (vegeu la PR) | 29 noves | [A comprovar] |
+| [T-M07-21](T-M07-21.md) | Menús, capçalera i peu: la pantalla de l'administració (WP9; part b) | 27/11/2026 22:47 | (vegeu la PR) | 9 noves i 1 e2e | [A comprovar] |
+| [T-M07-37](T-M07-37.md) | Inventari del contingut de cris1954.cat (en part: falten les pàgines inicials de l'editor) | 27/11/2026 22:54 | 86438927 | Cap de nova | [A comprovar] |
+| [T-M07-01](T-M07-01.md) | Wireframes de l'editor de la web pública: les deu pantalles de l'encàrrec (Probador, Pregon, Fototeca) | 27/11/2026 22:28 | 602be634 | 1 nova i 1 e2e | [A comprovar] |
+| [T-M07-19a](T-M07-19a.md) | Blocs de la web pública: grup Text (títol, text, cita, llista, pregunta i avís) i catàleg | 27/11/2026 22:49 | 570ef7e0 | 2 noves | [A comprovar] |
+| [T-M07-19b](T-M07-19b.md) | Blocs de la web pública: Disposició i Acció (secció, separador, espai, botó, «Fes-te soci», butlletí i contacte) | 27/11/2026 23:20 | 42bd3f19 | 3 noves | [A comprovar] |

@@ -1,0 +1,9 @@
+{% load i18n %}{# T-M07-21 (addenda 106; decisió 034): el menú de la web pública, desat amb WP9. Fins a 6 enllaços i la resta a «Més»; submenús d'un nivell amb <details>, sense JavaScript. Cap pàgina sense publicar. Classes existents: la capçalera pública l'inclou i el pinta DISSENY (T-DX-170). #}{% if menu.links %}
+<nav class="navegacio-compte" aria-label="{% translate 'Navegació principal' %}">
+  <ul>
+    {% for item in menu.links %}<li>{% include "website/_menu_item.html" %}</li>
+    {% endfor %}{% if menu.more %}<li><details><summary>{% translate "Més" %}</summary><ul>
+      {% for item in menu.more %}<li>{% include "website/_menu_item.html" %}</li>
+      {% endfor %}</ul></details></li>{% endif %}
+  </ul>
+</nav>{% endif %}
