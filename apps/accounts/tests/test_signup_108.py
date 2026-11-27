@@ -83,9 +83,10 @@ def test_the_newsletter_box_only_saves_the_choice(texts):
     assert not NewsletterSubscription.objects.exists()  # la subscripció és de la T-M07-32
 
 
-def test_an_existing_email_gets_the_same_answer_and_only_a_notice(texts):
+def test_an_active_account_email_gets_the_same_answer_and_only_a_notice(texts):
     person = Person.objects.create(first_name="Ja", origin=Person.Origin.WEB)
-    Account.objects.create_personal(person, EMAIL, PASSWORD)
+    existing = Account.objects.create_personal(person, EMAIL, PASSWORD)
+    Account.objects.filter(pk=existing.pk).update(status=Account.Status.ACTIVE)
     before = Person.objects.count()
     client = Client()
     fresh = Client()
