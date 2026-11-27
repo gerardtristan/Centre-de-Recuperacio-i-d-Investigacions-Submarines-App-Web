@@ -35,9 +35,15 @@ def switched_on(db):
     Setting.objects.filter(key=newsletter.ENABLED).update(initial_value=True)
 
 
+def _signup_versions():
+    from apps.accounts import signup
+
+    return ";".join(f"{k}:{t.version}" for k, t in signup.current_texts().items())
+
+
 def _signup(**extra):
     data = {"first_name": "Nura", "last_name": "Blau", "email": EMAIL, "password": PASSWORD,
-            "accept_privacy": "on", **extra}  # fmt: skip
+            "accept_privacy": "on", "text_versions": _signup_versions(), **extra}  # fmt: skip
     Client().post(reverse("accounts:signup"), data)
     return Account.objects.get(login=EMAIL)
 
@@ -71,7 +77,8 @@ def test_without_the_box_or_with_the_switch_off_nothing_is_subscribed(texts):
 
 def _signup_other():
     data = {"first_name": "Pol", "last_name": "Mar", "email": "pol.mar@example.org",
-            "password": PASSWORD, "accept_privacy": "on"}  # fmt: skip
+            "password": PASSWORD, "accept_privacy": "on",
+            "text_versions": _signup_versions()}  # fmt: skip
     Client().post(reverse("accounts:signup"), data)
     return Account.objects.get(login="pol.mar@example.org")
 
