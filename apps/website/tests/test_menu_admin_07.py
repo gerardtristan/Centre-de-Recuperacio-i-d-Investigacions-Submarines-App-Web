@@ -25,7 +25,9 @@ def test_wp9_adds_a_submenu_and_an_external_link_and_removes_one(make_admin):  #
     assert client.get(LIST).status_code == 200
     group = {"label": "El club", "url": "", "order": 7}
     assert client.post(ADD, group)["Location"] == LIST
-    sub = {"label": "Federació", "url": "https://federacio.exemple.cat/", "parent": _main("El club").pk, "order": 1}  # fmt: skip
+    parent = _main("El club").pk
+    sub = {"label": "Federació", "url": "https://federacio.exemple.cat/", "parent": parent}
+    sub["order"] = 1
     assert client.post(ADD, sub)["Location"] == LIST
     assert _main("Federació").parent == _main("El club")
     html = client.get(LIST).content.decode()
