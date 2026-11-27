@@ -26,7 +26,7 @@ from apps.core import audit, roles
 from apps.core.models import AccountRole
 from apps.core.permissions import has_perm, permission_required
 
-from . import email_links, emergency, invitations, limits, tokens, totp
+from . import email_links, emergency, invitations, limits, signup, tokens, totp
 from .forms import (
     CodeForm,
     DisableTotpForm,
@@ -313,16 +313,28 @@ def verify_email_view(request):
     obrir l'enllaç no ho faci sol."""
     token = request.session.get(email_links.VERIFY_SESSION_KEY, "")
     state = "invalid"
+    account = tokens.account_for_token(token, tokens.VERIFY_EMAIL)
+    # Revisió A (T-M01-53): un compte de «Crea el compte» verificat des d'un altre navegador només
+    # s'activa triant-hi una contrasenya nova; així ningú no l'activa amb la contrasenya d'un
+    # altre que va escriure el correu d'aquesta persona.
+    form = None
+    if account is not None and account.pk != request.session.get(signup.SESSION_KEY):
+        if signup.created_here(account):
+            form = NewPasswordForm(account, request.POST or None)
     if request.method == "POST":
-        if email_links.confirm_email(token, request=request) is not None:
-            state = "done"
-        request.session.pop(email_links.VERIFY_SESSION_KEY, None)
-    elif tokens.account_for_token(token, tokens.VERIFY_EMAIL) is not None:
+        if form is None or form.is_valid():
+            password = form.cleaned_data["new_password1"] if form is not None else None
+            if email_links.confirm_email(token, request=request, new_password=password):
+                state = "done"
+            request.session.pop(email_links.VERIFY_SESSION_KEY, None)
+        else:
+            state = "ready"
+    elif account is not None:
         state = "ready"
     if state == "invalid":
         request.session.pop(email_links.VERIFY_SESSION_KEY, None)
     # T-M01-53: si el compte es va crear en aquest navegador, l'entrada torna on volia anar.
-    context = {"state": state, "next": request.session.get("signup_next", "")}
+    context = {"state": state, "form": form, "next": request.session.get("signup_next", "")}
     return _same_origin_referrer(render(request, "accounts/verify_email.html", context))
 
 

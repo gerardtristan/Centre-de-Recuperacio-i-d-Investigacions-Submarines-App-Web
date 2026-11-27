@@ -311,7 +311,7 @@ def reset_password(token: str, data=None, *, request=None) -> ResetResult:
 
 
 @transaction.atomic
-def confirm_email(token: str, *, request=None) -> Account | None:
+def confirm_email(token: str, *, request=None, new_password: str | None = None) -> Account | None:
     """Activa el compte pendent del testimoni (CA-04.2). Torna None si el testimoni no és vàlid
     o ja s'ha fet servir. La fila queda bloquejada: dues confirmacions alhora en fan una."""
     account = tokens.account_for_token(token, tokens.VERIFY_EMAIL, lock=True)
@@ -327,7 +327,12 @@ def confirm_email(token: str, *, request=None) -> Account | None:
         request=request,
     )
     account.status = Account.Status.ACTIVE
-    account.save(update_fields=["status", "updated_at"])
+    fields = ["status", "updated_at"]
+    if new_password:
+        # Revisió A: qui demostra el correu tria la contrasenya; la de l'alta deixa de valer.
+        account.set_password(new_password)
+        fields.append("password")
+    account.save(update_fields=fields)
     signals.email_verified.send(sender=Account, account=account, request=request)
     return account
 
