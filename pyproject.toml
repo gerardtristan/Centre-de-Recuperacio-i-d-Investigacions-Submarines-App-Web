@@ -26,6 +26,12 @@ dependencies = [
     # Seguiment d'errors (checklist E4, R11): l'SDK que parlen GlitchTip i Sentry. Només s'activa
     # amb ERROR_TRACKING_DSN a producció. Fixat a la 2.74: la 2.75 tenia cinc dies quan es va afegir.
     "sentry-sdk>=2.74,<2.75",
+    # Entrar i crear el compte personal amb Google (OpenID Connect; decisió 108, D.2): estat, nonce,
+    # intercanvi del codi i validació de l'id_token amb les claus de Google. Fixat a la 1.9.5
+    # (05/11/2026, 22 dies): les següents tenien menys de dues setmanes. Cap vulnerabilitat des de la 1.9.1.
+    "authlib>=1.9.5,<1.9.6",
+    # El client de Django d'authlib fa les peticions amb requests (no el declara com a dependència).
+    "requests>=2.34.2,<2.35",
 ]
 
 [project.optional-dependencies]
