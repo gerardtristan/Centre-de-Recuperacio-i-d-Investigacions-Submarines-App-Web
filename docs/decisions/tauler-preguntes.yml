@@ -1729,3 +1729,14 @@ noves:
       La persona escriu les seves dades una sola vegada i res del que ja hi era es perd; cap perfil
       no es fusiona sol. C podria esborrar dades bones i D contradiu la 108 (D.1).
     data: 2026-11-27
+  P-706:
+    opcions:
+      A: "Consentiment al moment només a l'alta «per a mi»; cap subscripció a posteriori en encendre l'interruptor."
+      B: "En encendre l'interruptor, subscriure tots els qui tenen el consentiment donat."
+      C: "Esperar l'aprovació de l'alta també per al butlletí (com CA-M01-01)."
+      D: "Subscriure també la persona d'una alta «per a una altra persona» amb el correu escrit, amb doble confirmació."
+    recomanada: A
+    perque: >-
+      Compleix la 108 per al titular, que té el correu verificat, sense subscriure ningú que no
+      ho hagi fet ell mateix amb el butlletí encès; B es pot fer més endavant amb una ordre.
+    data: 2026-11-27

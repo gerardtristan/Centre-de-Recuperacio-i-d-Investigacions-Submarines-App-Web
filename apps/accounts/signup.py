@@ -5,8 +5,9 @@
   soci» (o a l'activitat), quan calen.
 - Crea la persona i el compte personal **pendent** fins que es confirma el correu (RN-18); el
   compte no obté sessió abans. La privacitat i, si es marca, el butlletí queden com a
-  consentiments de la 00 amb la versió exacta mostrada. La casella només desa l'elecció: la
-  subscripció és de la T-M07-32 (darrere de `website.newsletter_enabled`).
+  consentiments de la 00 amb la versió exacta mostrada. Amb la casella marcada, el 07 la
+  subscriu en confirmar el correu (T-M07-32, senyal `email_verified`; darrere de
+  `website.newsletter_enabled`).
 - La resposta és la mateixa tant si el correu ja té compte com si no (no ho revela): si ja en té,
   aquella adreça rep un avís sense enllaç que deixi entrar i no es crea res.
 - Límits per origen i per destinatari amb el mecanisme del «Fer-se soci» (comptadors propis).
