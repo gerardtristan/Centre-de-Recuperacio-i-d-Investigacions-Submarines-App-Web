@@ -1,0 +1,2 @@
+{# T-M07-19 (RN-M07-15): un botó; `style` secondary per defecte o primary (un sol primari per pàgina, D19: ho avisa el revisor). `target` és una pàgina interna o una adreça https: validada al servidor. #}
+<p class="bloc bloc-button"><a class="boto{% if block.style == 'primary' %} boto-principal{% endif %}" href="{{ block.target }}">{{ block.label }}</a></p>

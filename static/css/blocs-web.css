@@ -32,7 +32,7 @@
 .bloc-fons-soft { background: var(--c-superficie-2); color: var(--c-text); }
 .bloc-fons-marine { background: var(--c-mari); color: var(--c-mari-sobre); }
 .bloc-fons-accent { background: var(--bloc-accent, var(--c-accent)); color: var(--bloc-accent-text, var(--c-accent-text)); }
-.bloc-fons-marine a, .bloc-fons-accent a { color: inherit; }
+.bloc-fons-marine a:not(.boto), .bloc-fons-accent a:not(.boto) { color: inherit; }
 .pagina-accent-accent { --bloc-accent: var(--c-accent); --bloc-accent-text: var(--c-accent-text); }
 .pagina-accent-mari { --bloc-accent: var(--c-mari); --bloc-accent-text: var(--c-mari-sobre); }
 .pagina-accent-info { --bloc-accent: var(--c-info-fons); --bloc-accent-text: var(--c-info-text); }
@@ -60,3 +60,27 @@
 .bloc-callout > p { margin: 0; }
 .bloc-callout-to { font-size: var(--t-xs); font-weight: var(--p-semi); letter-spacing: var(--ll-etiqueta); text-transform: uppercase; }
 .bloc-callout-titol { font-weight: var(--p-negreta); }
+
+/* ---------- Disposició (T-M07-19b) ---------- */
+/* Secció: les columnes s'apilen al mòbil i es posen al costat a partir de 768 px */
+.bloc-columnes { display: grid; gap: var(--e-5); }
+.bloc-columna { display: grid; gap: var(--e-4); align-content: start; min-inline-size: 0; }
+@media (min-width: 768px) {
+  .bloc-columnes-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bloc-columnes-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.bloc-divider { block-size: 0; border: 0; border-block-start: var(--v-fina) solid var(--c-linia-forta); }
+/* Espai: el gap de la pàgina (--e-6) més el triat */
+.bloc-espai-small { block-size: var(--e-5); }
+.bloc-espai-medium { block-size: var(--e-7); }
+.bloc-espai-large { block-size: var(--e-8); }
+
+/* ---------- Acció (T-M07-19b) ---------- */
+.bloc-button { display: flex; flex-wrap: wrap; gap: var(--e-2); }
+.bloc-join_cta, .bloc-newsletter, .bloc-contact_form { display: grid; gap: var(--e-3); }
+.bloc-join_cta > p, .bloc-newsletter > p, .bloc-contact_form > p { margin: 0; }
+.bloc-join_cta-text { display: grid; gap: var(--e-3); min-inline-size: 0; }
+.bloc-join_cta h2 { font-size: var(--t-2xl); }
+@media (min-width: 768px) {
+  .bloc-join_cta { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--e-6); padding: var(--e-6); }
+}

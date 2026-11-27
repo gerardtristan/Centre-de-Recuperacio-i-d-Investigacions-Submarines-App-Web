@@ -1,0 +1,7 @@
+{% load i18n %}
+{# T-M07-19 (RN-M07-15): crida al formulari de contacte (/contacte/, amb els seus límits i el seu avís de privacitat); amb `website.contact_enabled` apagat, el renderitzador no el dona. #}
+<section class="bloc bloc-contact_form bloc-fons-soft">
+  <h2>{% if block.title %}{{ block.title }}{% else %}{% translate "Escriu-nos" %}{% endif %}</h2>
+  <p>{% translate "Et respondrem al correu que ens deixis." %}</p>
+  <p><a class="boto" href="{% url 'website:contact' %}">{% translate "Obre el formulari de contacte" %}</a></p>
+</section>

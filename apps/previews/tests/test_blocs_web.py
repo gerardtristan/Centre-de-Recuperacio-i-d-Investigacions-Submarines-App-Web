@@ -2,6 +2,7 @@
 (design-system §6.27): reben `block`, escapen el text cru i les variants són classes tancades."""
 
 from django.template.loader import render_to_string
+from django.utils.safestring import mark_safe
 
 
 def _render(block):
@@ -33,3 +34,30 @@ def test_variants_become_closed_classes():
     assert "avis-avis" in _render({"kind": "callout", "body": "T", "tone": "warning"})
     assert "avis-info" in _render({"kind": "callout", "body": "T"})
     assert "bloc-amplada-normal" in _render({"kind": "text", "body": "T"})
+
+
+def test_a_section_shows_the_columns_the_renderer_already_painted():
+    html = _render(
+        {"kind": "section", "columns": [mark_safe("<h3>Un</h3>"), "<b>cru</b>"]}  # noqa: S308
+    )
+    assert "bloc-columnes-2" in html
+    assert '<div class="bloc-columna"><h3>Un</h3></div>' in html
+    assert "&lt;b&gt;cru&lt;/b&gt;" in html  # una columna que no és segura s'escapa
+
+
+def test_action_blocks_escape_the_label_and_mark_one_primary():
+    button = {"kind": "button", "label": "<i>x</i>", "target": "/activitats/", "style": "primary"}
+    html = _render(button)
+    assert "&lt;i&gt;x&lt;/i&gt;" in html and "boto-principal" in html
+    assert "boto-principal" not in _render({"kind": "button", "label": "x", "target": "/"})
+    assert "/fer-se-soci/" in _render({"kind": "join_cta", "title": "T", "body": "B"})
+
+
+def test_the_catalog_paints_its_section_columns_like_the_renderer():
+    from apps.previews.screens.blocs_web import _Columna
+
+    html = _render(
+        {"kind": "section", "columns": [_Columna({"kind": "heading", "text": "<i>", "level": 3})]}
+    )
+    assert '<h3 class="bloc bloc-heading">&lt;i&gt;</h3>' in html
+    assert "object at" not in html

@@ -661,3 +661,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M07-37](T-M07-37.md) | Inventari del contingut de cris1954.cat (en part: falten les pàgines inicials de l'editor) | 27/11/2026 22:54 | 86438927 | Cap de nova | [A comprovar] |
 | [T-M07-01](T-M07-01.md) | Wireframes de l'editor de la web pública: les deu pantalles de l'encàrrec (Probador, Pregon, Fototeca) | 27/11/2026 22:28 | 602be634 | 1 nova i 1 e2e | [A comprovar] |
 | [T-M07-19a](T-M07-19a.md) | Blocs de la web pública: grup Text (títol, text, cita, llista, pregunta i avís) i catàleg | 27/11/2026 22:49 | 570ef7e0 | 2 noves | [A comprovar] |
+| [T-M07-19b](T-M07-19b.md) | Blocs de la web pública: Disposició i Acció (secció, separador, espai, botó, «Fes-te soci», butlletí i contacte) | 27/11/2026 23:20 | 42bd3f19 | 3 noves | [A comprovar] |
