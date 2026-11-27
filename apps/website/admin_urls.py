@@ -5,6 +5,7 @@ from django.urls import path
 
 from . import admin_views as views
 from . import help_admin_views as help_views
+from . import menu_admin_views as menu_views
 from . import news_admin_views as news_views
 from . import tutorial_admin_views as tutorial_views
 
@@ -48,5 +49,14 @@ urlpatterns = [
         "web/tutorials/<int:pk>/publica/",
         tutorial_views.admin_publish_view,
         name="website_tutorial_publish",
+    ),
+    # T-M07-21 (WP9): menú, capçalera i peu.
+    path("web/menu/", menu_views.admin_menu_view, name="website_menu"),
+    path("web/menu/nou/", menu_views.admin_item_view, name="website_menu_item_add"),
+    path("web/menu/<int:pk>/", menu_views.admin_item_view, name="website_menu_item_edit"),
+    path(
+        "web/menu/<int:pk>/treu/",
+        menu_views.admin_item_remove_view,
+        name="website_menu_item_remove",
     ),
 ]

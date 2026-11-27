@@ -1,0 +1,21 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M07-21 (WP9; addenda 106): crear o canviar un enllaç del menú principal. El servidor comprova l'adreça (només una ruta de la plataforma o https:) i el submenú d'un nivell. #}
+{% block title %}{% if item %}{{ item.label }}{% else %}{% translate "Enllaç nou" %}{% endif %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio"><a href="{% url 'administration:website_menu' %}">{% translate "Menú, capçalera i peu" %}</a></p>
+    <h1>{% if item %}{{ item.label }}{% else %}{% translate "Enllaç nou" %}{% endif %}</h1>
+  </header>
+  <section class="targeta">
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% include "_errata.html" %}
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions">
+        <button class="boto boto-principal" type="submit">{% translate "Desa" %}</button>
+        <a class="boto boto-text" href="{% url 'administration:website_menu' %}">{% translate "Torna al menú" %}</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}
