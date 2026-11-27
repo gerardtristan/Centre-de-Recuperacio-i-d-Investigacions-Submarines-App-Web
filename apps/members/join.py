@@ -36,7 +36,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import Http404
 
-from apps.core import audit, consents, mail
+from apps.core import audit, consents, mail, persons
 from apps.core.models import LegalText, Person
 from apps.core.normalization import normalize_email, normalize_phone
 from apps.core.permissions import has_perm
@@ -135,8 +135,30 @@ def _warnings(check, person, email: str) -> list[dict]:
     return found
 
 
+def _complete(account, fields: dict, request) -> list[dict]:
+    """Només omple les dades que la persona del compte encara no té (telèfon, adreça i
+    document); cap no se sobreescriu. Un document que ja és d'una altra persona no s'hi posa i
+    queda l'avís per a la secretaria: els perfils no es fusionen sols (RN-07)."""
+    person = account.person
+    blank = {n: fields[n] for n in ("phone", "address") if fields[n] and not getattr(person, n)}
+    warning = []
+    number = fields["id_document_number"]
+    if number and not person.id_document_number:
+        doc = {"id_document_type": fields["id_document_type"], "id_document_number": number}
+        other = Person.objects.filter(**doc).exclude(pk=person.pk).first()
+        if other is not None:
+            warning.append({"match": "document", "person_id": other.pk})
+        else:
+            blank |= doc
+    if blank:
+        persons.update(person, by=account, request=request, **blank)
+    return warning
+
+
 @transaction.atomic
-def submit(data: dict, *, channel: str, by=None, request=None, send_receipt=True) -> JoinOutcome:
+def submit(
+    data: dict, *, channel: str, by=None, request=None, send_receipt=True, account=None
+) -> JoinOutcome:
     """`data` és el `cleaned_data` del formulari. `by`: el compte de l'alta presencial, o None
     al formulari web (visitant sense identificar). L'alta presencial exigeix P2 també aquí, no
     només a la vista (T-M01-37): sense permís, «no trobat»."""
@@ -173,14 +195,20 @@ def submit(data: dict, *, channel: str, by=None, request=None, send_receipt=True
     if web and passport in (fields["id_document_type"], guardian["guardian_id_document_type"]):
         raise ValidationError("El passaport només s'admet a l'alta presencial (Q-017).")
     origin = Person.Origin.WEB if web else Person.Origin.IN_PERSON
-    person, created, check = create_or_get(origin=origin, **fields)
+    if account is not None and data.get("for_whom") == "self":
+        # T-M01-53 (108, C.1): l'alta «per a mi» va a la persona del compte personal.
+        if age < fee_rules.FULL_TYPE_MIN_AGE:
+            raise ValidationError("Alta «per a mi» d'un menor de 14 anys (Q-012).")
+        person, created, warning = account.person, False, _complete(account, fields, request)
+    else:
+        person, created, check = create_or_get(origin=origin, **fields)
+        warning = _warnings(check, person, fields["contact_email"])
     # D'un en un per persona: dues sol·licituds alhora no en creen dues de pendents.
     Person.objects.select_for_update().filter(pk=person.pk).first()
     pending = MemberRequest.objects.filter(
         person=person, kind=MemberRequest.Kind.JOIN, status=MemberRequest.Status.PENDING
     ).exists()
 
-    warning = _warnings(check, person, fields["contact_email"])
     # Q-042 (072): si la persona ja existia, el contacte escrit no la modifica; es desa a la
     # sol·licitud si és diferent, i la secretaria decideix en aprovar.
     new_contact = {}

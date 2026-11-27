@@ -9,6 +9,15 @@
   <input type="hidden" name="text_versions" value="{{ form.fields.text_versions.initial }}">
   <p class="text-2">{% translate "Tots els camps són obligatoris, excepte els que diuen «opcional»." %}</p>
 
+  {% if form.account %}
+    {# T-M01-53 (108, C.1): per a mi (la persona del compte) o per a una altra persona. #}
+    <fieldset>
+      <legend>{{ form.for_whom.label }}</legend>
+      {% for radio in form.for_whom %}<label class="casella" for="{{ radio.id_for_label }}">{{ radio.tag }} <span>{{ radio.choice_label }}</span></label>{% endfor %}
+      <p class="ajuda text-2">{% translate "Per a una altra persona, escriu-ne les dades a sota en lloc de les teves." %}</p>
+      {{ form.for_whom.errors }}
+    </fieldset>
+  {% endif %}
   <fieldset>
     <legend>{% translate "Dades personals" %}</legend>
     {% with field=form.first_name %}{% include "accounts/_camp.html" %}{% endwith %}

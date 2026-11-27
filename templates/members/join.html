@@ -4,7 +4,14 @@
 {% block titol_zona %}{% translate "Fer-se soci" %}{% endblock %}
 {% block content %}
   <h1>{% translate "Sol·licitud d'alta" %}</h1>
-  {% if unavailable %}
+  {% if gate %}
+    {# T-M01-53 (108, C.1): sense sessió, l'anunci; el preu de la quota i el formulari, amb el compte. #}
+    <p>{% translate "Fes-te soci del C.R.I.S.: sortides, cursos i la vida del club. Per veure el preu de la quota i enviar la sol·licitud, entra amb el teu compte o crea'l en un minut (només el nom, el correu i una contrasenya)." %}</p>
+    <div class="accions">
+      <a class="boto boto-principal" href="{% url 'accounts:signup' %}?next={{ next|urlencode }}">{% translate "Crea el compte" %}</a>
+      <a class="boto" href="{% url 'accounts:login' %}?next={{ next|urlencode }}">{% translate "Ja tinc compte: entra" %}</a>
+    </div>
+  {% elif unavailable %}
     <div class="avis avis-avis" role="status">{% translate "Ara mateix no es pot enviar cap sol·licitud d'alta. Torna-ho a provar més tard o escriu a la secretaria." %}</div>
   {% elif sent_to %}
     <div class="avis avis-ok" role="status">
@@ -19,8 +26,8 @@
       <h2 id="despres-titol">{% translate "Què passa després" %}</h2>
       <ol class="passos">
         <li>{% translate "L'administració del C.R.I.S. revisa la sol·licitud." %}</li>
-        <li>{% translate "Si l'aprova, t'assigna el número de soci, crea la quota pendent i t'envia una invitació per activar el compte personal." %}</li>
-        <li>{% translate "Actives el compte i pagues la quota." %}</li>
+        <li>{% translate "Si l'aprova, t'assigna el número de soci i crea la quota pendent." %}</li>
+        <li>{% translate "Pagues la quota des del teu compte." %}</li>
         <li>{% translate "Amb l'alta aprovada i el pagament confirmat, passes a ser soci actiu i tens el carnet digital." %}</li>
       </ol>
       <p>{% translate "Ni el número de soci ni el compte activat no et fan soci per si sols." %}</p>

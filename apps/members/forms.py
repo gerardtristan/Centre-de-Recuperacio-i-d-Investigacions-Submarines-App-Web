@@ -83,6 +83,13 @@ def _euros(cents: int) -> str:
     return number_format(cents / 100, decimal_pos=2)
 
 
+FOR_SELF, FOR_OTHER = "self", "other"
+FOR_WHOM = [
+    (FOR_SELF, _("Per a mi")),
+    (FOR_OTHER, _("Per a una altra persona (per exemple, un fill o una filla)")),
+]
+
+
 class JoinForm(forms.Form):
     """Formulari d'alta. L'edat, el tipus permès i la quota els calcula el servidor amb la data
     local de Barcelona (`fee_rules`); el navegador no envia cap edat ni cap import.
@@ -166,9 +173,23 @@ class JoinForm(forms.Form):
         "guardian_phone": "off",
     }
 
-    def __init__(self, *args, texts, in_person=False, today=None, **kwargs):
+    def __init__(self, *args, texts, in_person=False, today=None, account=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.texts = texts
+        self.account = account
+        if account is not None:
+            # T-M01-53 (108, C.1): amb la sessió del compte personal, per a qui és l'alta. Per a
+            # mi, va a la persona del compte (nom i correu, del compte).
+            for_whom = forms.ChoiceField(
+                label=_("Per a qui és l'alta?"),
+                choices=FOR_WHOM,
+                initial=FOR_SELF,
+                widget=forms.RadioSelect,
+            )
+            self.fields = {"for_whom": for_whom, **self.fields}
+            person = account.person
+            self.initial = {"first_name": person.first_name, "last_name": person.last_name,
+                            "contact_email": account.login, **self.initial}  # fmt: skip
         self.in_person = in_person
         self.today = today or fee_rules.local_today()
         if not in_person:
@@ -414,6 +435,12 @@ class JoinForm(forms.Form):
         age = fee_rules.age_today(birth, self.today)
         cleaned["on"] = self.today
         adult = not fee_rules.is_minor(age)
+        if cleaned.get("for_whom") == FOR_SELF and age < fee_rules.FULL_TYPE_MIN_AGE:
+            # Q-012: sense compte personal per sota de 14 anys; l'alta és per a una altra persona.
+            self.add_error(
+                "birth_date",
+                _("Per a un menor de 14 anys, tria «Per a una altra persona» i posa'n les dades."),
+            )
         if "id_document" in cleaned and adult and not cleaned["id_document"]:
             self.add_error("id_document", self.fields["id_document"].error_messages["required"])
         for name in ("contact_email", "phone"):

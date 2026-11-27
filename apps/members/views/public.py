@@ -2,6 +2,9 @@
 
 - Ruta pública declarada (RN-40), amb CSRF. P1: visitant i participant no soci. Una sessió
   d'administració o la d'un soci (no de baixa) rep «no trobat», com qualsevol cel·la «—».
+- T-M01-53 (108, C.1): sense sessió, només l'anunci amb «Entra» i «Crea el compte», que tornen
+  aquí (`next`); el formulari i el preu de la quota, amb la sessió del compte personal. L'alta
+  «per a mi» va a la persona del compte (`join.submit(account=...)`).
 - Límit per origen i per destinatari del rebut amb el limitador dels enllaços del correu i
   llindars provisionals de la configuració [A validar] (`apps/accounts/limits.py`).
 - La resposta és la mateixa tant si el document ja existia com si no, si ja hi havia una
@@ -52,6 +55,10 @@ def _p1(user) -> bool:
 @never_cache
 @require_http_methods(["GET", "POST"])
 def join_view(request):
+    if not request.user.is_authenticated:
+        # 108, C.1: el preu de la quota i el formulari, només amb sessió; la web ho anuncia i
+        # porta a entrar o a crear el compte, que tornen aquí. Un POST sense sessió no desa res.
+        return render(request, "members/join.html", {"gate": True, "next": request.path})
     if not _p1(request.user):
         raise Http404
     texts = join.current_texts()
@@ -61,7 +68,7 @@ def join_view(request):
         sent_to = request.session.pop(SENT_KEY)
         return render(request, "members/join.html", {"sent_to": sent_to})
 
-    form = JoinForm(request.POST or None, texts=texts)
+    form = JoinForm(request.POST or None, texts=texts, account=request.user)
     if request.method == "POST" and request.POST.get(PREVIEW):
         return render_preview(request, form)
     if request.method == "POST" and form.is_valid():
@@ -80,6 +87,7 @@ def join_view(request):
                 channel=MemberRequest.Channel.WEB,
                 request=request,
                 send_receipt=limits.join_receipt_allowed(accepted, email),
+                account=request.user,
             )
         request.session[SENT_KEY] = email
         response = redirect("members:join")
