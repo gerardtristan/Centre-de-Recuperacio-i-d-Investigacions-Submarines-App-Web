@@ -54,3 +54,26 @@ def test_the_president_edits_the_blocks_of_a_page(page, live_server, transaction
     page.keyboard.press("Control+z")
     expect(page.locator("[data-editor-blocs]").get_by_text("Amagat")).to_have_count(0)
     assert not blocks_of("sortides-inventada")[1].get("hidden")
+
+
+def test_the_preview_selects_a_block_and_autosaves(page, live_server, transactional_db, review):
+    """T-M07-06b: clicar un bloc a la vista prèvia el tria i el formulari es desa sol."""
+    from apps.core.models import Setting
+    from apps.website import pages
+
+    Setting.objects.filter(key="website.autosave_seconds").update(initial_value=5)
+    president = make_admin("presidencia.prova", "president")
+    web = pages.save_page(None, actor=president, slug="previa-inventada", title="Prèvia")[0]
+    blocks = [{"kind": "heading", "text": "Benvinguts", "level": 2},
+              {"kind": "quote", "text": "El mar ens uneix (inventada)."}]  # fmt: skip
+    pages.save_draft(web, blocks, president)
+    login_admin(page, live_server.url, president.login)
+    page.goto(f"{live_server.url}{reverse('administration:website_page_editor', args=[web.pk])}")
+    preview = page.frame_locator("[data-vista-previa]")
+    preview.locator('[data-bloc="1"]').click()
+    expect(page.get_by_role("heading", name="Cita", exact=True)).to_be_visible()
+    page.get_by_role("textbox", name="Text", exact=True).fill("El mar ens uneix des de 1954.")
+    expect(page.locator("[data-desat-estat]")).to_have_text("Desat.", timeout=15000)
+    expect(preview.get_by_text("El mar ens uneix des de 1954.")).to_be_visible()
+    assert blocks_of("previa-inventada")[1]["text"] == "El mar ens uneix des de 1954."
+    review("editor-previa")

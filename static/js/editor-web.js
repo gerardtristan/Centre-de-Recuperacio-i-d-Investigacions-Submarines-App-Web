@@ -63,6 +63,9 @@
         if (!result[0]) { status.textContent = json.error; return; }
         editorForm.querySelector("[name=base]").value = json.base;
         status.textContent = status.getAttribute("data-desat");
+        var undo = document.getElementById("editor-desfes");
+        undo.disabled = false;
+        undo.removeAttribute("aria-disabled");
         if (preview) preview.contentWindow.location.reload();
       })
       .catch(function () {
