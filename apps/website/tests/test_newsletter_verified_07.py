@@ -109,3 +109,17 @@ def test_join_for_me_subscribes_at_once_and_for_another_person_does_not(texts, s
     )
     other_client.post(reverse("members:join"), {**other, "accept_newsletter": "on"})
     assert NewsletterSubscription.objects.count() == 1
+
+
+def test_join_for_me_does_not_store_the_newsletter_also_as_an_acceptance(texts, switched_on):
+    """Revisió F: a l'alta «per a mi» el butlletí ja és consentiment de la 00; si també quedés com
+    a acceptació de la sol·licitud, l'aprovació el tornaria a donar després d'una baixa."""
+    from apps.members.models import JoinAcceptance
+
+    client = visitor()
+    data = form_data(
+        for_whom="self", first_name="Visitant", last_name="Prova", text_versions=versions()
+    )
+    client.post(reverse("members:join"), {**data, "accept_newsletter": "on"})
+    assert not JoinAcceptance.objects.filter(legal_text__kind="newsletter").exists()
+    assert JoinAcceptance.objects.filter(legal_text__kind="privacy").exists()
