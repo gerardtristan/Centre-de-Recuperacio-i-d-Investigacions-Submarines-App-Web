@@ -649,3 +649,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M07-06a](T-M07-06a.md) | Editor de la web: pàgines, blocs, arrossegar i desfer (carril E) | 27/11/2026 22:59 | (vegeu la PR) | 46 noves i 1 e2e | [A comprovar] |
 | [T-M07-04c](T-M07-04c.md) | Contracte de dades dels blocs «Dades del club» amb DISSENY (carril E) | 27/11/2026 23:10 | (vegeu la PR) | 1 nova i 2 adaptades | [A comprovar] |
 | [T-M07-06b](T-M07-06b.md) | Editor de la web: vista prèvia en viu, desat automàtic i avís d'edició simultània (en part: mides del Probador; carril E) | 27/11/2026 23:21 | (vegeu la PR) | 10 noves i 1 e2e | [A comprovar] |
+| [T-M07-22](T-M07-22.md) | Versions comparables, publicació programada i recuperar una pàgina retirada (carril E) | 27/11/2026 23:43 | (vegeu la PR) | 12 noves i 1 e2e | [A comprovar] |
