@@ -2,7 +2,7 @@
 
 from procrastinate.contrib.django import app
 
-from . import contact, newsletter
+from . import contact, newsletter, schedule
 
 
 # Cada dia, de matinada: els missatges de contacte acabats fora de termini (RN-M07-07, CA-M07-12).
@@ -16,3 +16,10 @@ def purge_contact_messages(timestamp: int) -> None:
 @app.task(name="website.send_newsletter_batch", queue="maintenance")
 def send_newsletter_batch(delivery_ids: list[int]) -> None:
     newsletter.send_batch(delivery_ids)
+
+
+# Cada minut: les publicacions i retirades programades que han vençut (RN-M07-17, CA-M07-26).
+@app.periodic(cron="* * * * *")
+@app.task(name="website.run_scheduled_actions", queue="maintenance")
+def run_scheduled_actions(timestamp: int) -> None:
+    schedule.run_due()

@@ -1,0 +1,82 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M07-22 (WP1, decisió 106; RN-M07-16, 17 i 25; CA-M07-26 i 33): comparar dues versions bloc per bloc, programar o anul·lar una publicació o una retirada, i retirar o recuperar la pàgina. El servidor torna a comprovar el permís i que cada acció encara es pot fer; la cua fa les programades una sola vegada, a nom de qui les va programar. #}
+{% block title %}{% blocktranslate with title=page.title %}Versions: {{ title }}{% endblocktranslate %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio"><a href="{% url 'administration:website_page_editor' page.pk %}">{% blocktranslate with title=page.title %}Editor: {{ title }}{% endblocktranslate %}</a></p>
+    <h1>{% translate "Versions" %}</h1>
+    <p class="text-2"><span class="codi">/{{ page.slug }}/</span> · {{ page.get_status_display }}</p>
+  </header>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
+  <section class="targeta" aria-labelledby="titol-comparar">
+    <h2 id="titol-comparar">{% translate "Comparar" %}</h2>
+    <form class="formulari" method="get">
+      <div class="camp"><label for="comparar-a">{% translate "Abans" %}</label>
+        <select id="comparar-a" name="a">{% for version in versions %}<option value="{{ version.number }}"{% if a == version.number|stringformat:"s" %} selected{% endif %}>{% blocktranslate with n=version.number %}Versió {{ n }}{% endblocktranslate %}</option>{% endfor %}</select></div>
+      <div class="camp"><label for="comparar-b">{% translate "Després" %}</label>
+        <select id="comparar-b" name="b"><option value="esborrany">{% translate "Esborrany actual" %}</option>{% for version in versions %}<option value="{{ version.number }}"{% if b == version.number|stringformat:"s" %} selected{% endif %}>{% blocktranslate with n=version.number %}Versió {{ n }}{% endblocktranslate %}</option>{% endfor %}</select></div>
+      <div class="accions"><button class="boto" type="submit">{% translate "Compara" %}</button></div>
+    </form>
+    {% if rows is not None %}
+      <table class="taula">
+        <caption>{% translate "Bloc per bloc." %}</caption>
+        <thead><tr><th scope="col">{% translate "Abans" %}</th><th scope="col">{% translate "Després" %}</th><th scope="col">{% translate "Canvi" %}</th></tr></thead>
+        <tbody>
+          {% for state, before, after in rows %}
+            <tr>
+              <td data-etiqueta="{% translate 'Abans' %}">{{ before|default:"—" }}</td>
+              <td data-etiqueta="{% translate 'Després' %}">{{ after|default:"—" }}</td>
+              <td data-etiqueta="{% translate 'Canvi' %}">{% if state == "same" %}<span class="estat estat-neutre">{% translate "Igual" %}</span>{% elif state == "changed" %}<span class="estat estat-avis"><span aria-hidden="true">!</span> {% translate "Canviat" %}</span>{% elif state == "added" %}<span class="estat estat-ok"><span aria-hidden="true">+</span> {% translate "Afegit" %}</span>{% else %}<span class="estat estat-error"><span aria-hidden="true">−</span> {% translate "Tret" %}</span>{% endif %}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="3">{% translate "Cap bloc." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-2">{% translate "Encara no hi ha cap versió per comparar." %}</p>
+    {% endif %}
+  </section>
+  <section class="targeta" aria-labelledby="titol-programar">
+    <h2 id="titol-programar">{% translate "Programar" %}</h2>
+    <form class="formulari" method="post" action="{% url 'administration:website_page_schedule' page.pk %}" novalidate>
+      {% csrf_token %}
+      {% include "_errata.html" %}
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Programa" %}</button></div>
+    </form>
+    <p class="ajuda">{% translate "Una publicació programada publica l'esborrany tal com sigui en aquell moment." %}</p>
+    {% if scheduled %}
+      <table class="taula">
+        <caption>{% translate "Accions programades d'aquesta pàgina." %}</caption>
+        <thead><tr><th scope="col">{% translate "Quan" %}</th><th scope="col">{% translate "Acció" %}</th><th scope="col">{% translate "Estat" %}</th><th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th></tr></thead>
+        <tbody>
+          {% for item in scheduled %}
+            <tr>
+              <th scope="row"><time datetime="{{ item.run_at|date:'c' }}">{{ item.run_at|date:"d/m/Y H:i" }}</time></th>
+              <td data-etiqueta="{% translate 'Acció' %}">{{ item.get_action_display }} · {{ item.created_by }}</td>
+              <td data-etiqueta="{% translate 'Estat' %}">{{ item.get_status_display }}{% if item.error %} · {{ item.error }}{% endif %}</td>
+              <td class="cel-accions">{% if item.status == "pending" %}<form method="post" action="{% url 'administration:website_page_schedule_cancel' page.pk item.pk %}">{% csrf_token %}<button class="boto boto-petit" type="submit">{% translate "Anul·la" %}<span class="visualment-amagat">: {{ item.run_at|date:"d/m/Y H:i" }}</span></button></form>{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </section>
+  {% if page.status == "published" or page.status == "retired" %}
+    <section class="targeta" aria-labelledby="titol-retirar">
+      <h2 id="titol-retirar">{% if page.status == "published" %}{% translate "Retirar" %}{% else %}{% translate "Recuperar" %}{% endif %}</h2>
+      {% if page.status == "published" %}
+        <p class="ajuda">{% translate "Deixa de veure's a la web. No s'esborra res i es pot recuperar." %}</p>
+        <form method="post" action="{% url 'administration:website_page_retire' page.pk %}">{% csrf_token %}<div class="accions"><button class="boto" type="submit">{% translate "Retira la pàgina" %}</button></div></form>
+      {% else %}
+        <p class="ajuda">{% translate "Torna a esborrany amb el contingut de l'última versió; no es veu fins que es torni a publicar." %}</p>
+        <form method="post" action="{% url 'administration:website_page_recover' page.pk %}">{% csrf_token %}<div class="accions"><button class="boto" type="submit">{% translate "Recupera la pàgina" %}</button></div></form>
+      {% endif %}
+    </section>
+  {% endif %}
+{% endblock %}

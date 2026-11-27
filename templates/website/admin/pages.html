@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M07-06a (WP1, decisió 106): les pàgines de la web i crear-ne una en esborrany. Només amb WP1 («Sí»); el servidor ho torna a comprovar i valida l'adreça (CA-M07-19). #}
+{# T-M07-06a i 22 (WP1, decisió 106; RN-M07-25): les pàgines de la web, crear-ne una en esborrany i, les retirades, l'enllaç per recuperar-les. Només amb WP1 («Sí»); el servidor ho torna a comprovar i valida l'adreça (CA-M07-19). #}
 {% block title %}{% translate "Pàgines de la web" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <header class="capcalera-pagina">
@@ -17,7 +17,7 @@
         <tr>
           <th scope="row" class="cel-nom"><a href="{% url 'administration:website_page_editor' page.pk %}">{{ page.title }}</a> <span class="codi">/{{ page.slug }}/</span></th>
           <td data-etiqueta="{% translate 'Plantilla' %}">{{ page.get_template_display }}</td>
-          <td data-etiqueta="{% translate 'Estat' %}">{% if page.status == "published" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ page.get_status_display }}</span>{% elif page.status == "retired" %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {{ page.get_status_display }}</span>{% else %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {{ page.get_status_display }}</span>{% endif %}{% if has_draft %} <span class="estat estat-info">{% translate "Amb esborrany" %}</span>{% endif %}</td>
+          <td data-etiqueta="{% translate 'Estat' %}">{% if page.status == "published" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ page.get_status_display }}</span>{% elif page.status == "retired" %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {{ page.get_status_display }}</span> <a href="{% url 'administration:website_page_versions' page.pk %}">{% translate "Recupera-la" %}<span class="visualment-amagat">: {{ page.title }}</span></a>{% else %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {{ page.get_status_display }}</span>{% endif %}{% if has_draft %} <span class="estat estat-info">{% translate "Amb esborrany" %}</span>{% endif %}</td>
         </tr>
       {% empty %}
         <tr><td colspan="3">{% translate "Encara no hi ha cap pàgina." %}</td></tr>

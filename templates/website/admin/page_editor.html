@@ -10,6 +10,7 @@
     <p class="text-2"><span class="codi">/{{ page.slug }}/</span> · {{ page.get_status_display }}</p>
     <form class="accions" method="post" action="{% url 'administration:website_page_editor_action' page.pk %}">
       {% csrf_token %}
+      <a class="boto" href="{% url 'administration:website_page_versions' page.pk %}">{% translate "Versions i programació" %}</a>
       <button class="boto" type="submit" name="action" value="undo" id="editor-desfes" aria-keyshortcuts="Control+Z"{% if not history.undo %} disabled aria-disabled="true"{% endif %}>{% translate "Desfés" %}</button>
       <button class="boto" type="submit" name="action" value="redo" id="editor-refes" aria-keyshortcuts="Control+Shift+Z"{% if not history.redo %} disabled aria-disabled="true"{% endif %}>{% translate "Refés" %}</button>
     </form>

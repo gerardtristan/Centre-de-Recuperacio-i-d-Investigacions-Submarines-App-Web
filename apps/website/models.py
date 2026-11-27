@@ -136,6 +136,41 @@ class PageEditing(models.Model):
         return f"{self.page} · {self.account}"
 
 
+class ScheduledAction(models.Model):
+    """Publicació o retirada programada d'una pàgina (RN-M07-17). La fa la cua de tasques una sola
+    vegada, amb el registre a nom de qui la va programar; es pot anul·lar fins que s'executa."""
+
+    class Action(models.TextChoices):
+        PUBLISH = "publish", _("Publicar")
+        RETIRE = "retire", _("Retirar")
+
+    class Status(models.TextChoices):
+        PENDING = "pending", _("Programada")
+        DONE = "done", _("Feta")
+        CANCELLED = "cancelled", _("Anul·lada")
+        FAILED = "failed", _("No s'ha pogut fer")
+
+    page = models.ForeignKey(Page, on_delete=models.PROTECT, related_name="scheduled")
+    action = models.CharField(_("acció"), max_length=20, choices=Action.choices)
+    run_at = models.DateTimeField(_("quan"))
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+",
+        verbose_name=_("programada per"),
+    )  # fmt: skip
+    status = models.CharField(
+        _("estat"), max_length=20, choices=Status.choices, default=Status.PENDING
+    )
+    error = models.CharField(_("per què no s'ha pogut fer"), max_length=300, blank=True)
+
+    class Meta:
+        verbose_name = _("acció programada")
+        verbose_name_plural = _("accions programades")
+        ordering = ["run_at", "pk"]
+
+    def __str__(self):
+        return f"{self.page} · {self.get_action_display()} · {self.run_at:%d/%m/%Y %H:%M}"
+
+
 class MediaAsset(models.Model):
     """Foto de la web (M07-6, P-M07-C, RN-M07-05). El contingut és a l'emmagatzematge privat de
     la 00, amb una clau aleatòria; cap carpeta pública (P-489): el serveix una vista declarada

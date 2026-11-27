@@ -4,7 +4,7 @@ dins de l'espai de noms `administration`. Totes demanen sessió i permís."""
 from django.urls import path
 
 from . import admin_views as views
-from . import editor_live, editor_views
+from . import editor_live, editor_views, versions_views
 from . import help_admin_views as help_views
 from . import news_admin_views as news_views
 from . import tutorial_admin_views as tutorial_views
@@ -23,6 +23,22 @@ urlpatterns = [
     path("web/pagines/<int:pk>/desa/", editor_live.autosave_view, name="website_page_autosave"),
     path("web/pagines/<int:pk>/comparteix/", editor_live.share_view, name="website_page_share"),
     path("web/pagines/<int:pk>/publica/", editor_live.publish_view, name="website_page_publish"),
+    # T-M07-22 (WP1): versions, comparar, programar, retirar i recuperar.
+    path(
+        "web/pagines/<int:pk>/versions/", versions_views.versions_view, name="website_page_versions"
+    ),
+    path(
+        "web/pagines/<int:pk>/programa/", versions_views.schedule_view, name="website_page_schedule"
+    ),
+    path(
+        "web/pagines/<int:pk>/programa/<int:item>/anulla/",
+        versions_views.cancel_view,
+        name="website_page_schedule_cancel",
+    ),
+    path("web/pagines/<int:pk>/retira/", versions_views.retire_view, name="website_page_retire"),
+    path(
+        "web/pagines/<int:pk>/recupera/", versions_views.recover_view, name="website_page_recover"
+    ),
     path(
         "web/pagines/<int:pk>/versions/<int:number>/",
         editor_live.revert_view,

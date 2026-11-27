@@ -11,6 +11,7 @@
 Tots demanen WP1 (`website.pages`, «Sí») al servidor (catàleg i matriu inicial, T-M07-02).
 """
 
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Max
 from django.http import Http404
@@ -25,6 +26,8 @@ from .models import Page, PageDraft, PageVersion
 
 PERMISSION = "website.pages"  # WP1
 ACTION_PUBLISHED = "website.page_published"
+ACTION_RETIRED = "website.page_retired"
+ACTION_RECOVERED = "website.page_recovered"
 
 SHARE_TITLE_MAX = 60
 SHARE_DESCRIPTION_MAX = 150
@@ -122,6 +125,37 @@ def publish_draft(page: Page, blocks, actor, note: str = "") -> PageVersion:
     version = publish_page(page, blocks, actor, note)
     PageDraft.objects.filter(page=page).delete()
     return version
+
+
+@transaction.atomic
+def retire_page(page: Page, actor) -> Page:
+    """RN-M07-25: deixa de veure's; cap pàgina no s'esborra. Queda al registre (RN-M07-14)."""
+    require(actor)
+    page = Page.objects.select_for_update().get(pk=page.pk)
+    if page.status != Page.Status.PUBLISHED:
+        raise ValidationError(_("Només es pot retirar una pàgina publicada."))
+    page.status = Page.Status.RETIRED
+    page.save(update_fields=["status"])
+    audit.record(ACTION_RETIRED, actor=actor, target=page, field="status",
+                 old=Page.Status.PUBLISHED, new=page.status)  # fmt: skip
+    return page
+
+
+@transaction.atomic
+def recover_page(page: Page, actor) -> Page:
+    """RN-M07-25 i CA-M07-33: torna a esborrany amb el contingut de l'última versió; el públic no
+    la veu fins que es torna a publicar."""
+    require(actor)
+    page = Page.objects.select_for_update().get(pk=page.pk)
+    if page.status != Page.Status.RETIRED:
+        raise ValidationError(_("Només es pot recuperar una pàgina retirada."))
+    version = current_version(page)
+    save_draft(page, catalog.upgrade_all(version.blocks) if version else [], actor)
+    page.status = Page.Status.DRAFT
+    page.save(update_fields=["status"])
+    audit.record(ACTION_RECOVERED, actor=actor, target=page, field="status",
+                 old=Page.Status.RETIRED, new=page.status)  # fmt: skip
+    return page
 
 
 def revert_to(version: PageVersion, actor) -> PageVersion:

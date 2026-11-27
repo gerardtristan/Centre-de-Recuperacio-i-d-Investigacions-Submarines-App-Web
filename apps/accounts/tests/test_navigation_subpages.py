@@ -29,6 +29,12 @@ STANDALONE = {
     "administration:website_page_share",
     "administration:website_page_publish",
     "administration:website_page_revert",
+    # T-M07-22: versions (des de l'editor) i les seves accions, només POST.
+    "administration:website_page_versions",
+    "administration:website_page_schedule",
+    "administration:website_page_schedule_cancel",
+    "administration:website_page_retire",
+    "administration:website_page_recover",
 }
 
 
