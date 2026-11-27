@@ -646,5 +646,6 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M01-53](T-M01-53.md) | «Fer-se soci» darrere de la sessió (torn del nucli; part b) | 27/11/2026 23:51 | (vegeu la PR) | 5 noves i 1 e2e | [A comprovar] |
 | [T-M07-32](T-M07-32.md) | Casella del butlletí en crear el compte i a «Fer-se soci» (torn del nucli) | 27/11/2026 23:57 | (vegeu la PR) | 5 noves | [A comprovar] |
 | [T-M01-56](T-M01-56.md) | Entrar amb un enllaç pel correu, sense contrasenya (torn del nucli; apagat) | 28/11/2026 00:22 | (vegeu la PR) | 10 noves i 1 e2e | [A comprovar] |
+| [T-M07-13d](T-M07-13d.md) | Butlletí des de l'àrea del soci: subscripció immediata (108, C.2) | 28/11/2026 00:28 | (vegeu la PR) | 2 noves i 1 e2e | [A comprovar] |
 | [decisio-106](decisio-106.md) | Decisions 106 i 107: editor visual de la web pública i fotos reals del club; addenda del M07 (carril Y) | 24/11/2026 18:06 | 48268706 | cap (document) | [A comprovar] |
 | [decisio-108](decisio-108.md) | Respostes del propietari del 27/11/2026: tauler, contingut de la web, butlletí i compte ràpid | 27/11/2026 22:37 | (vegeu la PR) | cap (document) | [A comprovar] |
