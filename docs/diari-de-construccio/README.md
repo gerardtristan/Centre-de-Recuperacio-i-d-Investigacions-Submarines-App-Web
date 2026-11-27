@@ -654,3 +654,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M07-23](T-M07-23.md) | Bloc de vídeo: YouTube amb clic per carregar i vídeo propi (carril E) | 28/11/2026 00:34 | (vegeu la PR) | 13 noves i 1 e2e | [A comprovar] |
 | [T-M07-20a](T-M07-20a.md) | Patrons i blocs compartits (carril E) | 28/11/2026 00:43 | (vegeu la PR) | 15 noves | [A comprovar] |
 | [T-M07-20b](T-M07-20b.md) | Plantilles de pàgina amb contingut d'exemple (carril E) | 28/11/2026 00:49 | (vegeu la PR) | 10 noves i 1 e2e | [A comprovar] |
+| [T-M07-18](T-M07-18.md) | Guia de qui edita la web (esborrany; carril E) | 28/11/2026 00:51 | (vegeu la PR) | cap (document) | [A comprovar] |
