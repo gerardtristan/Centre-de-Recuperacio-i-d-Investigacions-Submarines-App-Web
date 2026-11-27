@@ -21,7 +21,7 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
 from apps.activities.card_photos import strip_jpeg, strip_png
-from apps.core import audit, files
+from apps.core import audit, business_settings, files
 from apps.core.permissions import has_perm
 
 from . import blocks as catalog
@@ -61,15 +61,43 @@ def store_image(content: bytes, *, actor, alt_text, shows_people, **details) -> 
     return _store(uploaded, actor=actor, alt_text=alt_text, shows_people=shows_people, **details)
 
 
+VIDEO_UPLOADS = "website.video_upload_enabled"
+MP4_BRANDS = {b"isom", b"iso2", b"mp41", b"mp42", b"avc1", b"M4V "}
+
+
+def upload_video(uploaded, *, actor, alt_text, shows_people, **details) -> MediaAsset:
+    """RN-M07-26 i P-610: només MP4, comprovat pel contingut, i com a màxim
+    `website.upload_max_mb`. Darrere de `website.video_upload_enabled`, apagat (P-687: les
+    metadades d'un MP4, com el lloc, encara no se'n treuen)."""
+    require(actor)
+    if not business_settings.get(VIDEO_UPLOADS):
+        raise ValidationError(_("La pujada de vídeos no està activada."))
+    uploaded.seek(0)
+    head = uploaded.read(12)
+    if head[4:8] != b"ftyp" or head[8:12] not in MP4_BRANDS:
+        raise ValidationError(_("Només es poden pujar vídeos MP4."))
+    if uploaded.size > business_settings.get("website.upload_max_mb") * 1024 * 1024:
+        raise ValidationError(_("El vídeo és massa gran."))
+    uploaded.seek(0)
+    content = ContentFile(uploaded.read())
+    return _save(content, "video/mp4", actor=actor, alt_text=alt_text, shows_people=shows_people,
+                 **details)  # fmt: skip
+
+
 def _store(uploaded, *, actor, alt_text, shows_people, **details) -> MediaAsset:
-    unknown = set(details) - set(DETAIL_FIELDS)
-    if unknown:
-        raise ValueError(f"Camps desconeguts: {sorted(unknown)}")
     content_type = files.validate_upload(uploaded, allowed=WEB_IMAGE_TYPES)
     uploaded.seek(0)
     # Sense metadades (EXIF amb el GPS, número de sèrie, propietari, comentaris): el mateix mètode
     # que les fotos dels carnets (T-M02-42), sense cap biblioteca nova.
     clean = ContentFile(_STRIP[content_type](uploaded.read()))
+    return _save(clean, content_type, actor=actor, alt_text=alt_text, shows_people=shows_people,
+                 **details)  # fmt: skip
+
+
+def _save(clean, content_type, *, actor, alt_text, shows_people, **details) -> MediaAsset:
+    unknown = set(details) - set(DETAIL_FIELDS)
+    if unknown:
+        raise ValueError(f"Camps desconeguts: {sorted(unknown)}")
     asset = MediaAsset(
         content_type=content_type,
         size_bytes=clean.size,
@@ -137,8 +165,8 @@ def block_media_keys(blocks, *, public_only: bool = False) -> list[str]:
             keys.append(block["media"])
         elif kind == "gallery":
             keys.extend(k for k in block.get("media") or [] if k)  # un forat de l'esborrany, no
-        elif kind == "video" and block.get("thumbnail"):
-            keys.append(block["thumbnail"])
+        elif kind == "video":  # la miniatura i, si és un vídeo propi, el vídeo (RN-M07-26)
+            keys += [k for k in (block.get("thumbnail"), block.get("video")) if k]
         elif kind == "project_cards":
             keys.extend(item["media"] for item in block.get("items") or [] if item.get("media"))
     return keys

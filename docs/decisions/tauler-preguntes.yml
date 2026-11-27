@@ -1470,6 +1470,26 @@ opcions:
       No perd mai feina i no cal cap pantalla nova; B depèn de la sessió de qui recupera i C afegeix
       una decisió a un cas rar.
     data: 2026-11-28
+  P-685:
+    opcions:
+      A: "Es desa amb «s'hi veuen persones» i sense consentiment: no es publica fins que WP3 la revisa."
+      B: "Es desa sense persones i es pot publicar de seguida."
+      C: "No es desa cap miniatura: el bloc mostra només l'avís i el títol."
+    recomanada: A
+    perque: >-
+      És la conservadora: no surt cap cara a la web sense que algú ho miri. C també és segura però
+      treu informació útil al visitant; B no es pot defensar si la miniatura té persones.
+    data: 2026-11-28
+  P-687:
+    opcions:
+      A: "Pujada de vídeo apagada fins que es pugui treure el lloc de les metadades."
+      B: "Encendre-la i demanar a qui puja que netegi el vídeo abans."
+      C: "Afegir una eina al servidor (ffmpeg) que reescrigui el vídeo sense metadades."
+    recomanada: A
+    perque: >-
+      Ara no cal (els vídeos dels tutorials encara no s'han pujat) i és l'única que no arrisca cap
+      ubicació; C és la bona a la llarga però és una dependència nova (PR risc:alt pròpia).
+    data: 2026-11-28
 noves:
   P-412:
     opcions:

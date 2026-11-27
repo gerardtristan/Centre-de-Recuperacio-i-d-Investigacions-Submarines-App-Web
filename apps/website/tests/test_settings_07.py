@@ -40,6 +40,7 @@ def test_the_section_has_its_values_with_the_switches_off():
         "website.autosave_seconds": 20,
         "website.upload_max_mb": 10,
         "website.youtube_notice": "En prémer, es carrega YouTube (Google)",  # T-M07-23, P-574
+        "website.video_upload_enabled": False,  # T-M07-23, P-610
     }
     assert {s.key: s.initial_value for s in settings} == {
         **{k: v[0] for k, v in VALUES.items()},

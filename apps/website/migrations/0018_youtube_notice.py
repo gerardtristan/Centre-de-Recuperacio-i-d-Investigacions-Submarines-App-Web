@@ -10,6 +10,8 @@ SETTINGS = {
         "initial_value": "En prémer, es carrega YouTube (Google)",
         "max_length": 200,
     },
+    # RN-M07-26 i P-610: la pujada de vídeo propi no s'encén a producció fins a la resposta.
+    "website.video_upload_enabled": {"value_type": "boolean", "initial_value": False},
 }
 
 

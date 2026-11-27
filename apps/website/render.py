@@ -17,8 +17,8 @@ T-M07-19) o, mentre no existeix, amb `website/blocs/_provisional/<kind>.html`, a
   fetes són buides fins a la T-M07-29.
 
 El vídeo de YouTube porta `embed_url` (només `youtube-nocookie.com`, que obre el clic) i `notice`
-(l'avís, P-574), i surt només amb `website.youtube_enabled`. No es pinten encara: el vídeo propi
-(T-M07-23b) i `file` (els PDF, T-M07-07). El butlletí i el contacte,
+(l'avís, P-574), i surt només amb `website.youtube_enabled`; el vídeo propi porta `video` com una
+foto (`url`). No es pinta encara `file` (els PDF, T-M07-07). El butlletí i el contacte,
 només amb el seu ajust encès.
 """
 
@@ -78,7 +78,7 @@ def _fields(schema: dict, data: dict, images: dict) -> dict:
         value = data.get(name)
         if field.type == "md":
             out[name] = catalog.render_markdown(value)
-        elif field.type == "media":
+        elif field.type == "media" or name == "video":  # el vídeo propi, com una foto
             out[name] = images.get(value)
         elif field.type == "items" and isinstance(field.item, dict):
             out[name] = [_fields(field.item, item, images) for item in value or []]
@@ -130,9 +130,12 @@ def _data(block: dict) -> dict:
     return {}
 
 
-def _video_shown(block: dict) -> bool:
-    """CA-M07-25: YouTube, només amb `website.youtube_enabled`; el vídeo propi, amb la T-M07-23b."""
-    return block.get("source") == "youtube" and business_settings.get(video.ENABLED)
+def _video_shown(block: dict, images: dict) -> bool:
+    """CA-M07-25: YouTube, només amb `website.youtube_enabled`; el vídeo propi (RN-M07-26), si el
+    fitxer es pot publicar i, com les fotos, amb `website.public_images_enabled` encès."""
+    if block.get("source") == "own":
+        return block.get("video") in images
+    return business_settings.get(video.ENABLED)
 
 
 def _render(blocks, page, images) -> str:
@@ -143,7 +146,7 @@ def _render(blocks, page, images) -> str:
             continue
         if kind in SWITCHES and not business_settings.get(SWITCHES[kind]):
             continue
-        if kind == "video" and not _video_shown(block):
+        if kind == "video" and not _video_shown(block, images):
             continue
         context = _fields(catalog.CATALOG[kind], block, images) | _data(block)
         if kind == "section":

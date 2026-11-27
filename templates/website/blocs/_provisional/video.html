@@ -1,5 +1,6 @@
-{# Plantilla provisional (T-M07-23): la definitiva és de DISSENY (T-M07-19, website/blocs/<kind>.html). Abans del clic, cap petició a Google: la miniatura és nostra i l'iframe de youtube-nocookie.com el crea video-web.js en prémer (RN-M07-09, CA-M07-25). #}
-{% load static %}<figure data-video-youtube data-embed="{{ block.embed_url }}" data-titol="{{ block.title }}">
+{# Plantilla provisional (T-M07-23): la definitiva és de DISSENY (T-M07-19, website/blocs/<kind>.html). Vídeo propi (RN-M07-26): del nostre servidor. YouTube: abans del clic, cap petició a Google; la miniatura és nostra i l'iframe de youtube-nocookie.com el crea video-web.js en prémer (RN-M07-09, CA-M07-25). #}
+{% load static %}{% if block.source == "own" %}<figure><video class="zm-vista" controls preload="none" src="{{ block.video.url }}"></video><figcaption>{{ block.title }}</figcaption></figure>
+{% else %}<figure data-video-youtube data-embed="{{ block.embed_url }}" data-titol="{{ block.title }}">
 <button class="boto" type="button" data-video-carrega>{% if block.thumbnail %}<img src="{{ block.thumbnail.url }}" alt="" loading="lazy">{% endif %}<span>{{ block.notice }}</span></button>
 <figcaption>{{ block.title }}</figcaption>
-</figure><script src="{% static 'js/video-web.js' %}" defer></script>
+</figure><script src="{% static 'js/video-web.js' %}" defer></script>{% endif %}

@@ -5,16 +5,18 @@ petició real a la xarxa: la baixada de la miniatura se substitueix. Només dade
 import io
 
 import pytest
+from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
 from apps.core import business_settings
 from apps.core.models import Role, Setting
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.core.tests.test_guest_links import admin_client
-from apps.website import editor, pages, render, video
+from apps.website import editor, media, pages, render, video
 from apps.website.models import MediaAsset, PageDraft
 from apps.website.tests.test_blocks_106 import block
-from apps.website.tests.test_media_07 import PNG
+from apps.website.tests.test_media_07 import COMPLETE, PNG
 
 pytestmark = pytest.mark.django_db
 YOUTUBE = block("video", title="Immersió inventada")  # source youtube, youtube_id d'11
@@ -120,3 +122,48 @@ def test_saving_a_video_block_in_the_editor_stores_the_thumbnail(
                              data)  # fmt: skip
     saved = PageDraft.objects.get().blocks[0]
     assert saved["thumbnail"] == str(MediaAsset.objects.get().key)
+
+
+MP4 = b"\x00\x00\x00\x18ftypmp42" + b"\x00" * 64  # una capçalera MP4 inventada
+
+
+@pytest.fixture
+def video_uploads_on():
+    # Sense permís al catàleg (torn del nucli) i apagat a producció (P-610): només a la prova.
+    Setting.objects.filter(key=media.VIDEO_UPLOADS).update(initial_value=True)
+
+
+def _mp4(content=MP4, name="video.mp4"):
+    return SimpleUploadedFile(name, content)
+
+
+def test_rn_m07_26_video_uploads_start_off(admin):
+    with pytest.raises(ValidationError):
+        media.upload_video(_mp4(), actor=admin, alt_text="Vídeo", shows_people=False)
+    assert not MediaAsset.objects.exists()
+
+
+@pytest.mark.parametrize("content", [PNG, b"\x00\x00\x00\x18ftypqt  " + b"\x00" * 8])
+def test_rn_m07_26_only_mp4_by_its_content(admin, video_uploads_on, content):
+    with pytest.raises(ValidationError):
+        media.upload_video(_mp4(content), actor=admin, alt_text="Vídeo", shows_people=False)
+
+
+def test_rn_m07_26_a_video_over_the_size_limit_is_rejected(admin, video_uploads_on):
+    Setting.objects.filter(key="website.upload_max_mb").update(initial_value=1)
+    with pytest.raises(ValidationError):
+        media.upload_video(_mp4(MP4 + b"\x00" * 1024 * 1024), actor=admin, alt_text="Vídeo",
+                           shows_people=False)  # fmt: skip
+
+
+def test_rn_m07_26_an_own_video_is_shown_when_it_can_be_published(page, admin, video_uploads_on):
+    asset = media.upload_video(_mp4(), actor=admin, alt_text="Immersió", shows_people=False)
+    own = block("video", source="own", video=str(asset.key), title="Propi")
+    assert asset.content_type == "video/mp4" and render.render_blocks([own], page) == ""
+    with pytest.raises(ValidationError):  # sense autor ni permís, no es pot publicar
+        pages.publish_page(page, [own], admin)
+    media.update_details(asset, actor=admin, **COMPLETE)
+    assert render.render_blocks([own], page) == ""  # com les fotos, amb les imatges públiques
+    business_settings.change("website.public_images_enabled", True, admin, "Prova")
+    html = render.render_blocks([own], page)
+    assert f'src="/web/fotos/{asset.key}/"' in html and "<video" in html
