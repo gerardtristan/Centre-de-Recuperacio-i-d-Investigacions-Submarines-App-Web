@@ -1460,6 +1460,16 @@ opcions:
       És el que permet l'entitat de l'addenda sense afegir-hi contingut, i qui edita pot
       continuar corregint fins a l'hora; B duplicaria versions i C sorprendria qui ha programat.
     data: 2026-11-27
+  P-686:
+    opcions:
+      A: "Es conserva l'esborrany pendent; l'última versió es torna a posar amb «Torna a aquesta versió»."
+      B: "Es reescriu amb l'última versió i l'esborrany anterior queda a «Desfés» (només per a qui recupera, a la seva sessió)."
+      C: "Es demana a qui recupera què vol fer, amb una comparació."
+    recomanada: A
+    perque: >-
+      No perd mai feina i no cal cap pantalla nova; B depèn de la sessió de qui recupera i C afegeix
+      una decisió a un cas rar.
+    data: 2026-11-28
 noves:
   P-412:
     opcions:

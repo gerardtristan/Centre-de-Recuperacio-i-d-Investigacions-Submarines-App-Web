@@ -59,7 +59,7 @@ def test_ca_m07_26_a_scheduled_publication_runs_once_in_the_name_of_who_schedule
     item.refresh_from_db()
     assert item.status == S.DONE and PageVersion.objects.get().blocks == [H1]
     entry = AuditEntry.objects.get(action=pages.ACTION_PUBLISHED)
-    assert entry.actor_account_id == admin.pk and not PageDraft.objects.exists()
+    assert entry.actor_account_id == admin.pk and PageDraft.objects.get().blocks == [H1]
     periodic = tasks.app.periodic_registry.periodic_tasks[("website.run_scheduled_actions", "")]
     assert periodic.cron == "* * * * *"
     tasks.run_scheduled_actions(0)  # la crida de la cua, sense res pendent
@@ -153,3 +153,42 @@ def test_without_wp1_the_versions_screens_are_not_found(page, make_admin, name):
     assert response.status_code == 404
     with pytest.raises(Http404):
         pages.retire_page(page, make_admin(R.TREASURER))
+
+
+def test_review_an_unexpected_error_fails_that_action_and_the_queue_goes_on(
+    page, admin, monkeypatch, caplog
+):
+    pages.save_draft(page, [H1], admin)
+    broken = schedule.schedule(page, "retire", timezone.now() + SOON, admin)
+    good = schedule.schedule(page, "publish", timezone.now() + SOON, admin)
+
+    def boom(page, actor):
+        raise RuntimeError("error inventat")
+
+    monkeypatch.setattr(pages, "retire_page", boom)
+    assert schedule.run_due(timezone.now() + 2 * SOON) == 1
+    broken.refresh_from_db()
+    good.refresh_from_db()
+    assert broken.status == S.FAILED and broken.error and "inventat" not in broken.error
+    assert good.status == S.DONE and "error inventat" in caplog.text
+
+
+def test_review_recovering_keeps_a_pending_draft_with_other_changes(page, admin):
+    pages.publish_page(page, [H1], admin)
+    pages.retire_page(page, admin)
+    pages.save_draft(page, [H1, H2], admin)  # canvis que encara no s'havien publicat
+    page = pages.recover_page(page, admin)
+    assert page.status == Page.Status.DRAFT and PageDraft.objects.get().blocks == [H1, H2]
+
+
+@pytest.mark.xfail(reason="La pàgina pública és la T-M07-05: llavors, «no trobat» fins que es "
+                   "publica (CA-M07-33)", strict=True)  # fmt: skip
+def test_ca_m07_33_the_public_does_not_see_a_recovered_page_until_it_is_published(
+    page, admin, client
+):
+    pages.publish_page(page, [H1], admin)
+    pages.retire_page(page, admin)
+    pages.recover_page(page, admin)
+    assert client.get(f"/{page.slug}/").status_code == 404
+    pages.publish_draft(page, admin)
+    assert client.get(f"/{page.slug}/").status_code == 200

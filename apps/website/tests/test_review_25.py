@@ -70,5 +70,7 @@ def test_warnings_never_block_publishing_and_show_in_the_editor(page, admin):
     client = admin_client(admin)
     html = client.get(reverse("administration:website_page_editor", args=[page.pk])).content
     assert "nivell 3" in html.decode()
-    client.post(reverse("administration:website_page_publish", args=[page.pk]))
+    revision = str(pages.draft_state(page)[1])
+    client.post(reverse("administration:website_page_publish", args=[page.pk]),
+                {"revision": revision})  # fmt: skip
     assert PageVersion.objects.get().blocks == blocks

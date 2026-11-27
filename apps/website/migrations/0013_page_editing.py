@@ -12,6 +12,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AddField(
+            model_name="pagedraft",
+            name="revision",
+            field=models.PositiveIntegerField(default=0, verbose_name="revisió"),
+        ),
         migrations.CreateModel(
             name="PageEditing",
             fields=[
