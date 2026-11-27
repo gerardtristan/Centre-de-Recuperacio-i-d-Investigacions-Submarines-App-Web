@@ -642,3 +642,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M07-10](T-M07-10.md) | Tutorials i «Mira com es fa» (en part: sense vídeo, decisió 106; pantalles de WP4, torn del nucli; carril A) | 25/11/2026 02:44 | (vegeu la PR) | 6 noves i 1 e2e | [A comprovar] |
 | [T-M07-10b](T-M07-10b.md) | Tutorials: pantalles d'administració (WP4; carril A) | 25/11/2026 03:48 | (vegeu la PR) | 5 noves i 1 e2e | [A comprovar] |
 | [T-M02-20-fotos](T-M02-20-fotos.md) | Fotos d'una sortida de medi ambient, apagades fins a la P-41 (torn del nucli i 02) | 25/11/2026 04:47 | (vegeu la PR) | 11 noves i 1 e2e | [A comprovar] |
+| [decisio-106](decisio-106.md) | Decisions 106 i 107: editor visual de la web pública i fotos reals del club; addenda del M07 (carril Y) | 24/11/2026 18:06 | 48268706 | cap (document) | [A comprovar] |
