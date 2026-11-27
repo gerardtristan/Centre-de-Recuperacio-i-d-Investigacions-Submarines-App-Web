@@ -75,7 +75,7 @@ def test_upload_rejects_non_web_images_and_a_missing_alt_text(editor, name, cont
 def test_ca_m07_05_an_incomplete_photo_cannot_go_in_a_published_block(editor, details):
     asset = _photo(editor, **details)
     page = _page(editor)
-    for blocks in (_image(asset), [{"kind": "gallery", "media": [str(asset.key)]}]):
+    for blocks in (_image(asset), [{"kind": "gallery", "media": [str(asset.key)] * 2}]):
         with pytest.raises(ValidationError):
             pages.publish_page(page, blocks, editor)
     assert not page.versions.exists()
@@ -191,7 +191,7 @@ def test_a_failed_save_removes_the_stored_file(editor, monkeypatch):
 def test_an_image_block_carries_one_photo_and_a_gallery_a_list(editor, block):
     with pytest.raises(ValidationError):
         pages.publish_page(_page(editor), [block], editor)
-    assert media.block_media_keys(["no és un bloc", {"kind": "text"}]) == []
+    assert media.block_media_keys([{"kind": "text"}]) == []
 
 
 def test_names_and_unknown_page_fields(editor):

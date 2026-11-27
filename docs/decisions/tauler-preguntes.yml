@@ -1315,6 +1315,28 @@ opcions:
       variant més prudent si la gestoria vol un límit de temps. Fins a la resposta, l'interruptor és apagat (D).
     data: 2026-11-27
 
+  P-680:
+    opcions:
+      A: "En desar l'esborrany, només es rebutja el que és fora d'esquema; els camps obligatoris buits, en publicar."
+      B: "La mateixa validació sencera en desar i en publicar (el desat automàtic pot fallar amb un bloc a mig fer)."
+      C: "Com A, però l'esborrany marca a l'editor els blocs incomplets."
+    recomanada: A
+    perque: >-
+      Compleix CA-M07-23 (res fora d'esquema es desa mai) sense que el desat automàtic perdi la feina
+      d'un bloc acabat d'afegir; C és la mateixa regla amb una ajuda a la pantalla que pot venir amb la
+      T-M07-06a o el revisor de qualitat (T-M07-25).
+    data: 2026-11-27
+  P-681:
+    opcions:
+      A: "Codis en anglès com els camps (none, soft, marine, accent…) i títols per defecte per als blocs antics."
+      B: "Codis en català (cap, suau, mari, accent…)."
+      C: "Com A, però els blocs antics sense títol es llegeixen amb el títol buit i el revisor ho avisa."
+    recomanada: A
+    perque: >-
+      Els noms dels camps i dels tipus ja són en anglès (`kind`, `width`, `image_text`): barrejar-hi
+      codis en català seria incoherent. Els títols per defecte només afecten pàgines encara no
+      publicades al públic i es poden canviar a l'editor.
+    data: 2026-11-27
 noves:
   P-412:
     opcions:

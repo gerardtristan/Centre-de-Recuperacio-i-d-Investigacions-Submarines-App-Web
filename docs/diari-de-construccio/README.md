@@ -647,3 +647,5 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [dep-markdown-it-py](dep-markdown-it-py.md) | markdown-it-py per al Markdown restringit (decisió 106) | 27/11/2026 22:14 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [dep-sortablejs](dep-sortablejs.md) | SortableJS per arrossegar blocs (decisió 106) | 27/11/2026 22:14 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [dep-pillow](dep-pillow.md) | Pillow per a les pujades de la web (decisió 106) | 27/11/2026 22:14 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [dep-markdown-it-py](dep-markdown-it-py.md) | markdown-it-py per al Markdown restringit (decisió 106) | 27/11/2026 22:14 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [T-M07-04a](T-M07-04a.md) | Nucli de blocs (decisió 106): catàleg, validació i Markdown restringit (carril E) | 27/11/2026 22:33 | (vegeu la PR) | 68 noves i 6 adaptades | [A comprovar] |
