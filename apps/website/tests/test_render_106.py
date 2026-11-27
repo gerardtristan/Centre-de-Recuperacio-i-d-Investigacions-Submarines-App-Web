@@ -123,7 +123,7 @@ def test_club_data_blocks_bring_resolved_items_without_names(page, make_admin): 
     draft_only = an_outing(manager, title="Esborrany inventat")
     data = render._data(block("upcoming_activities", filters={"type": "outing"}))
     (item,) = data["items"]
-    assert set(item) == {"title", "url", "start", "kind_label", "price_cents", "photo",
+    assert set(item) == {"title", "url", "start", "kind_label", "price", "photo",
                          "places_left"}  # fmt: skip
     assert item["title"] == "Sortida a les Medes (inventada)" and item["photo"] is None
     assert item["url"] == reverse("activities:public_detail", args=[outing.pk])

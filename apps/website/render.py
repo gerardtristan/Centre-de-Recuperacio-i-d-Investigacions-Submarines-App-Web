@@ -10,7 +10,9 @@ T-M07-19) o, mentre no existeix, amb `website/blocs/_provisional/<kind>.html`, a
   `website.public_images_enabled` apagat, arriben com a `None`.
 - Les columnes d'una secció arriben ja pintades (una cadena HTML per columna).
 - Dades del club, `block.items` ja resolt i sense noms de persones: les activitats (properes,
-  destacades i fetes), `{title, url, start, kind_label, price_cents, photo, places_left}`; les
+  destacades i fetes), `{title, url, start, kind_label, price, photo, places_left}`
+  (`price`, text ja formatat com a la fitxa pública, «30,00 €», o `None`; `places_left` 0 vol
+  dir «Places exhaurides»); les
   notícies, `{title, url, date, photo}`. `faq_topic` porta `topic_name` i `questions`
   (`{question, answer}`, la resposta com a Markdown segur) i `featured_trip`, `block.activity`
   (o `None`). Sense dades, `items` buit: la plantilla pinta l'estat buit. Les destacades surten
@@ -29,6 +31,7 @@ from django.utils.safestring import mark_safe
 
 from apps.activities import public as activities
 from apps.core import business_settings
+from apps.core.charges import euros
 
 from . import blocks as catalog
 from . import featured, media, news
@@ -91,7 +94,7 @@ def _activity(a) -> dict:
     """Contracte amb DISSENY: només dades de l'activitat, cap nom de persona (RN-M07-21)."""
     return {"title": a.title, "url": reverse("activities:public_detail", args=[a.pk]),
             "start": a.starts_on, "kind_label": a.kind_label, "places_left": a.free_places,
-            "price_cents": a.price_cents,
+            "price": euros(a.price_cents) if a.price_cents is not None else None,
             # shortcut: la foto d'activitat (`a.photo`) encara no té cap adreça pública que la
             # serveixi; fins llavors, `None` (servei de contingut de la T-M07-30).
             "photo": None}  # fmt: skip

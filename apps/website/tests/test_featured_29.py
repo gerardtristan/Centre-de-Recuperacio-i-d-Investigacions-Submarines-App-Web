@@ -14,7 +14,7 @@ from apps.activities.models import Activity
 from apps.activities.tests.helpers import a_person, an_outing
 from apps.core.models import AuditEntry, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
-from apps.website import featured, render
+from apps.website import featured, pages, render
 from apps.website.models import FeaturedActivity
 from apps.website.tests.test_blocks_106 import block
 
@@ -51,7 +51,7 @@ def test_ca_m07_30_a_featured_activity_retired_in_02_disappears_at_the_next_requ
     featured.add(second.pk, actor=editor)
     items = render._data(block("featured_activities"))["items"]
     assert [i["title"] for i in items] == ["Primera inventada", "Segona"]
-    assert NAME not in repr(items) and items[0]["price_cents"] is not None
+    assert NAME not in repr(items) and items[0]["price"].endswith("€")
     Activity.objects.filter(pk=first.pk).update(
         status=S.CANCELLED, cancellation_reason="Motiu inventat"
     )
@@ -135,3 +135,19 @@ def test_the_selector_screen(login_as, editor, manager, make_admin):  # noqa: F8
     assert not FeaturedActivity.objects.exists()
     other = login_as(make_admin(R.SECRETARY), AREA_ADMIN)
     assert other.get(url).status_code == 404
+
+
+def test_the_price_is_formatted_like_the_public_page_and_full_ones_say_so(
+    editor, manager, monkeypatch
+):
+    activity = an_activity(manager, "Sortida plena inventada")
+    Activity.objects.filter(pk=activity.pk).update(
+        open_to_non_members=True, price_non_member_cents=3000
+    )
+    monkeypatch.setattr("apps.activities.enrolment.free_places", lambda activity: 0)  # plena
+    featured.add(activity.pk, actor=editor)
+    (item,) = render._data(block("featured_activities"))["items"]
+    assert item["price"] == "30,00 €" and item["places_left"] == 0
+    page = pages.save_page(None, actor=editor, slug="destacades-proves", title="Proves")[0]
+    html = render.render_blocks([block("featured_activities")], page)
+    assert "30,00 €" in html and "Places exhaurides" in html
