@@ -11,10 +11,12 @@
 import urllib.request
 
 from django.core.exceptions import ValidationError
+from django.http import Http404
 from django.utils.translation import gettext as _
 
 from apps.core import business_settings
 
+from . import blocks as catalog
 from . import media
 
 ENABLED = "website.youtube_enabled"
@@ -24,21 +26,45 @@ EMBED_URL = "https://www.youtube-nocookie.com/embed/{}?autoplay=1"
 MAX_BYTES = 2 * 1024 * 1024  # límit tècnic: una miniatura no fa més de 2 MB
 
 
-def _download(youtube_id: str) -> bytes | None:
-    """`youtube_id` ja és validat pel catàleg (11 caràcters segurs): l'adreça és sempre aquesta."""
-    try:
-        with urllib.request.urlopen(THUMBNAIL_URL.format(youtube_id), timeout=5) as response:  # noqa: S310
-            return response.read(MAX_BYTES)
-    except (OSError, ValueError):
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Cap redirecció: la baixada només va a l'adreça de la miniatura."""
+
+    def redirect_request(self, *args, **kwargs):
         return None
 
 
-def with_thumbnail(block: dict, actor) -> dict:
+_opener = urllib.request.build_opener(_NoRedirect)
+
+
+def _download(youtube_id: str) -> bytes | None:
+    """Només a `i.ytimg.com`, sense redireccions i com a màxim `MAX_BYTES` (si arriba al límit, es
+    descarta: seria una imatge tallada o una altra cosa)."""
+    try:
+        with _opener.open(THUMBNAIL_URL.format(youtube_id), timeout=5) as response:
+            content = response.read(MAX_BYTES + 1)
+    except (OSError, ValueError):
+        return None
+    return content if len(content) <= MAX_BYTES else None
+
+
+def with_thumbnail(block: dict, actor, previous: dict | None = None) -> dict:
+    """`previous`: el bloc tal com era; si és el mateix vídeo i ja tenia miniatura, es conserva
+    (el formulari no la porta, perquè encara no es pot publicar)."""
     if block.get("kind") != "video" or block.get("source") != "youtube":
         return block
-    if not block.get("youtube_id") or block.get("thumbnail") or not business_settings.get(ENABLED):
+    youtube_id = block.get("youtube_id") or ""
+    previous = previous or {}
+    if (
+        not block.get("thumbnail")
+        and previous.get("thumbnail")
+        and (previous.get("youtube_id") == youtube_id)
+    ):
+        return {**block, "thumbnail": previous["thumbnail"]}
+    if not catalog.YOUTUBE_ID.fullmatch(youtube_id) or block.get("thumbnail"):
         return block
-    content = _download(block["youtube_id"])
+    if not business_settings.get(ENABLED):
+        return block
+    content = _download(youtube_id)
     if not content:
         return block  # sense miniatura: el bloc es desa igual
     try:
@@ -46,7 +72,7 @@ def with_thumbnail(block: dict, actor) -> dict:
             content, actor=actor, alt_text=block.get("title") or _("Miniatura del vídeo"),
             shows_people=True, author=_("YouTube"), licence_note=_("Miniatura del vídeo"),
         )  # fmt: skip
-    except ValidationError:
+    except (ValidationError, Http404):  # sense WP3, el bloc es desa sense miniatura
         return block
     return {**block, "thumbnail": str(asset.key)}
 

@@ -94,7 +94,7 @@ def save_block(request, page, blocks: list, index: int) -> tuple[BlockForm, int,
     base = request.POST.get("base", "")
     # La miniatura d'un vídeo es baixa abans de bloquejar la pàgina (cap espera a la xarxa amb el
     # bloqueig posat).
-    prepared = video.with_thumbnail(form.to_block(blocks[index]), request.user)
+    prepared = video.with_thumbnail(form.to_block(blocks[index]), request.user, blocks[index])
     extra = {"thumbnail": prepared["thumbnail"]} if prepared.get("thumbnail") else {}
 
     def compute(current):

@@ -55,7 +55,8 @@ def upload(uploaded, *, actor, alt_text, shows_people, **details) -> MediaAsset:
 
 def store_image(content: bytes, *, actor, alt_text, shows_people, **details) -> MediaAsset:
     """Una imatge que obté el servidor (la miniatura d'un vídeo, T-M07-23), amb la mateixa
-    validació i neteja que una pujada. Qui la crida ja ha comprovat el permís."""
+    validació i neteja que una pujada. Demana WP3, com una pujada."""
+    require(actor)
     name = "imatge.png" if content.startswith(b"\x89PNG") else "imatge.jpg"
     uploaded = SimpleUploadedFile(name, content)
     return _store(uploaded, actor=actor, alt_text=alt_text, shows_people=shows_people, **details)
