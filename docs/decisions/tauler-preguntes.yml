@@ -1337,6 +1337,16 @@ opcions:
       codis en català seria incoherent. Els títols per defecte només afecten pàgines encara no
       publicades al públic i es poden canviar a l'editor.
     data: 2026-11-27
+  P-682:
+    opcions:
+      A: "Ara, la secció no s'afegeix; una que hi sigui es mou i se'n canvien les variants, sense tocar els blocs de dins."
+      B: "Editar els blocs de dins de cada columna a la mateixa llista, amb sagnat (un nivell)."
+      C: "Treure el bloc secció del catàleg i fer les columnes amb les plantilles de pàgina."
+    recomanada: A
+    perque: >-
+      És el que cap en una PR petita sense decidir la interacció; B és la bona a la llarga i
+      depèn del wireframe de l'editor (T-M07-01), i C canviaria el catàleg aprovat a la 106.
+    data: 2026-11-27
 noves:
   P-412:
     opcions:

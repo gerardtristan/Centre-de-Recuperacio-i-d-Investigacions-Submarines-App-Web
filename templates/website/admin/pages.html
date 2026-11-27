@@ -1,0 +1,36 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M07-06a (WP1, decisió 106): les pàgines de la web i crear-ne una en esborrany. Només amb WP1 («Sí»); el servidor ho torna a comprovar i valida l'adreça (CA-M07-19). #}
+{% block title %}{% translate "Pàgines de la web" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Web pública" %}</p>
+    <h1>{% translate "Pàgines" %}</h1>
+    <p class="text-2">{% translate "Els canvis es desen en un esborrany; el públic veu l'última versió publicada." %}</p>
+  </header>
+  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+  <table class="taula">
+    <caption>{% translate "Per ordre del menú." %}</caption>
+    <thead><tr><th scope="col">{% translate "Pàgina" %}</th><th scope="col">{% translate "Plantilla" %}</th><th scope="col">{% translate "Estat" %}</th></tr></thead>
+    <tbody>
+      {% for page, has_draft in rows %}
+        <tr>
+          <th scope="row" class="cel-nom"><a href="{% url 'administration:website_page_editor' page.pk %}">{{ page.title }}</a> <span class="codi">/{{ page.slug }}/</span></th>
+          <td data-etiqueta="{% translate 'Plantilla' %}">{{ page.get_template_display }}</td>
+          <td data-etiqueta="{% translate 'Estat' %}">{% if page.status == "published" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ page.get_status_display }}</span>{% elif page.status == "retired" %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {{ page.get_status_display }}</span>{% else %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {{ page.get_status_display }}</span>{% endif %}{% if has_draft %} <span class="estat estat-info">{% translate "Amb esborrany" %}</span>{% endif %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3">{% translate "Encara no hi ha cap pàgina." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <section class="targeta" aria-labelledby="titol-nova">
+    <h2 id="titol-nova">{% translate "Pàgina nova" %}</h2>
+    <form class="formulari" method="post" action="{% url 'administration:website_pages' %}" novalidate>
+      {% csrf_token %}
+      {% include "_errata.html" %}
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Crea l'esborrany" %}</button></div>
+    </form>
+  </section>
+{% endblock %}

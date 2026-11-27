@@ -314,6 +314,14 @@ MAP = {
         "apps/core/management/commands/seed_demo_data.py",
         "templates/dashboard/*",
     ),
+    "test_editor_web.py": (
+        "apps/website/editor.py",
+        "apps/website/editor_forms.py",
+        "apps/website/editor_views.py",
+        "apps/website/admin_urls.py",
+        "static/js/editor-web.js",
+        "templates/website/admin/page*.html",
+    ),
     "test_web_admin_continguts.py": (
         "apps/website/news_admin_views.py",
         "apps/website/help_admin_views.py",
