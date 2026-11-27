@@ -26,6 +26,10 @@ dependencies = [
     # Seguiment d'errors (checklist E4, R11): l'SDK que parlen GlitchTip i Sentry. Només s'activa
     # amb ERROR_TRACKING_DSN a producció. Fixat a la 2.74: la 2.75 tenia cinc dies quan es va afegir.
     "sentry-sdk>=2.74,<2.75",
+    # Markdown restringit dels blocs de la web pública (RN-M07-10, decisió 106): es converteix amb
+    # l'HTML desactivat i els enllaços filtrats. Fixat a la 4.3 (10/11/2026, 17 dies quan es va
+    # afegir); només depèn de mdurl.
+    "markdown-it-py>=4.3,<4.4",
 ]
 
 [project.optional-dependencies]
