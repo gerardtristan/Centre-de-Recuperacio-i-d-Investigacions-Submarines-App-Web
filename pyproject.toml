@@ -38,6 +38,10 @@ dependencies = [
     # l'HTML desactivat i els enllaços filtrats. Fixat a la 4.3 (10/11/2026, 17 dies quan es va
     # afegir); només depèn de mdurl.
     "markdown-it-py>=4.3,<4.4",
+    # Pujades de la web pública (RN-M07-19, decisió 106): comprova que el fitxer és de debò JPEG, PNG
+    # o WebP i el torna a codificar, cosa que en treu l'EXIF i el GPS; també les mides en WebP.
+    # Fixat a la 13.0 (16/10/2026, 42 dies quan es va afegir); sense dependències.
+    "Pillow>=13.0,<13.1",
 ]
 
 [project.optional-dependencies]

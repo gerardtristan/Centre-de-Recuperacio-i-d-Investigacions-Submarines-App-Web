@@ -6,6 +6,7 @@ import uuid
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -137,6 +138,15 @@ class MediaAsset(models.Model):
     shows_people = models.BooleanField(_("s'hi veuen persones"))
     people_consent = models.BooleanField(_("hi ha el consentiment de les persones"), default=False)
     credit = models.CharField(_("crèdit"), max_length=200, blank=True)
+    # Punt focal en % de l'amplada i de l'alçada: on es retalla la foto (T-M07-07b, 106).
+    focal_x = models.PositiveSmallIntegerField(
+        _("punt focal horitzontal (%)"), default=50, validators=[MaxValueValidator(100)]
+    )
+    focal_y = models.PositiveSmallIntegerField(
+        _("punt focal vertical (%)"), default=50, validators=[MaxValueValidator(100)]
+    )
+    # Mides automàtiques en WebP: {"480": clau a l'emmagatzematge privat, …} (RN-M07-19).
+    renditions = models.JSONField(_("mides automàtiques"), default=dict, blank=True)
     status = models.CharField(
         _("estat"), max_length=20, choices=Status.choices, default=Status.ACTIVE
     )

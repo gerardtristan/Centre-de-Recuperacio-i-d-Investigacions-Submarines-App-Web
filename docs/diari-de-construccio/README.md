@@ -653,3 +653,5 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [dep-sortablejs](dep-sortablejs.md) | SortableJS per arrossegar blocs (decisió 106) | 27/11/2026 22:14 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [T-M07-06a](T-M07-06a.md) | Editor de la web: pàgines, blocs, arrossegar i desfer (carril E) | 27/11/2026 22:59 | (vegeu la PR) | 46 noves i 1 e2e | [A comprovar] |
 | [T-M02-53](T-M02-53.md) | Activitats fetes i fotos publicables per a la web (RP-M07-02; carril B) | 27/11/2026 22:27 | (vegeu la PR) | 6 noves | [A comprovar] |
+| [dep-pillow](dep-pillow.md) | Pillow per a les pujades de la web (decisió 106) | 27/11/2026 22:14 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [T-M07-07b](T-M07-07b.md) | Pujades de la web: Pillow, punt focal i mides en WebP (RN-M07-19; P-633 A de la 108; carril B) | 27/11/2026 22:46 | (vegeu la PR) | 11 noves, 4 adaptades i 1 e2e | [A comprovar] |

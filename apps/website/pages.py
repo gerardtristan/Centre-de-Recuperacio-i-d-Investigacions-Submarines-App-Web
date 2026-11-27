@@ -76,6 +76,7 @@ def validate_blocks(blocks, *, publishing: bool) -> None:
     catalog.validate(blocks, publishing=publishing)
     if publishing:
         media.check_publishable(media.block_media_keys(blocks))
+        media.check_publishable(media.block_file_keys(blocks), kind="file")
 
 
 def save_draft(page: Page, blocks, actor) -> PageDraft:
