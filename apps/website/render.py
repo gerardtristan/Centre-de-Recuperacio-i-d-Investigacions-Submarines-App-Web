@@ -13,8 +13,8 @@ T-M07-19) o, mentre no existeix, amb `website/blocs/_provisional/<kind>.html`, a
   destacades i fetes), `{title, url, start, kind_label, price_cents, photo, places_left}`; les
   notícies, `{title, url, date, photo}`. `faq_topic` porta `topic_name` i `questions`
   (`{question, answer}`, la resposta com a Markdown segur) i `featured_trip`, `block.activity`
-  (o `None`). Sense dades, `items` buit: la plantilla pinta l'estat buit. Les destacades i les
-  fetes són buides fins a la T-M07-29.
+  (o `None`). Sense dades, `items` buit: la plantilla pinta l'estat buit. Les destacades surten
+  de `featured.items` i les fetes de `activities.public_past_list` (T-M07-29, RN-M07-21).
 
 No es pinten encara: `video` (T-M07-23) i `file` (els PDF, T-M07-07). El butlletí i el contacte,
 només amb el seu ajust encès.
@@ -31,8 +31,8 @@ from apps.activities import public as activities
 from apps.core import business_settings
 
 from . import blocks as catalog
+from . import featured, media, news
 from . import help as faq
-from . import media, news
 from .models import FaqTopic, MediaAsset
 
 NOT_YET = {"video", "file"}
@@ -91,16 +91,24 @@ def _activity(a) -> dict:
     """Contracte amb DISSENY: només dades de l'activitat, cap nom de persona (RN-M07-21)."""
     return {"title": a.title, "url": reverse("activities:public_detail", args=[a.pk]),
             "start": a.starts_on, "kind_label": a.kind_label, "places_left": a.free_places,
-            "price_cents": None, "photo": None}  # fmt: skip  # P-683: el 02 no dona cèntims ni foto
+            "price_cents": a.price_cents,
+            # shortcut: la foto d'activitat (`a.photo`) encara no té cap adreça pública que la
+            # serveixi; fins llavors, `None` (servei de contingut de la T-M07-30).
+            "photo": None}  # fmt: skip
 
 
 def _data(block: dict) -> dict:
     kind, count = block["kind"], block.get("count") or 0
+    filters = block.get("filters") or {}
     if kind == "upcoming_activities":
-        found = activities.public_list(kind=(block.get("filters") or {}).get("type", ""))
+        found = activities.public_list(
+            kind=filters.get("type", ""), department=filters.get("department")
+        )
         return {"items": [_activity(a) for a in found[:count]]}
-    if kind in ("featured_activities", "past_activities"):
-        return {"items": []}  # shortcut: sense serveis del 02 fins a la T-M07-29
+    if kind == "featured_activities":
+        return {"items": [_activity(a) for a in featured.items()]}
+    if kind == "past_activities":
+        return {"items": [_activity(a) for a in activities.public_past_list(filters)[:count]]}
     if kind == "featured_trip":
         try:
             activity = _activity(activities.get_activity(block.get("activity")))

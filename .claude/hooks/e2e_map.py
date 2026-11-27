@@ -381,6 +381,11 @@ MAP = {
         "apps/website/newsletter.py",
         "templates/website/my_newsletter.html",
     ),
+    "test_web_destacades.py": (
+        "apps/website/featured_views.py",
+        "apps/website/featured.py",
+        "templates/website/admin/featured.html",
+    ),
     "test_web_fluxos_07.py": (
         "apps/website/views.py",
         "apps/website/admin_views.py",

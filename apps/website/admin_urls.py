@@ -4,7 +4,7 @@ dins de l'espai de noms `administration`. Totes demanen sessió i permís."""
 from django.urls import path
 
 from . import admin_views as views
-from . import editor_views
+from . import editor_views, featured_views
 from . import help_admin_views as help_views
 from . import news_admin_views as news_views
 from . import tutorial_admin_views as tutorial_views
@@ -17,6 +17,14 @@ urlpatterns = [
         "web/pagines/<int:pk>/accio/",
         editor_views.editor_action_view,
         name="website_page_editor_action",
+    ),
+    # T-M07-29 (WP1): activitats destacades.
+    path("web/destacades/", featured_views.featured_view, name="website_featured"),
+    path("web/destacades/afegeix/", featured_views.featured_add_view, name="website_featured_add"),
+    path(
+        "web/destacades/<int:pk>/",
+        featured_views.featured_change_view,
+        name="website_featured_change",
     ),
     path("web/contacte/", views.inbox_view, name="website_contact"),
     path("web/contacte/<int:pk>/", views.message_view, name="website_contact_message"),

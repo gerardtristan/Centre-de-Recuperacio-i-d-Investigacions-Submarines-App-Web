@@ -1,0 +1,58 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M07-29 (RN-M07-21; WP1): les activitats destacades de la web, en ordre. Només la referència a l'activitat del 02: les dades es llegeixen a cada petició i una que ja no és pública no surt a la web. Els formularis només surten amb permís d'escriptura; el servidor ho torna a comprovar. Cap nom de persona. #}
+{% block title %}{% translate "Activitats destacades" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Web pública" %}</p>
+    <h1>{% translate "Activitats destacades" %}</h1>
+    <p class="text-2">{% translate "Surten al bloc «Activitats destacades», en aquest ordre. Si una activitat es retira o deixa de ser publicada, ja no surt." %}</p>
+  </header>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
+
+  <section class="targeta" aria-labelledby="titol-destacades">
+    <h2 id="titol-destacades">{% translate "Destacades" %}</h2>
+    <table class="taula">
+      <thead><tr><th scope="col">{% translate "Activitat" %}</th><th scope="col">{% translate "Visible" %}</th><th scope="col">{% translate "Estat" %}</th>{% if can_write %}<th scope="col">{% translate "Acció" %}</th>{% endif %}</tr></thead>
+      <tbody>
+        {% for row, info in rows %}
+          <tr>
+            <th scope="row" class="cel-nom">{% if info %}{{ info.title }}{% else %}{% translate "Activitat no disponible" %}{% endif %}</th>
+            <td data-etiqueta="{% translate 'Visible' %}">{% if row.visible_from or row.visible_until %}{{ row.visible_from|date:"d/m/Y"|default:"…" }} – {{ row.visible_until|date:"d/m/Y"|default:"…" }}{% else %}{% translate "Sempre" %}{% endif %}</td>
+            <td data-etiqueta="{% translate 'Estat' %}">{% if info %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Publicada" %}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {% translate "No surt a la web" %}</span>{% endif %}</td>
+            {% if can_write %}
+              <td data-etiqueta="{% translate 'Acció' %}">
+                <form method="post" action="{% url 'administration:website_featured_change' row.pk %}" class="accions">
+                  {% csrf_token %}
+                  {% if not forloop.first %}<button class="boto" type="submit" name="action" value="up">{% translate "Puja" %}</button>{% endif %}
+                  {% if not forloop.last %}<button class="boto" type="submit" name="action" value="down">{% translate "Baixa" %}</button>{% endif %}
+                  <button class="boto" type="submit" name="action" value="remove">{% translate "Treu-la" %}</button>
+                </form>
+              </td>
+            {% endif %}
+          </tr>
+        {% empty %}
+          <tr><td colspan="{% if can_write %}4{% else %}3{% endif %}">{% translate "Encara no hi ha cap activitat destacada." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  {% if form %}
+    <section class="targeta" aria-labelledby="titol-afegeix">
+      <h2 id="titol-afegeix">{% translate "Destaca una activitat" %}</h2>
+      {% if form.fields.activity.choices %}
+        <form class="formulari" method="post" action="{% url 'administration:website_featured_add' %}" novalidate>
+          {% csrf_token %}
+          {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+          <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Destaca-la" %}</button></div>
+        </form>
+      {% else %}
+        <p class="text-2">{% translate "No hi ha cap altra activitat publicada per destacar." %}</p>
+      {% endif %}
+    </section>
+  {% endif %}
+{% endblock %}

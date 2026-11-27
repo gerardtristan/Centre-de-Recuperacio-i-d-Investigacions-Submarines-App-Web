@@ -444,3 +444,23 @@ class Tutorial(models.Model):
     def step_list(self) -> list[str]:
         """Un pas per línia, sense les línies buides."""
         return [line.strip() for line in self.steps.splitlines() if line.strip()]
+
+
+class FeaturedActivity(models.Model):
+    """Activitat destacada a la web (RN-M07-21, T-M07-29; addenda de la 106). Només la referència
+    a l'activitat del 02 (`activity_ref`), l'ordre i les dates de visibilitat: cap còpia de les
+    seves dades. Es resol a cada petició amb `activities.public.get_activity`, de manera que una
+    activitat retirada al 02 desapareix a la petició següent (CA-M07-30)."""
+
+    activity_ref = models.PositiveIntegerField(_("activitat"), unique=True)
+    order = models.PositiveSmallIntegerField(_("ordre"), default=0)
+    visible_from = models.DateField(_("visible des del"), null=True, blank=True)
+    visible_until = models.DateField(_("visible fins al"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("activitat destacada")
+        verbose_name_plural = _("activitats destacades")
+        ordering = ["order", "pk"]
+
+    def __str__(self):
+        return str(self.activity_ref)
