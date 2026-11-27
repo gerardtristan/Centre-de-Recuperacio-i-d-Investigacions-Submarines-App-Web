@@ -31,7 +31,7 @@ def test_the_section_has_its_values_with_the_switches_off():
     settings = Setting.objects.filter(module="website")
     # L'interruptor de les fotos públiques (D2, `website/0008`) encara no té permís al catàleg del
     # nucli: ningú no el pot canviar, i no entra a les proves de rang.
-    switches = {"website.public_images_enabled": False}
+    switches = {"website.public_images_enabled": False, "website.client_exception_enabled": False}
     assert {s.key: s.initial_value for s in settings} == {
         **{k: v[0] for k, v in VALUES.items()},
         **switches,

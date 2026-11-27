@@ -1685,3 +1685,15 @@ noves:
       L'MP4 es reprodueix a tots els navegadors i un sol format es comprova millor; fins a la resposta,
       la pujada de vídeo no s'encén a producció, i C o D són més restrictives si no es vol cap vídeo pujat.
     data: 2026-11-24
+  P-693:
+    opcions:
+      A: "El 07 dona el servei per dir que no; cada mòdul (01, 02, 06) hi posa la casella en una tasca pròpia; els socis sense cap pagament no reben res fins que paguin."
+      B: "Afegir ara també els socis actius encara que no hagin pagat per la plataforma."
+      C: "Posar la casella només a «Fer-se soci» i deixar les inscripcions i les llicències sense."
+      D: "No fer l'excepció de client: només el butlletí amb consentiment."
+    recomanada: A
+    perque: >-
+      Respecta que cada formulari és del seu mòdul i dona d'alta només qui ha contractat de debò (el
+      que demana l'art. 21.2). B inclouria socis migrats sense saber com es va obtenir el correu; C
+      deixaria sense casella dos dels tres casos. Tot és apagat fins que la gestoria respongui la P-710.
+    data: 2026-11-28

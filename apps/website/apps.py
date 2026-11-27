@@ -6,9 +6,13 @@ class WebsiteConfig(AppConfig):
     verbose_name = "Web pública i ajuda"
 
     def ready(self):
+        from apps.core import events
         from apps.core import privacy as core_privacy
 
-        from . import privacy
+        from . import clients, privacy
+
+        # T-M07-36 (decisió 108, C.3): l'excepció de client escolta els pagaments (apagada, res).
+        events.subscribe(events.CHARGE_PAID, clients.on_charge_paid)
 
         # T-M07-15 (CA-M07-21): l'exportació i l'esborrat RGPD dels missatges i del butlletí.
         core_privacy.register(

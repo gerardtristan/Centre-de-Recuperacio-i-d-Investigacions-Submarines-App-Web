@@ -31,6 +31,7 @@ from apps.core.models import Consent, OutgoingEmail
 from apps.core.permissions import has_perm
 from apps.core.persons import ANONYMOUS_EMAIL_DOMAIN
 
+from . import clients
 from .models import Newsletter, NewsletterDelivery, NewsletterEvent, NewsletterSubscription
 
 ENABLED = "website.newsletter_enabled"
@@ -54,7 +55,13 @@ def subscribe(email: str, *, legal_text, now=None) -> tuple[NewsletterSubscripti
     )
     # El correu de confirmació (T-M07-13b) va sempre a la cua (`mail.queue_email`), mai en línia:
     # el temps de resposta no ha de dir si el correu ja hi era (RN-M07-08).
-    if subscription is not None and subscription.status == Status.CONFIRMED:
+    # Una alta per l'excepció de client (T-M07-36) no és un consentiment: passa a la doble
+    # confirmació com qualsevol altra.
+    if (
+        subscription is not None
+        and subscription.status == Status.CONFIRMED
+        and subscription.basis == NewsletterSubscription.Basis.CONSENT
+    ):
         return subscription, False
     # Una petició nova no invalida l'enllaç pendent que encara val: si no, un tercer el podria
     # anul·lar a cada petició encara que el límit per destinatari no deixi enviar-ne cap altre.
@@ -65,6 +72,7 @@ def subscribe(email: str, *, legal_text, now=None) -> tuple[NewsletterSubscripti
     )
     subscription = subscription or NewsletterSubscription(email=normalise(email))
     subscription.status, subscription.legal_text = Status.PENDING, legal_text
+    subscription.basis = NewsletterSubscription.Basis.CONSENT
     if not keep:
         subscription.token, subscription.requested_at = secrets.token_urlsafe(32), now
     subscription.save()
@@ -119,8 +127,9 @@ def unsubscribe(token: str, *, now=None) -> None:
     subscription = _by_token(token)
     if subscription is not None:
         person = _member_person(subscription.email)
+        clients.object_to(subscription.email)  # T-M07-36: una baixa també és dir que no
         forget(subscription, now=now)
-        if person is not None:
+        if person is not None and subscription.basis == subscription.Basis.CONSENT:
             consents.withdraw(person, TEXT_KIND, channel=Consent.Channel.WEB)
 
 
@@ -175,6 +184,7 @@ def subscribe_member(account) -> tuple[NewsletterSubscription, bool]:
 @transaction.atomic
 def unsubscribe_member(account, *, request=None) -> None:
     subscription = member_subscription(account)
+    clients.object_to(account.login)  # T-M07-36
     if subscription is not None:
         forget(subscription)
     consents.withdraw(account.person, TEXT_KIND, channel=Consent.Channel.WEB, by=account,
@@ -182,8 +192,12 @@ def unsubscribe_member(account, *, request=None) -> None:
 
 
 def recipients():
-    """Els únics que reben un butlletí (RN-M07-06): els confirmats."""
-    return NewsletterSubscription.objects.filter(status=Status.CONFIRMED)
+    """Els únics que reben un butlletí (RN-M07-06): els confirmats. Els de l'excepció de client
+    (T-M07-36), només amb `website.client_exception_enabled` encès."""
+    found = NewsletterSubscription.objects.filter(status=Status.CONFIRMED)
+    if not clients.enabled():
+        found = found.exclude(basis=NewsletterSubscription.Basis.CLIENT)
+    return found
 
 
 # --- Redactar i enviar (T-M07-14; P-M07-F, RN-M07-06 i 14; CA-M07-08) --------------------------

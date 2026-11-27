@@ -214,12 +214,19 @@ class NewsletterSubscription(models.Model):
         CONFIRMED = "confirmed", _("Confirmada")
         UNSUBSCRIBED = "unsubscribed", _("De baixa")
 
+    class Basis(models.TextChoices):
+        CONSENT = "consent", _("Consentiment")
+        # 108, C.3 (T-M07-36): art. 21.2 LSSI, darrere de `website.client_exception_enabled`.
+        CLIENT = "client", _("Excepció de client (art. 21.2 LSSI)")
+
     email = models.EmailField(_("correu electrònic"), max_length=254, unique=True)
     status = models.CharField(
         _("estat"), max_length=20, choices=Status.choices, default=Status.PENDING
     )
+    basis = models.CharField(_("base"), max_length=10, choices=Basis.choices, default=Basis.CONSENT)
+    # Buit només amb l'excepció de client: no hi ha cap text acceptat.
     legal_text = models.ForeignKey(
-        "core.LegalText", on_delete=models.PROTECT, related_name="+",
+        "core.LegalText", on_delete=models.PROTECT, null=True, blank=True, related_name="+",
         verbose_name=_("text del butlletí acceptat"),
     )  # fmt: skip
     token = models.CharField(_("enllaç"), max_length=64, unique=True)
@@ -242,6 +249,7 @@ class NewsletterEvent(AppendOnlyModel):
         REQUESTED = "requested", _("Demanada")
         CONFIRMED = "confirmed", _("Confirmada")
         UNSUBSCRIBED = "unsubscribed", _("Baixa")
+        CLIENT = "client", _("Alta per l'excepció de client")
 
     subscription = models.ForeignKey(
         NewsletterSubscription, on_delete=models.PROTECT, related_name="events",
@@ -422,3 +430,20 @@ class Tutorial(models.Model):
     def step_list(self) -> list[str]:
         """Un pas per línia, sense les línies buides."""
         return [line.strip() for line in self.steps.splitlines() if line.strip()]
+
+
+class ClientObjection(models.Model):
+    """Qui ha dit que no a la informació d'activitats (T-M07-36; art. 21.2 LSSI): la casella en
+    donar les dades o una baixa. Només una empremta del correu (HMAC amb la clau de l'aplicació),
+    perquè la baixa en substitueix el correu i, si no, un pagament posterior el tornaria a donar
+    d'alta. No permet recuperar el correu."""
+
+    email_hash = models.CharField(_("empremta del correu"), max_length=64, unique=True)
+    at = models.DateTimeField(_("data"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("oposició a la informació d'activitats")
+        verbose_name_plural = _("oposicions a la informació d'activitats")
+
+    def __str__(self):
+        return self.email_hash[:8]
