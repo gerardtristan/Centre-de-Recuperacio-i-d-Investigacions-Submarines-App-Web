@@ -117,6 +117,13 @@ def publish_page(page: Page, blocks, actor, note: str = "") -> PageVersion:
     return version
 
 
+def publish_draft(page: Page, blocks, actor, note: str = "") -> PageVersion:
+    """Publica el que s'editava i treu l'esborrany: ara coincideix amb la versió nova."""
+    version = publish_page(page, blocks, actor, note)
+    PageDraft.objects.filter(page=page).delete()
+    return version
+
+
 def revert_to(version: PageVersion, actor) -> PageVersion:
     """«Tornar a aquesta versió»: publica una còpia dels seus blocs (RN-M07-03)."""
     note = _("Torna a la versió %(n)s") % {"n": version.number}

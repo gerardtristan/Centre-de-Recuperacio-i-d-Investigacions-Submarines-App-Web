@@ -23,8 +23,10 @@ només amb el seu ajust encès.
 import uuid
 from dataclasses import dataclass
 
+from django.http import Http404
 from django.template.loader import select_template
 from django.urls import reverse
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
 from apps.activities import public as activities
@@ -142,7 +144,27 @@ def _render(blocks, page, images) -> str:
     return mark_safe("".join(parts))  # noqa: S308 (plantilles amb l'escapament automàtic)
 
 
-def render_blocks(blocks, page) -> str:
-    """`blocks`: els d'una versió o els de l'esborrany, tal com es van desar."""
+def _served(key: str) -> bool:
+    try:
+        media.public_asset(key)
+    except Http404:
+        return False
+    return True
+
+
+def render_blocks(blocks, page, *, preview: bool = False) -> str:
+    """`blocks`: els d'una versió o els de l'esborrany, tal com es van desar. `preview`: cada bloc
+    dins d'un `data-bloc` amb el seu número (clic per triar-lo, RN-M07-23)."""
     blocks = catalog.upgrade_all(blocks)
-    return _render(blocks, page, _images(blocks))
+    images = _images(blocks)
+    if not preview:
+        return _render(blocks, page, images)
+    # shortcut: la vista de fotos és pública i només serveix les publicades; fins a la vista amb
+    # sessió (torn del nucli), una foto nova de l'esborrany surt com a `None` a la vista prèvia.
+    images = {key: image for key, image in images.items() if _served(key)}
+    parts = []
+    for index, block in enumerate(blocks):
+        html = _render([block], page, images)
+        if html:
+            parts.append(format_html('<div data-bloc="{}">{}</div>', index, html))
+    return mark_safe("".join(parts))  # noqa: S308 (cada part ja és segura)

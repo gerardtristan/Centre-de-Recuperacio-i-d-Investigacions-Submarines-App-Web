@@ -1,0 +1,19 @@
+{% load static i18n %}<!DOCTYPE html>
+{# T-M07-06b (RN-M07-23): vista prèvia de l'esborrany dins de l'editor, només amb sessió i WP1 i només al mateix origen (X-Frame-Options: SAMEORIGIN). Plantilla provisional de la pàgina fins a la T-M07-05; el tema el tria l'editor. Clicar un bloc el tria a l'editor (previa-web.js). #}
+<html lang="{{ LANGUAGE_CODE }}" data-theme="{{ theme }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>{% blocktranslate with title=page.title %}Vista prèvia: {{ title }}{% endblocktranslate %}</title>
+  <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <script src="{% static 'js/previa-web.js' %}" defer></script>
+</head>
+<body class="zona-publica">
+  <main id="contingut">
+    <h1>{{ page.title }}</h1>
+    {{ content }}
+  </main>
+</body>
+</html>

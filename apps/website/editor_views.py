@@ -11,6 +11,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
 
+from apps.core import business_settings
 from apps.core.permissions import require_perm
 
 from . import editor, pages
@@ -54,6 +55,12 @@ def _editor(request, page, *, form=None, selected=None, status=200):
         "form": form,
         "groups": [(label, [(k, KINDS[k]) for k in kinds]) for label, kinds in GROUPS],
         "history": editor.can(request, page),
+        "base": editor.fingerprint(blocks[selected]) if selected is not None else "",
+        "others": editor.touch(page, request.user),
+        "autosave_ms": 1000 * business_settings.get("website.autosave_seconds"),
+        "theme": "fosc" if request.GET.get("tema") == "fosc" else "clar",
+        "versions": page.versions.order_by("-number")[:10],
+        "share_warnings": pages.share_warnings(page),
     }
     return render(request, "website/admin/page_editor.html", context, status=status)
 
@@ -63,6 +70,26 @@ def _editor(request, page, *, form=None, selected=None, status=200):
 def editor_view(request, pk):
     require_perm(request, pages.PERMISSION, write=True)
     return _editor(request, get_object_or_404(Page, pk=pk))
+
+
+def save_block(request, page, blocks: list, index: int) -> tuple[BlockForm, int]:
+    """Desa el formulari del bloc `index`. 200: desat; 400: no és vàlid (no es desa res); 409:
+    algú altre ha canviat aquest bloc des que es va obrir (CA-M07-32: no se li esborra)."""
+    if not 0 <= index < len(blocks):
+        raise IndexError(index)
+    form = BlockForm(blocks[index]["kind"], request.POST, block=blocks[index])
+    if request.POST.get("base", "") not in ("", editor.fingerprint(blocks[index])):
+        form.add_error(None, _("Una altra persona ha canviat aquest bloc. Torna a obrir-lo."))
+        return form, 409
+    if not form.is_valid():
+        return form, 400
+    try:
+        editor.change(request, page, editor.apply(blocks, "update", index,
+                                                  block=form.to_block(blocks[index])))  # fmt: skip
+    except ValidationError as error:
+        form.add_error(None, error)
+        return form, 400
+    return form, 200
 
 
 def _target(action: str, index: int) -> int | None:
@@ -87,25 +114,19 @@ def editor_action_view(request, pk):
     try:
         index = int(request.POST.get("index", "-1"))
         order = [int(i) for i in request.POST.get("order", "").split(",") if i != ""]
-        block = None
         if action == "update":
-            if not 0 <= index < len(blocks):
-                raise IndexError(index)
-            form = BlockForm(blocks[index]["kind"], request.POST, block=blocks[index])
-            if not form.is_valid():
-                return _editor(request, page, form=form, selected=index, status=400)
-            block = form.to_block(blocks[index])
-        new = editor.apply(blocks, action, index, kind=request.POST.get("kind", ""),
-                           order=order, block=block)  # fmt: skip
+            form, status = save_block(request, page, blocks, index)
+            if status != 200:
+                return _editor(request, page, form=form, selected=index, status=status)
+            new = editor.editing_blocks(page)
+        else:
+            new = editor.apply(blocks, action, index, kind=request.POST.get("kind", ""),
+                               order=order)  # fmt: skip
+            editor.change(request, page, new)
     except (ValueError, IndexError):
         messages.error(request, _("Aquesta acció no es pot fer amb aquest bloc."))
         return redirect(url)
-    try:
-        editor.change(request, page, new)
     except ValidationError as error:
-        if action == "update":
-            form.add_error(None, error)
-            return _editor(request, page, form=form, selected=index, status=400)
         messages.error(request, " ".join(error.messages))
         return redirect(url)
     messages.success(request, _("Esborrany desat."))

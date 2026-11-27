@@ -1,4 +1,5 @@
-// Editor de la web (T-M07-06a): arrossegar (SortableJS) i Ctrl+Z; sense JS, els botons fan el mateix.
+// Editor de la web (T-M07-06a i 06b): arrossegar (SortableJS), Ctrl+Z, triar un bloc des de la vista
+// prèvia, desat automàtic i avís d'edició simultània. Sense JS, els botons fan el mateix.
 (function () {
   "use strict";
   var list = document.querySelector("[data-editor-blocs]");
@@ -25,4 +26,49 @@
       button.click();
     }
   });
+
+  // Clic a un bloc de la vista prèvia (previa-web.js): el tria, amb el mateix tema.
+  window.addEventListener("message", function (event) {
+    if (event.origin !== location.origin || typeof event.data.bloc !== "number") return;
+    var params = new URLSearchParams(location.search);
+    params.set("bloc", event.data.bloc);
+    location.search = params.toString();
+  });
+
+  // Desat automàtic cada `website.autosave_seconds` (RN-M07-16) i, si no hi ha res a desar, avís
+  // de qui més té la pàgina oberta (CA-M07-32). Tot ho decideix el servidor.
+  var editorForm = document.querySelector("[data-desat-auto]");
+  var page = document.querySelector("[data-editor-pagina]");
+  if (!page) return;
+  var status = document.querySelector("[data-desat-estat]");
+  var notice = document.querySelector("[data-avis-edicio]");
+  var preview = document.querySelector("[data-vista-previa]");
+  var dirty = false;
+  if (editorForm) editorForm.addEventListener("input", function () { dirty = true; });
+  function tick() {
+    var data = dirty ? new FormData(editorForm) : new FormData();
+    if (!dirty) data.append("csrfmiddlewaretoken", page.getAttribute("data-csrf"));
+    var saving = dirty;
+    dirty = false;
+    fetch(page.getAttribute("data-desa"), { method: "POST", body: data, credentials: "same-origin" })
+      .then(function (response) {
+        if ((response.headers.get("Content-Type") || "").indexOf("json") < 0) throw new Error();
+        return response.json().then(function (json) { return [response.ok, json]; });
+      })
+      .then(function (result) {
+        var json = result[1];
+        notice.hidden = !json.others.length;
+        notice.querySelector("[data-avis-noms]").textContent = json.others.join(", ");
+        if (!saving) return;
+        if (!result[0]) { status.textContent = json.error; return; }
+        editorForm.querySelector("[name=base]").value = json.base;
+        status.textContent = status.getAttribute("data-desat");
+        if (preview) preview.contentWindow.location.reload();
+      })
+      .catch(function () {
+        dirty = dirty || saving; // es tornarà a provar
+        status.textContent = status.getAttribute("data-error");
+      });
+  }
+  window.setInterval(tick, Number(page.getAttribute("data-interval")));
 })();

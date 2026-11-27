@@ -117,6 +117,25 @@ class PageDraft(models.Model):
         return str(self.page)
 
 
+class PageEditing(models.Model):
+    """Qui té obert l'editor d'una pàgina i quan l'ha tocat per últim cop (RN-M07-16, CA-M07-32).
+    Només serveix per a l'avís d'edició simultània: no bloqueja res."""
+
+    page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name="+")
+    account = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="+"
+    )
+    seen_at = models.DateTimeField(_("vist el"))
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["page", "account"], name="website_editing_unique")
+        ]
+
+    def __str__(self):
+        return f"{self.page} · {self.account}"
+
+
 class MediaAsset(models.Model):
     """Foto de la web (M07-6, P-M07-C, RN-M07-05). El contingut és a l'emmagatzematge privat de
     la 00, amb una clau aleatòria; cap carpeta pública (P-489): el serveix una vista declarada

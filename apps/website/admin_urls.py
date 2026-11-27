@@ -4,7 +4,7 @@ dins de l'espai de noms `administration`. Totes demanen sessió i permís."""
 from django.urls import path
 
 from . import admin_views as views
-from . import editor_views
+from . import editor_live, editor_views
 from . import help_admin_views as help_views
 from . import news_admin_views as news_views
 from . import tutorial_admin_views as tutorial_views
@@ -17,6 +17,16 @@ urlpatterns = [
         "web/pagines/<int:pk>/accio/",
         editor_views.editor_action_view,
         name="website_page_editor_action",
+    ),
+    # T-M07-06b (WP1): vista prèvia, desat automàtic, compartir, publicar i tornar a una versió.
+    path("web/pagines/<int:pk>/previa/", editor_live.preview_view, name="website_page_preview"),
+    path("web/pagines/<int:pk>/desa/", editor_live.autosave_view, name="website_page_autosave"),
+    path("web/pagines/<int:pk>/comparteix/", editor_live.share_view, name="website_page_share"),
+    path("web/pagines/<int:pk>/publica/", editor_live.publish_view, name="website_page_publish"),
+    path(
+        "web/pagines/<int:pk>/versions/<int:number>/",
+        editor_live.revert_view,
+        name="website_page_revert",
     ),
     path("web/contacte/", views.inbox_view, name="website_contact"),
     path("web/contacte/<int:pk>/", views.message_view, name="website_contact_message"),

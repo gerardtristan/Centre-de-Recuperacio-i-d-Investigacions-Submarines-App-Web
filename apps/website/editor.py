@@ -3,10 +3,17 @@ llista de blocs sense desar res; `change` i `step` desen l'esborrany amb `pages.
 i la validació de desar) i porten l'historial de desfer i refer a la sessió, per pàgina."""
 
 import copy
+import datetime
+import hashlib
+import json
+
+from django.utils import timezone
+
+from apps.core import business_settings
 
 from . import blocks as catalog
 from . import pages
-from .models import PageDraft
+from .models import PageDraft, PageEditing
 
 HISTORY_MAX = 50  # límit tècnic: la sessió no creix sense límit
 
@@ -83,3 +90,18 @@ def step(request, page, action: str) -> bool:
 def can(request, page) -> dict:
     history = request.session.get(f"website.editor.{page.pk}", {})
     return {"undo": bool(history.get("undo")), "redo": bool(history.get("redo"))}
+
+
+def fingerprint(block: dict) -> str:
+    """Empremta d'un bloc: el desat automàtic només el canvia si ningú no l'ha tocat abans."""
+    return hashlib.sha256(json.dumps(block, sort_keys=True).encode()).hexdigest()[:16]
+
+
+def touch(page, account) -> list[str]:
+    """Apunta que `account` té l'editor obert i torna qui més l'ha tocat fa poc (CA-M07-32)."""
+    now = timezone.now()
+    PageEditing.objects.update_or_create(page=page, account=account, defaults={"seen_at": now})
+    seconds = business_settings.get("website.autosave_seconds")
+    recent = PageEditing.objects.filter(page=page, seen_at__gte=now - datetime.timedelta(
+        seconds=3 * seconds))  # fmt: skip  # tres desats perduts: ja no hi és
+    return sorted(recent.exclude(account=account).values_list("account__login", flat=True))

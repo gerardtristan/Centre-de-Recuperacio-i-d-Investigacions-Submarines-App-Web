@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n static %}
-{# T-M07-06a (WP1, decisió 106; RN-M07-15 i 16): blocs de la pàgina, formulari del bloc triat, afegir, moure, duplicar, amagar, treure, desfer i refer. Arrossegar (SortableJS) és una drecera: «Amunt» i «Avall» fan el mateix amb el teclat. Cada canvi desa l'esborrany al servidor, que valida l'esquema i torna a demanar WP1. La vista prèvia és la T-M07-06b. #}
+{# T-M07-06a i 06b (WP1, decisió 106; RN-M07-13 a 16 i 23; CA-M07-20 i 32): blocs de la pàgina, formulari del bloc triat, afegir, moure, duplicar, amagar, treure, desfer i refer. Arrossegar (SortableJS) és una drecera: «Amunt» i «Avall» fan el mateix amb el teclat. Cada canvi desa l'esborrany al servidor, que valida l'esquema i torna a demanar WP1. La vista prèvia només s'obre aquí, amb sessió; el desat automàtic i l'avís d'edició simultània els decideix el servidor. #}
 {% block title %}{% blocktranslate with title=page.title %}Editor: {{ title }}{% endblocktranslate %} · C.R.I.S.{% endblock %}
 {% block estils %}<script src="{% static 'vendor/sortablejs/Sortable.min.js' %}" defer></script><script src="{% static 'js/editor-web.js' %}" defer></script>{% endblock %}
 {% block content %}
@@ -14,10 +14,13 @@
       <button class="boto" type="submit" name="action" value="redo" id="editor-refes" aria-keyshortcuts="Control+Shift+Z"{% if not history.redo %} disabled aria-disabled="true"{% endif %}>{% translate "Refés" %}</button>
     </form>
   </header>
+  <div data-editor-pagina data-desa="{% url 'administration:website_page_autosave' page.pk %}" data-interval="{{ autosave_ms }}" data-csrf="{{ csrf_token }}" hidden></div>
   {% for message in messages %}
     {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% elif message.level_tag == "warning" %}<div class="avis avis-avis" role="status">{{ message }}</div>
     {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
   {% endfor %}
+  <div class="avis avis-avis" role="status" data-avis-edicio{% if not others %} hidden{% endif %}><strong>{% translate "Algú més té aquesta pàgina oberta:" %} <span data-avis-noms>{{ others|join:", " }}</span></strong> {% translate "No es bloqueja: els canvis de cadascú es desen al mateix esborrany. Si toqueu el mateix bloc, el segon que desa rep un avís i no esborra res." %}</div>
   <section class="targeta" aria-labelledby="titol-blocs">
     <h2 id="titol-blocs">{% translate "Blocs de la pàgina" %}</h2>
     <p class="ajuda" id="ajuda-blocs">{% translate "Tria un bloc per editar-lo. Per canviar-ne l'ordre, arrossega'l per la nansa o fes servir «Amunt» i «Avall»." %}</p>
@@ -64,13 +67,56 @@
   {% if form %}
     <section class="targeta" aria-labelledby="titol-bloc">
       <h2 id="titol-bloc">{{ selected_kind }}</h2>
-      <form class="formulari" method="post" action="{% url 'administration:website_page_editor_action' page.pk %}" novalidate>
+      <form class="formulari" method="post" action="{% url 'administration:website_page_editor_action' page.pk %}" novalidate data-desat-auto>
         {% csrf_token %}
-        <input type="hidden" name="action" value="update"><input type="hidden" name="index" value="{{ selected }}">
+        <input type="hidden" name="action" value="update"><input type="hidden" name="index" value="{{ selected }}"><input type="hidden" name="base" value="{{ base }}">
         {% include "_errata.html" %}
         {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
-        <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Desa el bloc" %}</button></div>
+        <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Desa el bloc" %}</button><p class="text-2" role="status" data-desat-estat data-desat="{% translate 'Desat.' %}" data-error="{% translate "No s'ha pogut desar. Si la sessió ha caducat, torna a entrar." %}"></p></div>
       </form>
     </section>
   {% endif %}
+  <section class="targeta" aria-labelledby="titol-previa">
+    <h2 id="titol-previa">{% translate "Vista prèvia" %}</h2>
+    <p class="ajuda">{% translate "L'esborrany tal com es veurà. Clica un bloc per editar-lo. Només la veus tu, amb la sessió oberta." %}</p>
+    <p class="accions">{% if theme == "fosc" %}<a class="boto boto-petit" href="?{% if selected is not None %}bloc={{ selected }}&amp;{% endif %}tema=clar">{% translate "Mostra-la en clar" %}</a>{% else %}<a class="boto boto-petit" href="?{% if selected is not None %}bloc={{ selected }}&amp;{% endif %}tema=fosc">{% translate "Mostra-la en fosc" %}</a>{% endif %}</p>
+    <iframe class="zm-vista" data-vista-previa title="{% translate "Vista prèvia de l'esborrany" %}" src="{% url 'administration:website_page_preview' page.pk %}?tema={{ theme }}"></iframe>
+  </section>
+  <section class="targeta" aria-labelledby="titol-compartir">
+    <h2 id="titol-compartir">{% translate "En compartir" %}</h2>
+    <article>
+      <p class="text-2"><span class="codi">cris1954.cat/{{ page.slug }}/</span></p>
+      <p><strong>{{ page.share_title|default:page.title }}</strong></p>
+      {% if page.share_description %}<p>{{ page.share_description }}</p>{% endif %}
+    </article>
+    {% for warning in share_warnings %}<div class="avis avis-avis" role="status">{{ warning }}</div>{% endfor %}
+    <form class="formulari" method="post" action="{% url 'administration:website_page_share' page.pk %}">
+      {% csrf_token %}
+      <div class="camp"><label for="compartir-titol">{% translate "Títol per compartir" %}</label><input id="compartir-titol" name="share_title" maxlength="200" value="{{ page.share_title }}" aria-describedby="compartir-titol-ajuda"><div class="ajuda" id="compartir-titol-ajuda">{% translate "Fins a 60 caràcters es veu sencer." %}</div></div>
+      <div class="camp"><label for="compartir-descripcio">{% translate "Descripció per compartir" %}</label><textarea id="compartir-descripcio" name="share_description" maxlength="500" rows="3" aria-describedby="compartir-descripcio-ajuda">{{ page.share_description }}</textarea><div class="ajuda" id="compartir-descripcio-ajuda">{% translate "Fins a 150 caràcters es veu sencera." %}</div></div>
+      <div class="accions"><button class="boto" type="submit">{% translate "Desa les dades per compartir" %}</button></div>
+    </form>
+  </section>
+  <section class="targeta" aria-labelledby="titol-publicar">
+    <h2 id="titol-publicar">{% translate "Publicar" %}</h2>
+    <form class="formulari" method="post" action="{% url 'administration:website_page_publish' page.pk %}">
+      {% csrf_token %}
+      <div class="camp"><label for="publicar-nota">{% translate "Nota de la versió (opcional)" %}</label><input id="publicar-nota" name="note" maxlength="300"></div>
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Publica l'esborrany" %}</button></div>
+    </form>
+    {% if versions %}
+      <h3>{% translate "Versions publicades" %}</h3>
+      <ul>
+        {% for version in versions %}
+          <li>
+            <form class="accions" method="post" action="{% url 'administration:website_page_revert' page.pk version.number %}">
+              {% csrf_token %}
+              <span>{% blocktranslate with n=version.number %}Versió {{ n }}{% endblocktranslate %} · <time datetime="{{ version.published_at|date:'c' }}">{{ version.published_at|date:"d/m/Y H:i" }}</time>{% if version.note %} · {{ version.note }}{% endif %}</span>
+              {% if not forloop.first %}<button class="boto boto-petit" type="submit">{% translate "Torna a aquesta versió" %}<span class="visualment-amagat"> {{ version.number }}</span></button>{% endif %}
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </section>
 {% endblock %}
