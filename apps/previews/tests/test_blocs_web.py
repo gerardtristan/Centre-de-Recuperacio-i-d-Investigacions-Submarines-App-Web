@@ -33,3 +33,26 @@ def test_variants_become_closed_classes():
     assert "avis-avis" in _render({"kind": "callout", "body": "T", "tone": "warning"})
     assert "avis-info" in _render({"kind": "callout", "body": "T"})
     assert "bloc-amplada-normal" in _render({"kind": "text", "body": "T"})
+
+
+def test_a_section_paints_each_inner_block_with_its_template():
+    html = _render(
+        {
+            "kind": "section",
+            "columns": [
+                [{"kind": "heading", "text": "<b>Un</b>", "level": 3}],
+                [{"kind": "divider"}],
+            ],
+        }
+    )
+    assert "bloc-columnes-2" in html
+    assert '<h3 class="bloc bloc-heading">&lt;b&gt;Un&lt;/b&gt;</h3>' in html
+    assert "bloc-divider" in html
+
+
+def test_action_blocks_escape_the_label_and_mark_one_primary():
+    button = {"kind": "button", "label": "<i>x</i>", "target": "/activitats/", "style": "primary"}
+    html = _render(button)
+    assert "&lt;i&gt;x&lt;/i&gt;" in html and "boto-principal" in html
+    assert "boto-principal" not in _render({"kind": "button", "label": "x", "target": "/"})
+    assert "/fer-se-soci/" in _render({"kind": "join_cta", "title": "T", "body": "B"})

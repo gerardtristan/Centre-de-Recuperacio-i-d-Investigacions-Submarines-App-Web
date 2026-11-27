@@ -1,0 +1,9 @@
+{% load i18n %}
+{# T-M07-19 (RN-M07-15): la crida «Fes-te soci», l'acció principal de la plantilla Captació; `background` tancat. #}
+<section class="bloc bloc-join_cta bloc-amplada-wide bloc-fons-{{ block.background|default:'marine' }}">
+  <div class="bloc-join_cta-text">
+    <h2>{{ block.title }}</h2>
+    <div class="bloc-prosa">{{ block.body }}</div>
+  </div>
+  <p class="bloc-join_cta-accio"><a class="boto boto-principal boto-gran" href="{% url 'members:join' %}">{% translate "Fes-te soci" %}</a></p>
+</section>

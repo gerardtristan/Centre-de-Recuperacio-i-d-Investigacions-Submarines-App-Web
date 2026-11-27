@@ -63,5 +63,45 @@ CONTEXT = {
                 },
             ],
         },
+        {
+            "name": _("Disposició"),
+            "blocks": [
+                {
+                    "kind": "section",
+                    "background": "soft",
+                    "width": "wide",
+                    "columns": [
+                        [
+                            {"kind": "heading", "level": 3, "text": _("Cursos")},
+                            {"kind": "text", "body": _("Text d'exemple: de l'iniciació a guia.")},
+                        ],
+                        [
+                            {"kind": "heading", "level": 3, "text": _("Sortides")},
+                            {"kind": "text", "body": _("Text d'exemple: cada cap de setmana.")},
+                        ],
+                        [
+                            {"kind": "heading", "level": 3, "text": _("Medi ambient")},
+                            {"kind": "text", "body": _("Text d'exemple: neteges i seguiments.")},
+                        ],
+                    ],
+                },
+                {"kind": "divider"},
+                {"kind": "spacer", "size": "small"},
+            ],
+        },
+        {
+            "name": _("Acció"),
+            "blocks": [
+                {"kind": "button", "label": _("Veure les sortides"), "target": "#"},
+                {
+                    "kind": "join_cta",
+                    "title": _("Fes-te soci del C.R.I.S."),
+                    "body": _("Text d'exemple: cursos, sortides i material del club."),
+                    "background": "marine",
+                },
+                {"kind": "newsletter"},
+                {"kind": "contact_form", "title": _("Tens alguna pregunta?")},
+            ],
+        },
     ],
 }
