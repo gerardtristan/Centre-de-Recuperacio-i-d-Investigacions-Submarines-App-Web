@@ -1,0 +1,5 @@
+{# T-M07-19 (RN-M07-15): cita amb l'autoria opcional; fons tancat (none, soft, marine, accent). #}
+<figure class="bloc bloc-quote bloc-fons-{{ block.background|default:'none' }}">
+  <blockquote><p>{{ block.text }}</p></blockquote>
+  {% if block.attribution %}<figcaption>{{ block.attribution }}</figcaption>{% endif %}
+</figure>
