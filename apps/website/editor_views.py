@@ -1,0 +1,131 @@
+"""Editor de la web a l'administració (T-M07-06a, decisió 106; `/gestio/web/pagines/`).
+
+La llista de pàgines (i crear-ne una) i l'editor d'una pàgina: llista de blocs, formulari del
+bloc triat, afegir, moure (botons o arrossegar), duplicar, amagar, treure, i desfer i refer dins
+la sessió. Tot demana WP1 (`website.pages`, «Sí») i els serveis ho tornen a comprovar; cada
+canvi desa l'esborrany amb la validació del catàleg (RN-M07-15 i 16). Fins que WP1 es parteixi
+(T-M07-26), WP1 fa de WP1a.
+"""
+
+from django import forms
+from django.contrib import messages
+from django.core.exceptions import ValidationError
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils.translation import gettext as _
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_http_methods, require_POST
+
+from apps.core.permissions import require_perm
+
+from . import editor, pages
+from .editor_forms import GROUPS, KINDS, BlockForm, summary
+from .models import Page, PageDraft
+
+
+class NewPageForm(forms.ModelForm):
+    class Meta:
+        model = Page
+        fields = ["title", "slug", "template"]
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def pages_view(request):
+    require_perm(request, pages.PERMISSION, write=True)
+    form = NewPageForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        try:
+            page, _warnings = pages.save_page(None, actor=request.user, **form.cleaned_data)
+        except ValidationError as error:
+            form.add_error(None, error)
+        else:
+            messages.success(request, _("Pàgina creada en esborrany."))
+            return redirect("administration:website_page_editor", page.pk)
+    drafts = set(PageDraft.objects.values_list("page_id", flat=True))
+    rows = [(page, page.pk in drafts) for page in Page.objects.all()]
+    return render(request, "website/admin/pages.html", {"rows": rows, "form": form})
+
+
+def _selected(request, blocks) -> int | None:
+    try:
+        index = int(request.GET.get("bloc", ""))
+    except ValueError:
+        return None
+    return index if 0 <= index < len(blocks) else None
+
+
+def _editor(request, page, *, form=None, selected=None, status=200):
+    blocks = editor.editing_blocks(page)
+    selected = _selected(request, blocks) if selected is None else selected
+    if form is None and selected is not None:
+        form = BlockForm(blocks[selected]["kind"], block=blocks[selected])
+    context = {
+        "page": page,
+        "items": [(i, b, summary(b)) for i, b in enumerate(blocks)],
+        "selected": selected,
+        "selected_kind": KINDS[blocks[selected]["kind"]] if selected is not None else "",
+        "last": len(blocks) - 1,
+        "form": form,
+        "groups": [(label, [(k, KINDS[k]) for k in kinds]) for label, kinds in GROUPS],
+        "history": editor.can(request, page),
+    }
+    return render(request, "website/admin/page_editor.html", context, status=status)
+
+
+@never_cache
+@require_http_methods(["GET"])
+def editor_view(request, pk):
+    require_perm(request, pages.PERMISSION, write=True)
+    return _editor(request, get_object_or_404(Page, pk=pk))
+
+
+def _target(action: str, index: int, count: int) -> int | None:
+    """Quin bloc queda triat després de l'acció."""
+    moves = {"add": index + 1, "up": index - 1, "down": index + 1, "duplicate": index + 1}
+    target = moves.get(action, index if action in ("hide", "update") else None)
+    if action == "add" and count == 1:
+        target = 0
+    return target
+
+
+@never_cache
+@require_POST
+def editor_action_view(request, pk):
+    require_perm(request, pages.PERMISSION, write=True)
+    page = get_object_or_404(Page, pk=pk)
+    action = request.POST.get("action", "")
+    url = reverse("administration:website_page_editor", args=[page.pk])
+    if action in ("undo", "redo"):
+        done = (editor.undo if action == "undo" else editor.redo)(request, page)
+        if not done:
+            messages.error(request, _("No hi ha res per desfer o refer."))
+        return redirect(url)
+    blocks = editor.editing_blocks(page)
+    try:
+        index = int(request.POST.get("index", "-1"))
+        order = [int(i) for i in request.POST.get("order", "").split(",") if i != ""]
+        block = None
+        if action == "update":
+            if not 0 <= index < len(blocks):
+                raise IndexError(index)
+            form = BlockForm(blocks[index]["kind"], request.POST, block=blocks[index])
+            if not form.is_valid():
+                return _editor(request, page, form=form, selected=index, status=400)
+            block = form.to_block(blocks[index])
+        new = editor.apply(blocks, action, index, kind=request.POST.get("kind", ""),
+                           order=order, block=block)  # fmt: skip
+    except (ValueError, IndexError):
+        messages.error(request, _("Aquesta acció no es pot fer amb aquest bloc."))
+        return redirect(url)
+    try:
+        editor.change(request, page, new)
+    except ValidationError as error:
+        if action == "update":
+            form.add_error(None, error)
+            return _editor(request, page, form=form, selected=index, status=400)
+        messages.error(request, " ".join(error.messages))
+        return redirect(url)
+    messages.success(request, _("Esborrany desat."))
+    target = _target(action, index, len(new))
+    return redirect(f"{url}?bloc={target}" if target is not None and target < len(new) else url)
