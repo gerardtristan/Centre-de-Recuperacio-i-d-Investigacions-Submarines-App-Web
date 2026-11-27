@@ -7,8 +7,14 @@
   {% if state == "ready" %}
     <div>
       <p>{% translate "Confirma que aquesta adreça és teva per activar el compte." %}</p>
-      <form method="post">
+      <form class="formulari" method="post" novalidate>
         {% csrf_token %}
+        {% if form %}
+          {# Revisió A (T-M01-53): des d'un altre navegador, es tria la contrasenya en confirmar. #}
+          <p>{% translate "Per activar el compte des d'aquí, tria la contrasenya amb què entraràs." %}</p>
+          {% include "_errata.html" %}
+          {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+        {% endif %}
         <button class="boto boto-principal" type="submit">{% translate "Confirmar el correu" %}</button>
       </form>
     </div>
