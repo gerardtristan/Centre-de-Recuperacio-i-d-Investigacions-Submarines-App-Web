@@ -14,7 +14,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 from apps.core import business_settings
 from apps.core.permissions import require_perm
 
-from . import editor, pages
+from . import editor, pages, review
 from .editor_forms import GROUPS, KINDS, BlockForm, summary
 from .models import Page, PageDraft
 
@@ -58,6 +58,7 @@ def _editor(request, page, *, form=None, selected=None, status=200):
         "theme": "fosc" if request.GET.get("tema") == "fosc" else "clar",
         "versions": page.versions.order_by("-number")[:10],
         "share_warnings": pages.share_warnings(page),
+        "review": review.review(page, blocks),
     }
     return render(request, "website/admin/page_editor.html", context, status=status)
 

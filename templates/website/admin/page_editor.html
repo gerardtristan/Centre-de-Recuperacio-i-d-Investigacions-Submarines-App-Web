@@ -99,7 +99,14 @@
     </form>
   </section>
   <section class="targeta" aria-labelledby="titol-publicar">
-    <h2 id="titol-publicar">{% translate "Publicar" %}</h2>
+    <h2 id="titol-publicar">{% translate "Revisar i publicar" %}</h2>
+    {% if review %}
+      <div class="avis avis-avis" role="status"><strong>{% translate "Revisor de qualitat" %}</strong>
+        <ul>{% for warning in review %}<li>{{ warning }}</li>{% endfor %}</ul>
+      </div>
+    {% else %}
+      <p class="text-2">{% translate "El revisor de qualitat no hi ha trobat res." %}</p>
+    {% endif %}
     <form class="formulari" method="post" action="{% url 'administration:website_page_publish' page.pk %}">
       {% csrf_token %}
       <div class="camp"><label for="publicar-nota">{% translate "Nota de la versió (opcional)" %}</label><input id="publicar-nota" name="note" maxlength="300"></div>
