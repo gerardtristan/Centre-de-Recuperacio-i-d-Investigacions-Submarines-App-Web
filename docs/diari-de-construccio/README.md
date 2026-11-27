@@ -643,3 +643,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M07-10b](T-M07-10b.md) | Tutorials: pantalles d'administració (WP4; carril A) | 25/11/2026 03:48 | (vegeu la PR) | 5 noves i 1 e2e | [A comprovar] |
 | [T-M02-20-fotos](T-M02-20-fotos.md) | Fotos d'una sortida de medi ambient, apagades fins a la P-41 (torn del nucli i 02) | 25/11/2026 04:47 | (vegeu la PR) | 11 noves i 1 e2e | [A comprovar] |
 | [T-M02-53](T-M02-53.md) | Activitats fetes i fotos publicables per a la web (RP-M07-02; carril B) | 27/11/2026 22:27 | (vegeu la PR) | 6 noves | [A comprovar] |
+| [T-M02-53b](T-M02-53b.md) | Preu en cèntims i foto a les dades públiques de les activitats (P-683; carril B) | 27/11/2026 23:42 | (vegeu la PR) | 7 noves | [A comprovar] |
