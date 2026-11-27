@@ -186,10 +186,8 @@ def _check(field: Field, value, publishing: bool) -> None:
                     raise _Bad
             else:
                 _check(field.item, item, publishing)
-    elif t == "columns":
+    else:  # columns: una llista buida ja és un camp buit (EMPTY)
         if not isinstance(value, list) or len(value) > field.max:
-            raise _Bad
-        if publishing and len(value) < field.min:
             raise _Bad
         for column in value:
             _validate(column, publishing, nested=True)

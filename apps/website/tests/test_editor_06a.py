@@ -143,3 +143,19 @@ def test_the_form_of_each_kind_gives_back_the_same_block(kind):
     assert bound.is_valid(), bound.errors
     assert bound.to_block(original) == expected
     assert summary(original).startswith(str(summary({"kind": kind})))
+
+
+def test_screens_and_edge_cases_of_the_editor(page, president):
+    client = admin_client(president)
+    assert "Editor" in client.get(LIST).content.decode()
+    taken = client.post(LIST, {"title": "Xoca", "slug": "en-construccio", "template": "basica"})
+    assert taken.status_code == 200 and not Page.objects.filter(title="Xoca").exists()
+    pages.save_draft(page, [block("list")], president)
+    editor_url = reverse("administration:website_page_editor", args=[page.pk])
+    assert "Elements" in client.get(editor_url + "?bloc=0").content.decode()
+    lines = "\n".join(f"Element {i}" for i in range(21))
+    too_many = {"action": "update", "index": "0", "items": lines, "style": "bullets"}
+    assert client.post(action_url(page), too_many).status_code == 400  # el catàleg: 20 com a màxim
+    assert draft(page) == [block("list")]
+    response = client.post(action_url(page), {"action": "redo"}, follow=True)
+    assert "No hi ha res per desfer o refer." in response.content.decode()
