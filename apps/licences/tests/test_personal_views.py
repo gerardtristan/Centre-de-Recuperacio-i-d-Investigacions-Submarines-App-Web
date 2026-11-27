@@ -132,3 +132,11 @@ def test_options_on_show_the_non_member_price_and_single_day_types(
     assert (
         "<strong>Un dia sense preu (inventat)</strong>" not in html
     )  # però sense preu no s'ofereix
+
+
+def test_t_m07_36_a_member_can_say_no_when_requesting(client_of, member, priced):
+    from apps.website import clients
+
+    account, client = client_of()
+    client.post(URL, {"d-tipus": priced.pk, "d-" + clients.FIELD: "on", "demana": "1"})
+    assert clients.objected(account.login)

@@ -12,6 +12,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.core.charges import euros
 from apps.core.models import Department, Person
 from apps.core.permissions import accounts_with_perm
+from apps.website import clients
 
 from . import catalogue, extensions, permissions, sessions
 from .models import (
@@ -332,6 +333,7 @@ class GuestEnrolmentForm(forms.Form):
 
     def __init__(self, data=None, *, min_age, prefix=None):
         super().__init__(data, prefix=prefix)
+        self.fields[clients.FIELD] = clients.objection_field()  # T-M07-36
         if min_age:
             del self.fields["adult_declared"]
         else:

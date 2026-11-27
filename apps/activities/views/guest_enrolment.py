@@ -22,6 +22,7 @@ from django.views.decorators.http import require_http_methods
 from apps.accounts import limits
 from apps.accounts.security import client_ip
 from apps.core import consents
+from apps.website import clients
 
 from .. import guests, public
 from ..forms import GuestEnrolmentForm
@@ -59,6 +60,8 @@ def guest_enrol_view(request, pk):
                     )
                 activity = Activity.objects.get(pk=pk)
                 guests.enrol_guest(activity, form.cleaned_data, request=request)
+                if form.cleaned_data.get(clients.FIELD):  # T-M07-36
+                    clients.object_to(form.cleaned_data["contact_email"])
         except ValidationError as error:
             form.add_error(None, error.messages[0])
         else:

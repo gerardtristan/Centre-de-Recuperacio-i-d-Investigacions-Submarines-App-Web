@@ -109,3 +109,21 @@ def test_t_m02_14_the_desk_needs_ac5(login_as, make_admin, manager):  # noqa: F8
     data = {f"presencial-{k}": v for k, v in post_data().items()}
     assert client.post(detail, {**data, "inscripcio_presencial": "1"}).status_code == 404
     assert not Enrolment.objects.exists()
+
+
+def test_t_m07_36_a_guest_can_say_no_on_the_web_and_at_the_desk(client, login_as, manager):
+    from apps.website import clients
+
+    publish("privacy", guests.ADULT)
+    outing = an_open_outing(manager, open_to_non_members=True)
+    assert "No vull rebre informació d'activitats" in html.unescape(
+        client.get(url(outing)).content.decode()
+    )
+    client.post(url(outing), post_data(**{clients.FIELD: "on"}))
+    assert clients.objected(EMAIL)
+    desk = login_as(manager, AREA_ADMIN)
+    detail = reverse("administration:activity_detail", args=[outing.pk])
+    other = "presencial.convidat@example.org"
+    data = {f"presencial-{k}": v for k, v in post_data(contact_email=other).items()}
+    desk.post(detail, {**data, f"presencial-{clients.FIELD}": "on", "inscripcio_presencial": "1"})
+    assert clients.objected(other)

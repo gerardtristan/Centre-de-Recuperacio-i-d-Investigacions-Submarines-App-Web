@@ -64,3 +64,14 @@ def test_ca_m02_29_a_warning_lets_enrol_and_stays_on_the_enrolment(login_as, man
 def test_non_public_activity_is_not_found(login_as, manager):
     client = login_as(a_member(), AREA_PERSONAL)
     assert client.get(url(an_outing(manager))).status_code == 404
+
+
+def test_t_m07_36_the_box_to_say_no_is_recorded(login_as, manager):
+    from apps.website import clients
+
+    outing = an_open_outing(manager)
+    account = a_member()
+    client = login_as(account, AREA_PERSONAL)
+    assert "No vull rebre informació d'activitats del C.R.I.S." in page(client, outing)
+    client.post(url(outing), {clients.FIELD: "on"})
+    assert Enrolment.objects.exists() and clients.objected(account.login)

@@ -18,9 +18,11 @@ import hashlib
 import hmac
 import secrets
 
+from django import forms
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
+from django.utils.translation import gettext_lazy
 
 from apps.core import audit, business_settings
 from apps.core.persons import ANONYMOUS_EMAIL_DOMAIN
@@ -49,6 +51,24 @@ def object_to(email: str) -> None:
     per aquesta via. Es desa encara que l'interruptor sigui apagat."""
     if email and email.strip():
         ClientObjection.objects.get_or_create(email_hash=_hash(email))
+
+
+FIELD = "no_activity_info"
+
+
+def objection_field() -> forms.BooleanField:
+    """La casella per dir que no en donar les dades (T-M07-36), igual a tots els formularis del 02
+    i del 06. Surt sempre, també amb l'interruptor apagat, perquè el «no» valgui quan s'encengui."""
+    return forms.BooleanField(
+        label=gettext_lazy("No vull rebre informació d'activitats del C.R.I.S."), required=False,
+        help_text=gettext_lazy("Marca-la si no vols que el club t'enviï informació de les seves "
+                               "activitats. Cada correu porta l'enllaç per donar-te'n de baixa."),
+    )  # fmt: skip
+
+
+def object_to_person(person) -> None:
+    """Com `object_to`, amb el correu que faria servir l'alta (`_email`)."""
+    object_to(_email(person))
 
 
 def objected(email: str) -> bool:

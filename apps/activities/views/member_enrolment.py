@@ -21,6 +21,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
 from apps.members.services import is_member
+from apps.website import clients
 
 from .. import enrolment, extensions, public, requirements
 from ..models import Activity, Enrolment
@@ -39,6 +40,7 @@ def _form(activity, person, data=None):
             form.fields[key], names[key] = field, name
         if names:
             form.sections.append((section, names))
+    form.fields[clients.FIELD] = clients.objection_field()  # T-M07-36, la darrera
     return form
 
 
@@ -70,6 +72,8 @@ def member_enrol_view(request, pk):
                     activity, person, channel=Enrolment.Channel.ACCOUNT, actor=request.user,
                     answers=_answers(form), request=request,
                 )  # fmt: skip
+                if form.cleaned_data.get(clients.FIELD):
+                    clients.object_to_person(person)
         except ValidationError as error:
             form.add_error(None, error.messages[0])
         else:

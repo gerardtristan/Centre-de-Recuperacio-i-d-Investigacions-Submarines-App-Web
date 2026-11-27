@@ -16,6 +16,7 @@ from django.views.decorators.http import require_http_methods
 from apps.core import business_settings
 from apps.core.charges import euros
 from apps.members.services import is_member
+from apps.website import clients
 
 from . import prices, services
 from .listing import TO_RENEW_DAYS
@@ -39,6 +40,7 @@ class RequestForm(forms.Form):
     def __init__(self, *args, types, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["tipus"].queryset = types
+        self.fields[clients.FIELD] = clients.objection_field()  # T-M07-36
 
 
 class DeclareForm(forms.Form):
@@ -114,6 +116,8 @@ def mine_view(request):
             data = request_form.cleaned_data
             starts_on = datetime.date(today.year + 1, 1, 1) if data["any_vinent"] else None
             licence = services.request(person, data["tipus"], starts_on, actor=request.user)
+            if data.get(clients.FIELD):  # T-M07-36
+                clients.object_to_person(person)
             return redirect("payments:charge", licence.charge_id)
         if "declara" in request.POST and declare_form.is_valid():
             data = declare_form.cleaned_data

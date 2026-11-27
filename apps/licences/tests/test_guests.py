@@ -141,3 +141,18 @@ def test_the_form_shows_the_errors(client, options, privacy, priced):
     html = client.post(URL, post).content.decode()
     assert "menors d&#x27;edat" in html or "menors d'edat" in html
     assert not Licence.objects.exists()
+
+
+def test_t_m07_36_the_box_to_say_no_is_recorded(client, options, privacy, priced):
+    from apps.website import clients
+
+    post = {"tipus": priced.pk, "first_name": "Mar", "last_name": "Convidada",
+            "contact_email": EMAIL, "birth_date": "1990-05-01", "accept_privacy": "on"}  # fmt: skip
+    assert (
+        "No vull rebre informació d&#x27;activitats del C.R.I.S."
+        in client.get(URL).content.decode()
+    )
+    client.post(URL, post)
+    assert not clients.objected(EMAIL)
+    client.post(URL, {**post, clients.FIELD: "on"})
+    assert clients.objected(EMAIL)

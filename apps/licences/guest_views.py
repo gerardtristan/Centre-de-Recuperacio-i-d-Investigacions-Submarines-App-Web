@@ -18,6 +18,7 @@ from django.views.decorators.http import require_http_methods
 from apps.accounts import limits
 from apps.accounts.security import client_ip
 from apps.core import business_settings, consents
+from apps.website import clients
 
 from . import guests, services
 from .models import LicenceType, ValidityRule
@@ -47,6 +48,7 @@ class GuestForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields[clients.FIELD] = clients.objection_field()  # T-M07-36
         types = LicenceType.objects.filter(active=True).order_by("name")
         if not business_settings.get(services.DAY_ENABLED):
             types = types.exclude(validity_rule=ValidityRule.SINGLE_DAY)
@@ -85,6 +87,8 @@ def guest_request_view(request):
                     today=timezone.localdate(),
                     send_link=limits.join_receipt_allowed(accepted, data["contact_email"]),
                 )
+                if data.get(clients.FIELD):  # T-M07-36
+                    clients.object_to(data["contact_email"])
         except (ValidationError, services.LicenceRequestError) as error:
             if not form.non_field_errors():
                 form.add_error(

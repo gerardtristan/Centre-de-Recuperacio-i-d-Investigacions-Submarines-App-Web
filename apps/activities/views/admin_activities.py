@@ -24,6 +24,7 @@ from django.views.decorators.http import require_GET, require_http_methods
 
 from apps.core.charges import euros
 from apps.core.permissions import has_perm, permission_required
+from apps.website import clients
 
 from .. import (
     cancellation,
@@ -420,6 +421,8 @@ def _enrol_at_desk(request, activity):
     if form.is_valid():
         try:
             guests.enrol_guest(activity, form.cleaned_data, by=request.user, request=request)
+            if form.cleaned_data.get(clients.FIELD):  # T-M07-36
+                clients.object_to(form.cleaned_data["contact_email"])
         except ValidationError as error:
             form.add_error(None, error.messages[0])
         else:
