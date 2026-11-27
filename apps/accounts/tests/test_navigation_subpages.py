@@ -23,6 +23,10 @@ STANDALONE = {
     "administration:website_pages",
     "administration:website_page_editor",
     "administration:website_page_editor_action",
+    # T-M07-29: el selector de destacades, fins que DISSENY hi posi l'entrada del menú (T-DX-165).
+    "administration:website_featured",
+    "administration:website_featured_add",
+    "administration:website_featured_change",
 }
 
 
