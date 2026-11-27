@@ -7,6 +7,10 @@ personals i les rutes són de l'entrada personal. Darrere de `PERSONAL_EMAIL_LOG
 - L'enllaç (15 minuts, un sol ús) no fa res en obrir-lo: desa el testimoni a la sessió i porta a
   una pàgina sense testimoni amb el botó «Entra» (POST), com la verificació del correu.
 - Un compte amb doble factor continua demanant el codi; un compte bloquejat no entra.
+- Revisió G: la petició no busca el compte (la cua l'envia, com la recuperació, T-M01-39b); per
+  això no porta cap `next` i s'entra a l'inici.
+- Revisió H: abans d'«Entra» es veu el correu emmascarat, i amb una sessió oberta l'enllaç no
+  entra (no la substitueix mai).
 """
 
 from django.conf import settings
@@ -25,11 +29,16 @@ from . import email_links, tokens
 from .forms import RecoveryRequestForm
 from .models import Account
 from .security import AREA_PERSONAL
-from .sessions import complete_login, safe_next, start_pending
+from .sessions import complete_login, start_pending
 from .views import _no_referrer, _same_origin_referrer
 
 USED = "auth.email_login_used"
 SENT_KEY = "email_login_sent"
+
+
+def mask_email(email: str) -> str:
+    local, _, domain = email.partition("@")
+    return f"{local[:1]}***@{domain}"
 
 
 def _enabled():
@@ -42,20 +51,18 @@ def _enabled():
 @require_http_methods(["GET", "POST"])
 def email_login_request_view(request):
     _enabled()
-    next_url = safe_next(request, request.POST.get("next") or request.GET.get("next")) or ""
     if request.method == "GET" and request.session.pop(SENT_KEY, False):
         minutes = int(tokens.EMAIL_LOGIN.max_age.total_seconds() // 60)
         context = {"sent": True, "minutes": minutes}
         return render(request, "accounts/email_login_request.html", context)
     form = RecoveryRequestForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        email_links.request_email_login(request, form.cleaned_data["email"], next_url)
+        email_links.request_email_login(request, form.cleaned_data["email"])
         request.session[SENT_KEY] = True
         response = redirect("accounts:email_login_request")
         response.status_code = 303
         return response
-    context = {"form": form, "next": next_url}
-    return render(request, "accounts/email_login_request.html", context)
+    return render(request, "accounts/email_login_request.html", {"form": form})
 
 
 @login_not_required
@@ -73,6 +80,10 @@ def email_login_link_view(request, token):
 def email_login_view(request):
     _enabled()
     token = request.session.get(email_links.LOGIN_SESSION_KEY, "")
+    if request.user.is_authenticated:
+        # Revisió H: un enllaç no substitueix mai una sessió oberta (ni la d'un altre compte).
+        request.session.pop(email_links.LOGIN_SESSION_KEY, None)
+        return render(request, "accounts/email_login.html", {"state": "signed_in"})
     if request.method == "POST":
         request.session.pop(email_links.LOGIN_SESSION_KEY, None)
         with transaction.atomic():
@@ -83,17 +94,19 @@ def email_login_view(request):
                 and not account.is_locked(timezone.now())
             )
             if usable:
-                next_url = safe_next(request, data.get("n"))
                 audit.record(USED, actor=account, target=account, request=request)
                 if account.has_totp:
-                    start_pending(request, account, AREA_PERSONAL, next_url)
+                    start_pending(request, account, AREA_PERSONAL, None)
                     return redirect("accounts:login_totp")
                 complete_login(request, account, AREA_PERSONAL)  # l'última entrada l'invalida
-                return redirect(next_url or reverse("core:home"))
+                return redirect("core:home")
         state = "invalid"
     else:
-        state = "ready" if tokens.account_for_token(token, tokens.EMAIL_LOGIN) else "invalid"
+        account = tokens.account_for_token(token, tokens.EMAIL_LOGIN)
+        state = "ready" if account else "invalid"
     if state == "invalid":
         request.session.pop(email_links.LOGIN_SESSION_KEY, None)
-    response = render(request, "accounts/email_login.html", {"state": state})
+    # Revisió H: el correu emmascarat, perquè ningú no entri sense saber-ho al compte d'un altre.
+    masked = mask_email(account.login) if state == "ready" else ""
+    response = render(request, "accounts/email_login.html", {"state": state, "masked": masked})
     return _same_origin_referrer(response)

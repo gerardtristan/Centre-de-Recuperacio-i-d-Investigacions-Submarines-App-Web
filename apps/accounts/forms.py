@@ -210,13 +210,26 @@ class SignupForm(forms.Form):
             "required": _("Cal acceptar la política de privacitat per crear el compte.")
         },
     )
+    # Versions dels textos mostrats: si n'hi ha una de nova, cal tornar-los a llegir (CA-17.1).
+    text_versions = forms.CharField(widget=forms.HiddenInput)
 
     def __init__(self, *args, texts, **kwargs):
         super().__init__(*args, **kwargs)
         self.texts = texts
         if "newsletter" not in texts:
             del self.fields["accept_newsletter"]
+        self.fields["text_versions"].initial = self.versions()
         self.fields["password"].help_text = password_validation.password_validators_help_text_html()
+
+    def versions(self) -> str:
+        return ";".join(f"{kind}:{text.version}" for kind, text in self.texts.items())
+
+    def clean_text_versions(self):
+        if self.cleaned_data["text_versions"] != self.versions():
+            raise forms.ValidationError(
+                _("Els textos legals han canviat. Llegeix-los de nou i torna a crear el compte.")
+            )
+        return self.cleaned_data["text_versions"]
 
     def clean(self):
         data = super().clean()

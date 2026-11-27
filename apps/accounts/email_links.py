@@ -157,26 +157,41 @@ def _send_link(request, purpose: str, find_account, wanted_status: str, send) ->
         )
 
 
-def request_email_login(request, email: str, next_url: str = "") -> None:
-    """T-M01-56 (108, D.3): l'enllaç per entrar sense contrasenya, només a un compte personal
-    actiu, amb els límits de RN-M01-58; la resposta és la mateixa per a qualsevol adreça. `next`
-    ja validat: va signat dins del testimoni, perquè l'enllaç es pot obrir en un altre navegador."""
-    email = normalize_email(email)
+def _send_login(account) -> None:
+    token = tokens.make_token(account, tokens.EMAIL_LOGIN)
+    minutes = int(tokens.EMAIL_LOGIN.max_age.total_seconds() // 60)
+    mail.queue_email(
+        LOGIN_TEMPLATE,
+        to=account.login,
+        person=account.person,
+        context={"link": _link("accounts:email_login_link", token), "minutes": minutes},
+    )
 
-    def find_account():
-        return Account.objects.filter(login=email, kind=Account.Kind.PERSONAL).first()
 
-    def send(account):
-        token = tokens.make_token(account, tokens.EMAIL_LOGIN, n=next_url or "")
-        minutes = int(tokens.EMAIL_LOGIN.max_age.total_seconds() // 60)
-        mail.queue_email(
-            LOGIN_TEMPLATE,
-            to=account.login,
-            person=account.person,
-            context={"link": _link("accounts:email_login_link", token), "minutes": minutes},
+def request_email_login(request, email: str) -> None:
+    """T-M01-56 (108, D.3): l'enllaç per entrar sense contrasenya. Revisió G: el mateix patró que
+    «He oblidat la contrasenya» (T-M01-39b): la petició fa la mateixa feina per a qualsevol
+    adreça i no busca el compte; la tasca de la cua el busca i, només si és personal i actiu i el
+    destinatari no està limitat, envia l'enllaç (`process_email_login`)."""
+    from .tasks import send_email_login
+
+    _queue_link(request, email, LOGIN, send_email_login)
+
+
+def _queue_link(request, email: str, purpose: str, task) -> None:
+    ip = client_ip(request)
+    with transaction.atomic():
+        limits.lock_origin(ip)
+        if limits.origin_limited(ip):
+            _limited(request, purpose, "origin")
+            return
+        accepted = EmailLinkRequest.objects.create(
+            ip_address=ip,
+            purpose=purpose,
+            status=EmailLinkRequest.Status.PENDING,
+            recipient_hash=limits.recipient_key(email),
         )
-
-    _send_link(request, LOGIN, find_account, Account.Status.ACTIVE, send)
+        task.defer(request_id=accepted.pk)
 
 
 def request_password_reset(request, email: str) -> None:
@@ -189,19 +204,7 @@ def request_password_reset(request, email: str) -> None:
     l'identificador de la fila (`process_password_reset`). Cap adreça desada."""
     from .tasks import send_password_reset
 
-    ip = client_ip(request)
-    with transaction.atomic():
-        limits.lock_origin(ip)
-        if limits.origin_limited(ip):
-            _limited(request, RESET, "origin")
-            return
-        accepted = EmailLinkRequest.objects.create(
-            ip_address=ip,
-            purpose=RESET,
-            status=EmailLinkRequest.Status.PENDING,
-            recipient_hash=limits.recipient_key(email),
-        )
-        send_password_reset.defer(request_id=accepted.pk)
+    _queue_link(request, email, RESET, send_password_reset)
 
 
 def _close(row, status) -> None:
@@ -211,7 +214,16 @@ def _close(row, status) -> None:
     row.save(update_fields=["status", "recipient_hash"])
 
 
+def process_email_login(request_id: int) -> str:
+    """La tasca de l'enllaç per entrar (T-M01-56, revisió G): com `process_password_reset`."""
+    return _process_link(request_id, LOGIN, _send_login)
+
+
 def process_password_reset(request_id: int) -> str:
+    return _process_link(request_id, RESET, _send_reset)
+
+
+def _process_link(request_id: int, purpose: str, send) -> str:
     """La tasca de «He oblidat la contrasenya» (T-M01-39b). Torna l'estat final de la fila.
 
     - Bloqueja la fila sense esperar (`skip_locked`): si la té un altre procés o ja no és
@@ -224,14 +236,14 @@ def process_password_reset(request_id: int) -> str:
     with transaction.atomic():
         row = (
             EmailLinkRequest.objects.select_for_update(skip_locked=True)
-            .filter(pk=request_id, purpose=RESET)
+            .filter(pk=request_id, purpose=purpose)
             .first()
         )
         if row is None or row.status != EmailLinkRequest.Status.PENDING:
             return "skipped"
         if timezone.now() - row.created_at > limits.RESET_MAX_DELAY:
             _close(row, EmailLinkRequest.Status.EXPIRED)
-            logger.info("password_reset_expired")
+            logger.info("email_link_expired purpose=%s", purpose)
             return row.status
         key = row.recipient_hash
         limits.lock_recipient(key)
@@ -243,18 +255,18 @@ def process_password_reset(request_id: int) -> str:
         if account is None:
             _close(row, EmailLinkRequest.Status.NOT_SENT)
             return row.status
-        if limits.recipient_limited(key, RESET):
-            _limited(None, RESET, "recipient", account, ip=row.ip_address)
+        if limits.recipient_limited(key, purpose):
+            _limited(None, purpose, "recipient", account, ip=row.ip_address)
             _close(row, EmailLinkRequest.Status.LIMITED)
             return row.status
-        _send_reset(account)
+        send(account)
         row.status = EmailLinkRequest.Status.SENT
         row.save(update_fields=["status"])
         audit.record(
             audit.Action.EMAIL_LINK_SENT,
             actor=audit.ANONYMOUS,
             target=account,
-            details={"purpose": RESET},
+            details={"purpose": purpose},
         )
         return row.status
 
@@ -336,7 +348,7 @@ def reset_password(token: str, data=None, *, request=None) -> ResetResult:
 
 
 @transaction.atomic
-def confirm_email(token: str, *, request=None) -> Account | None:
+def confirm_email(token: str, *, request=None, new_password: str | None = None) -> Account | None:
     """Activa el compte pendent del testimoni (CA-04.2). Torna None si el testimoni no és vàlid
     o ja s'ha fet servir. La fila queda bloquejada: dues confirmacions alhora en fan una."""
     account = tokens.account_for_token(token, tokens.VERIFY_EMAIL, lock=True)
@@ -352,7 +364,12 @@ def confirm_email(token: str, *, request=None) -> Account | None:
         request=request,
     )
     account.status = Account.Status.ACTIVE
-    account.save(update_fields=["status", "updated_at"])
+    fields = ["status", "updated_at"]
+    if new_password:
+        # Revisió A: qui demostra el correu tria la contrasenya; la de l'alta deixa de valer.
+        account.set_password(new_password)
+        fields.append("password")
+    account.save(update_fields=fields)
     signals.email_verified.send(sender=Account, account=account, request=request)
     return account
 
