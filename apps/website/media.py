@@ -123,7 +123,7 @@ def block_media_keys(blocks, *, public_only: bool = False) -> list[str]:
         if kind in ("image", "image_text") and block.get("media"):
             keys.append(block["media"])
         elif kind == "gallery":
-            keys.extend(block.get("media") or [])
+            keys.extend(k for k in block.get("media") or [] if k)  # un forat de l'esborrany, no
         elif kind == "video" and block.get("thumbnail"):
             keys.append(block["thumbnail"])
         elif kind == "project_cards":

@@ -81,6 +81,7 @@ def test_initial_kinds_render_translated_and_switches_hide_forms(page, editor):
 
 
 def test_photos_arrive_resolved_and_a_retired_one_disappears(page, editor):
+    business_settings.change("website.public_images_enabled", True, editor, "Prova")
     asset = _photo(editor, **COMPLETE)
     blocks = [block("image", media=str(asset.key))]
     assert f'alt="{asset.alt_text}"' in render.render_blocks(blocks, page)
@@ -95,3 +96,17 @@ def test_faq_topic_and_recent_news_bring_their_data(page):
                             published=True)  # fmt: skip
     html = render.render_blocks([block("faq_topic", topic=topic.pk), block("recent_news")], page)
     assert "Quan es paga?" in html and "Notícies" in html
+
+
+def test_review_photos_follow_the_public_images_switch_and_skip_empty_keys(page, editor):
+    """Revisió de la #618: amb `website.public_images_enabled` apagat, cap foto; un forat d'una
+    galeria a mig fer (P-680) no fa petar la vista prèvia."""
+    asset = _photo(editor, **COMPLETE)
+    blocks = [block("image", media=str(asset.key)), block("gallery", media=["", str(asset.key)])]
+    assert "<img" not in render.render_blocks(blocks, page)
+    business_settings.change("website.public_images_enabled", True, editor, "Prova")
+    assert render.render_blocks(blocks, page).count("<img") == 2
+
+
+def test_review_an_old_faq_block_without_topic_renders_nothing(page):
+    assert "<details" not in render.render_blocks([{"kind": "faq"}], page)
