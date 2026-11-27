@@ -26,6 +26,10 @@ dependencies = [
     # Seguiment d'errors (checklist E4, R11): l'SDK que parlen GlitchTip i Sentry. Només s'activa
     # amb ERROR_TRACKING_DSN a producció. Fixat a la 2.74: la 2.75 tenia cinc dies quan es va afegir.
     "sentry-sdk>=2.74,<2.75",
+    # Entrar amb clau d'accés (passkey: Face ID, empremta o el PIN del mòbil; WebAuthn; decisió
+    # 108, D.3): registre i verificació de les credencials al servidor. Fixat a la 3.0 (3.0.1 del
+    # 25/09/2026); porta cbor2, pyasn1 i pyOpenSSL.
+    "webauthn>=3.0.1,<3.1",
 ]
 
 [project.optional-dependencies]
