@@ -318,8 +318,12 @@ MAP = {
         "apps/website/editor.py",
         "apps/website/editor_forms.py",
         "apps/website/editor_views.py",
+        "apps/website/editor_live.py",
+        "apps/website/versions_views.py",
+        "apps/website/schedule.py",
         "apps/website/admin_urls.py",
         "static/js/editor-web.js",
+        "static/js/previa-web.js",
         "templates/website/admin/page*.html",
     ),
     "test_web_admin_continguts.py": (

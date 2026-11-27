@@ -77,3 +77,30 @@ def test_the_preview_selects_a_block_and_autosaves(page, live_server, transactio
     expect(preview.get_by_text("El mar ens uneix des de 1954.")).to_be_visible()
     assert blocks_of("previa-inventada")[1]["text"] == "El mar ens uneix des de 1954."
     review("editor-previa")
+
+
+def test_versions_compare_schedule_retire_and_recover(page, live_server, transactional_db, review):
+    """T-M07-22: comparar l'esborrany amb la versió publicada, programar i anul·lar, retirar i
+    recuperar la pàgina."""
+    from apps.website import pages
+
+    president = make_admin("presidencia.prova", "president")
+    web = pages.save_page(None, actor=president, slug="versions-inventada", title="Versions")[0]
+    pages.publish_page(web, [{"kind": "heading", "text": "Benvinguts", "level": 2}], president)
+    new = [{"kind": "heading", "text": "Benvinguts al club", "level": 2}]
+    pages.save_draft(web, new, president)
+    login_admin(page, live_server.url, president.login)
+    page.goto(f"{live_server.url}{reverse('administration:website_page_editor', args=[web.pk])}")
+    page.get_by_role("link", name="Versions i programació").click()
+    expect(page.get_by_role("heading", name="Versions", exact=True)).to_be_visible()
+    expect(page.get_by_text("Canviat")).to_be_visible()
+    page.get_by_label("Dia i hora").fill("2030-12-01T09:00")
+    page.get_by_role("button", name="Programa", exact=True).click()
+    expect(page.get_by_text("Acció programada.")).to_be_visible()
+    review("editor-versions")
+    page.get_by_role("button", name="Anul·la").click()
+    expect(page.get_by_text("Acció anul·lada.")).to_be_visible()
+    page.get_by_role("button", name="Retira la pàgina").click()
+    expect(page.get_by_text("Pàgina retirada. Es pot recuperar.")).to_be_visible()
+    page.get_by_role("button", name="Recupera la pàgina").click()
+    expect(page.get_by_text("Pàgina recuperada en esborrany.", exact=False)).to_be_visible()

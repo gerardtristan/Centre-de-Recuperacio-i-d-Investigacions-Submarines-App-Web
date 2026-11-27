@@ -1450,6 +1450,16 @@ opcions:
       Respecta que una app no llegeix els models d'una altra (C no) i el contracte en cèntims;
       B obligaria DISSENY a pintar dos preus en text. El 02 ho pot afegir a la T-M02-53.
     data: 2026-11-27
+  P-684:
+    opcions:
+      A: "L'esborrany tal com és quan arriba l'hora (la pantalla ho avisa)."
+      B: "Una còpia de l'esborrany presa en programar-la (cal desar el contingut a la programació)."
+      C: "Com A, però la programació s'anul·la sola si l'esborrany canvia després."
+    recomanada: A
+    perque: >-
+      És el que permet l'entitat de l'addenda sense afegir-hi contingut, i qui edita pot
+      continuar corregint fins a l'hora; B duplicaria versions i C sorprendria qui ha programat.
+    data: 2026-11-27
 noves:
   P-412:
     opcions:
