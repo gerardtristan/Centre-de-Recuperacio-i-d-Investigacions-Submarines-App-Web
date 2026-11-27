@@ -98,7 +98,7 @@ def strip_tokens(html: str) -> str:
 
 def counts():
     return {
-        "person": Person.objects.count(),
+        "person": Person.objects.exclude(first_name="Visitant").count(),  # sense el compte
         "request": MemberRequest.objects.count(),
         "member": Member.objects.count(),
         "consent": Consent.objects.count(),
@@ -275,8 +275,8 @@ class TestWebForm:
         html = visitor().get(reverse(PUBLIC)).content.decode()
         steps = [
             "L'administració del C.R.I.S. revisa la sol·licitud.",
-            "crea la quota pendent i t'envia una invitació per activar el compte personal.",
-            "Actives el compte i pagues la quota.",
+            "t'assigna el número de soci i crea la quota pendent.",
+            "Pagues la quota des del teu compte.",
             "Amb l'alta aprovada i el pagament confirmat, passes a ser soci actiu i tens el carnet",
         ]
         html = html.replace("&#x27;", "'")
@@ -313,7 +313,7 @@ class TestDuplicates:
     def test_same_document_links_to_the_existing_person_without_changing_it(self, existing):
         before = counts()
         submit(id_document="1234 5678-z")  # el mateix document, escrit d'una altra manera
-        assert Person.objects.count() == before["person"]
+        assert Person.objects.exclude(first_name="Visitant").count() == before["person"]
         request = MemberRequest.objects.get()
         assert request.person == existing
         assert request.duplicate_warning == [{"match": "document", "person_id": existing.pk}]
