@@ -1,10 +1,6 @@
-{# T-M07-19 (RN-M07-15): secció d'1 a 3 columnes de blocs (sense seccions dins de seccions); `background` i `width` tancats. Cada bloc de dins es pinta amb la seva plantilla; si el renderitzador ja l'ha triada, la dona a `template` (design-system §6.27). #}
+{# T-M07-19 (RN-M07-15): secció d'1 a 3 columnes (sense seccions dins de seccions); `background` i `width` tancats. El renderitzador dona `block.columns` amb l'HTML de cada columna ja pintat i segur (cada bloc de dins amb la seva plantilla), design-system §6.27. #}
 <section class="bloc bloc-section bloc-amplada-{{ block.width|default:'wide' }} bloc-fons-{{ block.background|default:'none' }}">
   <div class="bloc-columnes bloc-columnes-{{ block.columns|length }}">
-    {% for column in block.columns %}
-      <div class="bloc-columna">
-        {% for inner in column %}{% with name="website/blocs/"|add:inner.kind|add:".html" %}{% include inner.template|default:name with block=inner %}{% endwith %}{% endfor %}
-      </div>
-    {% endfor %}
+    {% for column in block.columns %}<div class="bloc-columna">{{ column }}</div>{% endfor %}
   </div>
 </section>
