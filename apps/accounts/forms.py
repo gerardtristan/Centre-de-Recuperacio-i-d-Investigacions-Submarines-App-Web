@@ -155,6 +155,14 @@ class DisableTotpForm(CodeForm):
     field_order = ["password", "code"]
 
 
+PASSWORD_ERRORS = {
+    "password_too_short": _("La contrasenya és massa curta: ha de tenir 12 caràcters o més."),
+    "password_too_similar": _("La contrasenya s'assembla massa al correu."),
+    "password_too_common": _("Aquesta contrasenya és massa habitual."),
+    "password_entirely_numeric": _("La contrasenya no pot ser només de xifres."),
+}
+
+
 class SignupForm(forms.Form):
     """Compte personal ràpid (T-M01-53; decisió 108, D.1): res més que això. La contrasenya, una
     sola vegada, amb les regles de V-01 (AUTH_PASSWORD_VALIDATORS). Sense text vigent del
@@ -205,5 +213,7 @@ class SignupForm(forms.Form):
             try:
                 password_validation.validate_password(password, probe)
             except forms.ValidationError as error:
-                self.add_error("password", error)
+                # Django no porta aquests missatges en català: el mateix error, amb el text propi.
+                messages = [PASSWORD_ERRORS.get(e.code, e) for e in error.error_list]
+                self.add_error("password", messages)
         return data

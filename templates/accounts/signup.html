@@ -20,11 +20,11 @@
       {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
       {% include "_errata.html" %}
       {% if form.accept_newsletter %}
-        <fieldset class="targeta">
-          <legend>{% translate "El butlletí del C.R.I.S." %}</legend>
+        <div class="targeta">
+          <p class="etiqueta-seccio">{% translate "El butlletí del C.R.I.S." %}</p>
           {% include "accounts/_camp.html" with field=form.accept_newsletter %}
           <p class="text-2">{% translate "És opcional i et pots donar de baixa quan vulguis." %} <a href="#text-newsletter" data-obre-text>{% translate "Llegeix el text del butlletí" %}</a></p>
-        </fieldset>
+        </div>
       {% endif %}
       {% for field in form %}{% if field.name != "accept_privacy" and field.name != "accept_newsletter" %}{% include "accounts/_camp.html" %}{% endif %}{% endfor %}
       <fieldset>

@@ -111,6 +111,11 @@ def test_invalid_data_creates_nothing(texts, overrides):
     assert not OutgoingEmail.objects.filter(template="verificacio-correu").exists()
 
 
+def test_password_errors_are_in_catalan(texts):
+    html = Client().post(URL, _data(password="curta")).content.decode()  # noqa: S106 (invàlida)
+    assert "La contrasenya és massa curta" in html and "too short" not in html
+
+
 def test_without_a_privacy_text_no_account_can_be_created():
     assert Client().get(URL).status_code == 503
 

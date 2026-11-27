@@ -1685,3 +1685,25 @@ noves:
       L'MP4 es reprodueix a tots els navegadors i un sol format es comprova millor; fins a la resposta,
       la pujada de vídeo no s'encén a producció, i C o D són més restrictives si no es vol cap vídeo pujat.
     data: 2026-11-24
+  P-702:
+    opcions:
+      A: "Cap sessió fins a confirmar el correu; en confirmar-lo, la pàgina porta a l'entrada amb l'adreça on volia anar."
+      B: "En confirmar el correu al mateix navegador on es va crear el compte, s'obre la sessió sola."
+      C: "Sessió limitada abans de confirmar (veure el preu, no enviar res)."
+      D: "Sessió completa abans de confirmar el correu."
+    recomanada: A
+    perque: >-
+      Respecta RN-18 sense canviar cap regla de seguretat i només afegeix un pas (entrar);
+      B estalvia aquest pas, però obre una sessió amb un enllaç del correu, que cal decidir a part.
+    data: 2026-11-27
+  P-703:
+    opcions:
+      A: "Un avís sota el formulari («cal tenir 14 anys o més»), sense camp; l'edat es comprova a «Fer-se soci»."
+      B: "Una casella obligatòria «Tinc 14 anys o més»."
+      C: "La data de naixement en crear el compte."
+      D: "Res: només la política de privacitat."
+    recomanada: A
+    perque: >-
+      La 108 vol el compte amb el mínim de camps; l'edat real es demana quan cal (fer-se soci) i
+      allà es comprova. B és més prudent si l'assessor ho demana, i es pot afegir sense tocar dades.
+    data: 2026-11-27
