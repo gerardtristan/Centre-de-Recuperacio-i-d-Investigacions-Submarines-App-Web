@@ -1,0 +1,654 @@
+# Fotos de la galeria del club (Drive), decisió 107 i T-M07-31. Reduïdes a 1.600 px pel costat llarg,
+# JPEG de qualitat 80 i sense metadades (ho comprova tools/comprova_fotos_web.py). Les de cris1954.cat són a cris1954/.
+fotos:
+  - fitxer: immersio-llum-sobre-posidonia.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un bussejador amb un focus vermell s'acosta a un fons de roca cobert d'algues, amb un altre bussejador més enrere."
+    origen: Drive del club, GALERIA DE FOTOS / Immersions
+    tema: immersions
+  - fitxer: immersio-silueta-en-blau.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Silueta d'un bussejador suspès en l'aigua blava, per sobre d'una roca fosca."
+    origen: Drive del club, GALERIA DE FOTOS / Immersions
+    tema: immersions
+  - fitxer: immersio-dos-bussejadors-a-la-paret.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Dos bussejadors baixen al costat d'una paret de roca, a contrallum."
+    origen: Drive del club, GALERIA DE FOTOS / Immersions
+    tema: immersions
+  - fitxer: immersio-bussejador-amb-llanterna.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un bussejador amb una llanterna encesa neda al costat d'una roca."
+    origen: Drive del club, GALERIA DE FOTOS / Immersions
+    tema: immersions
+  - fitxer: immersio-sobre-la-roca.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un bussejador neda per sobre d'una roca rodona, amb l'aigua blava al fons."
+    origen: Drive del club, GALERIA DE FOTOS / Immersions
+    tema: immersions
+  - fitxer: fauna-gorgonia-i-peixos.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Una colònia d'invertebrats blancs i morats sobre la roca, amb un banc de peixets al fons blau."
+    origen: Drive del club, GALERIA DE FOTOS / Immersions
+    tema: fauna
+  - fitxer: immersio-grup-a-contrallum.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Tres bussejadors en fila passen per sobre d'una roca, vistos de lluny a contrallum."
+    origen: Drive del club, GALERIA DE FOTOS / Immersions
+    tema: immersions
+  - fitxer: immersio-descens-per-la-corda.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un bussejador baixa agafat a la corda de l'ancoratge cap al fons."
+    origen: Drive del club, GALERIA DE FOTOS / Immersions
+    tema: immersions
+  - fitxer: immersio-parada-de-seguretat.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un bussejador fa la parada de seguretat al costat de la corda, vist des de sota."
+    origen: Drive del club, GALERIA DE FOTOS / Immersions
+    tema: immersions
+  - fitxer: immersio-senyal-ok.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un bussejador fa el senyal d'«OK» amb la mà mentre puja per la corda."
+    origen: Drive del club, GALERIA DE FOTOS / Immersions
+    tema: immersions
+  - fitxer: immersio-paret-amb-algues.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un bussejador davant d'una paret coberta d'algues, en aigua blava i clara."
+    origen: Drive del club, GALERIA DE FOTOS / Immersions
+    tema: immersions
+  - fitxer: immersio-parella-entre-roques.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Dos bussejadors neden per un canal entre roques cobertes d'algues."
+    origen: Drive del club, GALERIA DE FOTOS / Immersions
+    tema: immersions
+  - fitxer: immersio-aletes-grogues.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un bussejador amb aletes grogues fluorescents neda arran d'una roca."
+    origen: Drive del club, GALERIA DE FOTOS / Immersions
+    tema: immersions
+  - fitxer: immersio-dos-a-la-corda.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Dos bussejadors a mitja aigua al costat d'una corda, vistos des de sota entre bombolles."
+    origen: Drive del club, GALERIA DE FOTOS / Immersions
+    tema: immersions
+  - fitxer: fauna-anemona-groga.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Una anemone groga oberta entre algues vermelles i liles."
+    origen: Drive del club, GALERIA DE FOTOS / Immersions
+    tema: fauna
+  - fitxer: immersio-sobre-el-fons-amb-peixos.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Dos bussejadors neden sobre un fons de roca amb peixos al voltant."
+    origen: Drive del club, GALERIA DE FOTOS / Immersions
+    tema: immersions
+  - fitxer: fauna-serra-entre-algues.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Un peix ratllat entre les algues d'una roca."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: fauna
+  - fitxer: fauna-estrella-de-mar-vermella.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Una estrella de mar vermella sobre un fons d'algues blanques."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: fauna
+  - fitxer: fauna-organismes-en-copa.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Petits organismes en forma de copa sobre les algues, vistos de molt a prop."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: fauna
+  - fitxer: fauna-tentacles-d-anemona.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Els tentacles llargs d'una anemone, moguts pel corrent."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: fauna
+  - fitxer: immersio-llum-a-la-cova.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un bussejador amb un focus encès a l'entrada d'una cavitat de la roca."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: immersions
+  - fitxer: immersio-bussejador-mira-la-camera.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un bussejador amb màscara i caputxa mira la càmera, al costat de la roca."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: immersions
+  - fitxer: fauna-nudibranqui-lila.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Un nudibranqui lila i taronja sobre una esponja vermella."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: fauna
+  - fitxer: fauna-nudibranqui-taronja.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Un nudibranqui taronja sobre algues i hidraris verds."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: fauna
+  - fitxer: immersio-parella-sobre-la-paret.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Dos bussejadors neden al costat d'una paret de roca, un d'ells amb una ampolla groga."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: immersions
+  - fitxer: immersio-amb-camera.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un bussejador amb una càmera submarina enmig de l'aigua blava, envoltat de peixos."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: immersions
+  - fitxer: immersio-paret-vertical.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un bussejador explora una paret vertical coberta d'algues."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: immersions
+  - fitxer: immersio-sobre-les-gorgonies.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un bussejador amb aletes grogues neda sobre una roca amb gorgònies."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: immersions
+  - fitxer: immersio-cim-de-roca.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un bussejador al cim d'una roca, amb peixos i aigua blava al fons."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: immersions
+  - fitxer: fauna-margarides-de-mar.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Pòlips grocs de margarida de mar sobre una roca coberta d'organismes."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: fauna
+  - fitxer: fauna-paret-de-corall.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Una paret amb corall vermell, algues i una gorgònia blanca."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: fauna
+  - fitxer: fauna-sarg-i-roca.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Un sarg neda davant d'una roca coberta d'algues."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: fauna
+  - fitxer: fauna-banc-de-peixos-a-la-roca.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Una gran roca submarina amb un banc de peixets al voltant."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: fauna
+  - fitxer: projectes-mostra-sota-l-aigua.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un bussejador agafa una mostra amb un pot sobre un fons de sorra, en aigua turquesa."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: projectes
+  - fitxer: projectes-presa-de-mostres.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un bussejador pren una mostra amb un tub, de molt a prop, entre bombolles."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: projectes
+  - fitxer: projectes-mesura-a-la-roca.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un bussejador pren una mesura a la roca amb una cinta, al costat d'una gorgònia vermella."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: projectes
+  - fitxer: projectes-transsecte.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Dos bussejadors segueixen un transsecte al llarg d'una roca."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: projectes
+  - fitxer: projectes-sobre-la-roca.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un bussejador amb aletes blanques neda sobre una gran roca, amb un altre bussejador al fons."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: projectes
+  - fitxer: inclusiu-preparacio-a-la-vora.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un instructor ajusta la màscara a un alumne a la vora de la piscina."
+    origen: Drive del club, GALERIA DE FOTOS / Busseig inclusiu CRIS
+    tema: batejos
+  - fitxer: inclusiu-a-la-vora-de-la-piscina.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Dos alumnes amb l'equip complet a la vora de la piscina, a punt d'entrar."
+    origen: Drive del club, GALERIA DE FOTOS / Busseig inclusiu CRIS
+    tema: batejos
+  - fitxer: inclusiu-sota-l-aigua-acompanyat.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un instructor acompanya un bussejador sota l'aigua de la piscina, vistos des de dalt."
+    origen: Drive del club, GALERIA DE FOTOS / Busseig inclusiu CRIS
+    tema: batejos
+  - fitxer: piscina-tres-bussejadors.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Tres bussejadors neden junts sota l'aigua de la piscina."
+    origen: Drive del club, GALERIA DE FOTOS / Busseig inclusiu CRIS
+    tema: batejos
+  - fitxer: inclusiu-entrada-a-l-aigua.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un grup prepara l'entrada a l'aigua d'un bussejador a la vora de la piscina."
+    origen: Drive del club, GALERIA DE FOTOS / Busseig inclusiu CRIS
+    tema: batejos
+  - fitxer: inclusiu-explicacio-a-la-vora.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un instructor explica la immersió a dos bussejadors dins l'aigua, a la vora de la piscina."
+    origen: Drive del club, GALERIA DE FOTOS / Busseig inclusiu CRIS
+    tema: batejos
+  - fitxer: inclusiu-a-la-piscina.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Una persona en cadira de rodes mira els bussejadors a la piscina."
+    origen: Drive del club, GALERIA DE FOTOS / Busseig inclusiu CRIS
+    tema: batejos
+  - fitxer: piscina-parella-sota-l-aigua.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Dos bussejadors neden de la mà sota l'aigua de la piscina."
+    origen: Drive del club, GALERIA DE FOTOS / Busseig inclusiu CRIS
+    tema: batejos
+  - fitxer: piscina-companys-de-la-ma.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Dos bussejadors es donen la mà sota l'aigua, amb la línia del fons de la piscina."
+    origen: Drive del club, GALERIA DE FOTOS / Busseig inclusiu CRIS
+    tema: batejos
+  - fitxer: piscina-grup-sota-l-aigua.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Diversos bussejadors amb aletes de colors neden pel fons de la piscina."
+    origen: Drive del club, GALERIA DE FOTOS / Busseig inclusiu CRIS
+    tema: batejos
+  - fitxer: piscina-bombolles.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Dos bussejadors neden entre bombolles a la piscina."
+    origen: Drive del club, GALERIA DE FOTOS / Busseig inclusiu CRIS
+    tema: batejos
+  - fitxer: piscina-control-de-la-flotabilitat.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un instructor ajuda un alumne a controlar la flotabilitat a la piscina."
+    origen: Drive del club, GALERIA DE FOTOS / Busseig inclusiu CRIS
+    tema: batejos
+  - fitxer: cursos-grup-al-centre-de-busseig.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un grup del club amb dessuadores blaves davant d'un centre de busseig."
+    origen: Drive del club, GALERIA DE FOTOS / CURSOS
+    tema: cursos
+  - fitxer: cursos-preparacio-a-la-terrassa.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Alumnes es posen l'equip a la terrassa d'un centre de busseig."
+    origen: Drive del club, GALERIA DE FOTOS / CURSOS
+    tema: cursos
+  - fitxer: cursos-grup-amb-equip.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un grup de bussejadors amb vestit davant d'un centre de busseig, amb l'equip penjat."
+    origen: Drive del club, GALERIA DE FOTOS / CURSOS
+    tema: cursos
+  - fitxer: sortida-grup-a-les-roques.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un grup de bussejadors amb vestit somriu a les roques de la costa."
+    origen: Drive del club, GALERIA DE FOTOS / Immersions
+    tema: sortides
+  - fitxer: sortida-a-l-aigua-de-la-cala.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Bussejadors a l'aigua d'una cala amb roques, a contrallum."
+    origen: Drive del club, GALERIA DE FOTOS / Immersions
+    tema: sortides
+  - fitxer: sortida-entrada-des-de-la-cala.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Bussejadors amb equip entren a l'aigua des d'una cala de roca."
+    origen: Drive del club, GALERIA DE FOTOS / Immersions
+    tema: sortides
+  - fitxer: sortida-pujant-les-escales.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Dos bussejadors pugen les escales de pedra després de la immersió."
+    origen: Drive del club, GALERIA DE FOTOS / Immersions
+    tema: sortides
+  - fitxer: sortida-preparant-l-equip.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Bussejadors preparen l'equip al costat d'un cotxe, a la vora del mar."
+    origen: Drive del club, GALERIA DE FOTOS / Immersions
+    tema: sortides
+  - fitxer: sortida-equip-al-moll.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un bussejador es posa l'equip amb una ampolla groga al moll."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: sortides
+  - fitxer: sortida-amb-la-pancarta-al-port.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un grup del club amb una pancarta al port, davant de les barques."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: sortides
+  - fitxer: sortida-equip-a-la-barca.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Equips i ampolles a la barca, amb el port i el mar blau al fons."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: sortides
+  - fitxer: sortida-a-bord.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Bussejadors preparen l'equip a bord d'una barca amb tendal."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: sortides
+  - fitxer: sortida-a-la-superficie.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Un bussejador surt a la superfície amb el regulador, en un mar blau fosc."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: sortides
+  - fitxer: sortida-escala-de-la-barca.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "L'escala de la barca i un bussejador a l'aigua, amb la costa al fons."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: sortides
+  - fitxer: sortida-a-punt-d-entrar.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Bussejadors asseguts a la borda de la barca, a punt d'entrar a l'aigua."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: sortides
+  - fitxer: projectes-mostra-d-aigua-al-riu.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Una persona del club agafa una mostra d'aigua a la vora d'un riu, amb una central elèctrica al fons."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: projectes
+  - fitxer: projectes-analisi-de-l-aigua.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Unes mans fan una anàlisi d'aigua amb un comparador de colors."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: projectes
+  - fitxer: projectes-tira-reactiva.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Una tira reactiva dins d'un got d'aigua per analitzar-la."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: projectes
+  - fitxer: projectes-posidonia-i-rizomes.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Fulles i rizomes de posidònia amb organismes enganxats, de molt a prop."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: projectes
+  - fitxer: projectes-caixa-de-posidonia.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Una caixa plena de fragments de posidònia recollits."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: projectes
+  - fitxer: fauna-ofiura-vermella.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Una ofiura vermella sobre una safata blanca."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: projectes
+  - fitxer: fauna-cranc-aranya.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Un cranc aranya sobre una safata blanca."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: projectes
+  - fitxer: projectes-classificacio-de-mostres.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Voluntaris classifiquen mostres en una taula a l'aire lliure."
+    origen: Drive del club, GALERIA DE FOTOS / PROJECTES CRIS
+    tema: projectes
+  - fitxer: club-assemblea.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Socis asseguts al voltant d'una taula durant l'assemblea del club."
+    origen: Drive del club, GALERIA DE FOTOS / Assembles
+    tema: club
+  - fitxer: club-lliurament-de-diplomes.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Socis ensenyen els seus diplomes al local del club."
+    origen: Drive del club, GALERIA DE FOTOS / Batejos
+    tema: club
+  - fitxer: club-biblioteca.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Prestatgeries de la biblioteca del club amb llibres de busseig."
+    origen: Drive del club, GALERIA DE FOTOS / Biblioteca CRIS en FECDAS
+    tema: club
+  - fitxer: club-medalles-i-escuts.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Medalles i escuts del club en una vitrina."
+    origen: Drive del club, GALERIA DE FOTOS / Biblioteca CRIS en FECDAS
+    tema: club
+  - fitxer: club-dinar-de-nadal-diplomes.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Tres persones amb diplomes davant de la bandera del club al dinar de Nadal."
+    origen: Drive del club, GALERIA DE FOTOS / Dinar de nadal
+    tema: club
+  - fitxer: club-dinar-de-nadal-grup.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Foto de grup del dinar de Nadal, amb la bandera del club al fons."
+    origen: Drive del club, GALERIA DE FOTOS / Dinar de nadal
+    tema: club
+  - fitxer: club-reconeixement-a-socis.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Cinc socis drets davant de la bandera del club al dinar de Nadal."
+    origen: Drive del club, GALERIA DE FOTOS / Dinar de nadal
+    tema: club
+  - fitxer: club-fulletons-de-batejos.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Fulletons de batejos del club sobre la taula d'una fira."
+    origen: Drive del club, GALERIA DE FOTOS / Fira d'entitats Sant Adrià
+    tema: club
+  - fitxer: club-cartell-amb-l-escut.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "Cartell amb l'escut i el nom del Centre de Recuperació i d'Investigacions Submarines."
+    origen: Drive del club, GALERIA DE FOTOS / Fira d'entitats Sant Adrià
+    tema: club
+  - fitxer: club-estand-a-la-fira-d-entitats.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "L'estand del club a una fira d'entitats, amb socis atenent els visitants."
+    origen: Drive del club, GALERIA DE FOTOS / Fira d'entitats Sant Adrià
+    tema: club
+  - fitxer: club-pancarta-a-la-fira-de-busseig.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Socis amb una pancarta a la fira de busseig."
+    origen: Drive del club, GALERIA DE FOTOS / Fira de busseig
+    tema: club
+  - fitxer: club-estand-a-la-fira-de-busseig.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Socis amb dessuadores del club a l'estand de la fira de busseig."
+    origen: Drive del club, GALERIA DE FOTOS / Fira de busseig
+    tema: club
+  - fitxer: club-xerrada-a-la-fira.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Una xerrada a la fira de busseig, amb el públic assegut."
+    origen: Drive del club, GALERIA DE FOTOS / Fira de busseig
+    tema: club
+  - fitxer: club-foto-antiga-pessebre-submari.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Foto antiga: un grup de bussejadors a l'aigua amb un pessebre submarí."
+    origen: Drive del club, GALERIA DE FOTOS / Fotografies antigues del C.R.I.S
+    tema: club
+  - fitxer: club-pessebre-a-la-platja.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: no
+    alt: "El pessebre del club fet amb pa, sobre les pedres d'una platja."
+    origen: Drive del club, GALERIA DE FOTOS / Pessebre 2025
+    tema: club
+  - fitxer: club-caminada-per-la-costa.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Socis caminen d'esquena per un camí de la costa."
+    origen: Drive del club, GALERIA DE FOTOS / Pessebre 2025
+    tema: club
+  - fitxer: club-tertulia.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Socis conversen al voltant d'una taula en una tertúlia."
+    origen: Drive del club, GALERIA DE FOTOS / Reunions setmanals
+    tema: club
+  - fitxer: club-conferencia.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Dos ponents en un escenari, davant d'una pantalla, en una conferència."
+    origen: Drive del club, GALERIA DE FOTOS / Xerrades
+    tema: club
+  - fitxer: club-sala-de-conferencies.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Una sala plena de públic amb pantalles, en una conferència."
+    origen: Drive del club, GALERIA DE FOTOS / Xerrades
+    tema: club
+  - fitxer: club-xerrada-mar-roig.jpg
+    autor: C.R.I.S.
+    permis: «Galeria de fotos del club; permís d'imatge confirmat pel propietari (decisió 107)»
+    persones: sí
+    alt: "Una ponent explica un mapa del mar Roig en una xerrada al local."
+    origen: Drive del club, GALERIA DE FOTOS / Xerrades
+    tema: club
