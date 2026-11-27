@@ -52,6 +52,7 @@ VALID = {
     "project_cards": {"items": [{"title": "Posidònia", "body": MD, "media": KEY,
                                  "target": "https://exemple.cat/projecte"}], "columns": 3},
     "featured_trip": {"activity": 7, "background": "none"},
+    "shared": {"shared": 1},  # la referència a un bloc compartit (T-M07-20a, P-688)
 }  # fmt: skip
 
 
@@ -69,8 +70,8 @@ def page(editor):
     return pages.save_page(None, actor=editor, slug="blocs-inventats", title="Blocs")[0]
 
 
-def test_the_catalog_has_the_26_kinds_of_the_addendum():
-    assert set(blocks.CATALOG) == set(VALID) and len(VALID) == 26
+def test_the_catalog_has_the_26_kinds_of_the_addendum_and_the_shared_reference():
+    assert set(blocks.CATALOG) == set(VALID) and len(VALID) == 27  # 26 + `shared` (P-688)
 
 
 @pytest.mark.parametrize("kind", VALID)

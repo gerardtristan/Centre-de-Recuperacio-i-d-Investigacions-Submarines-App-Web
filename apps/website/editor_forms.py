@@ -20,7 +20,7 @@ KINDS = {
     "featured_activities": _("Activitats destacades"), "past_activities": _("Activitats fetes"),
     "recent_news": _("Notícies recents"), "faq_topic": _("Preguntes d'un tema"),
     "key_figures": _("Xifres destacades"), "project_cards": _("Targetes de projectes"),
-    "featured_trip": _("Sortida destacada"),
+    "featured_trip": _("Sortida destacada"), "shared": _("Bloc compartit"),
 }  # fmt: skip
 GROUPS = (
     (_("Text"), ("heading", "text", "quote", "list", "disclosure", "callout")),

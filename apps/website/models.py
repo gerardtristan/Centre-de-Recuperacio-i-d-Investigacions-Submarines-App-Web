@@ -173,6 +173,74 @@ class ScheduledAction(models.Model):
         return f"{self.page} · {self.get_action_display()} · {self.run_at:%d/%m/%Y %H:%M}"
 
 
+class Pattern(models.Model):
+    """Patró: un grup de blocs que s'insereix d'un cop (decisió 106). És una dada; el contingut és
+    a la seva última `PatternVersion`. En inserir-lo, la pàgina en rep una còpia."""
+
+    name = models.CharField(_("nom"), max_length=100, unique=True)
+
+    class Meta:
+        verbose_name = _("patró")
+        verbose_name_plural = _("patrons")
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class SharedBlock(models.Model):
+    """Bloc compartit: surt a diverses pàgines i es canvia en un sol lloc (decisió 106). Les
+    pàgines hi fan referència amb un bloc `shared`; el contingut és a la seva última versió."""
+
+    name = models.CharField(_("nom"), max_length=100, unique=True)
+
+    class Meta:
+        verbose_name = _("bloc compartit")
+        verbose_name_plural = _("blocs compartits")
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class PatternVersion(AppendOnlyModel):
+    """Només s'hi afegeixen files (també a la base de dades, `website/0022`)."""
+
+    pattern = models.ForeignKey(Pattern, on_delete=models.PROTECT, related_name="versions")
+    number = models.PositiveIntegerField(_("número"))
+    blocks = models.JSONField(_("blocs"), default=list)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT,
+                                   related_name="+")  # fmt: skip
+    created_at = models.DateTimeField(_("creada el"), auto_now_add=True)
+
+    class Meta:
+        ordering = ["pattern", "number"]
+        constraints = [models.UniqueConstraint(fields=["pattern", "number"],
+                                               name="website_pattern_version_unique")]  # fmt: skip
+
+    def __str__(self):
+        return f"{self.pattern} v{self.number}"
+
+
+class SharedBlockVersion(AppendOnlyModel):
+    """Només s'hi afegeixen files (també a la base de dades, `website/0022`)."""
+
+    shared = models.ForeignKey(SharedBlock, on_delete=models.PROTECT, related_name="versions")
+    number = models.PositiveIntegerField(_("número"))
+    block = models.JSONField(_("bloc"))
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT,
+                                   related_name="+")  # fmt: skip
+    created_at = models.DateTimeField(_("creada el"), auto_now_add=True)
+
+    class Meta:
+        ordering = ["shared", "number"]
+        constraints = [models.UniqueConstraint(fields=["shared", "number"],
+                                               name="website_shared_version_unique")]  # fmt: skip
+
+    def __str__(self):
+        return f"{self.shared} v{self.number}"
+
+
 class MediaAsset(models.Model):
     """Foto de la web (M07-6, P-M07-C, RN-M07-05). El contingut és a l'emmagatzematge privat de
     la 00, amb una clau aleatòria; cap carpeta pública (P-489): el serveix una vista declarada

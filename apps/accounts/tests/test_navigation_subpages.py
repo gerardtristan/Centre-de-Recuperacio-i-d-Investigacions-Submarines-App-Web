@@ -35,6 +35,8 @@ STANDALONE = {
     "administration:website_page_schedule_cancel",
     "administration:website_page_retire",
     "administration:website_page_recover",
+    # T-M07-20a: patrons i blocs compartits des de l'editor, només POST.
+    "administration:website_page_library",
 }
 
 

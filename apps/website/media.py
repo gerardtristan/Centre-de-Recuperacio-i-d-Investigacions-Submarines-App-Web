@@ -16,6 +16,7 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import storages
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import transaction
+from django.db.models import Q
 from django.http import Http404
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
@@ -25,7 +26,7 @@ from apps.core import audit, business_settings, files
 from apps.core.permissions import has_perm
 
 from . import blocks as catalog
-from .models import MediaAsset, NewsItem, Page, PageVersion, Tutorial
+from .models import MediaAsset, NewsItem, Page, PageVersion, SharedBlockVersion, Tutorial
 
 PERMISSION = "website.media"  # WP3
 ACTION_CHANGED = "website.media_changed"
@@ -193,14 +194,17 @@ def _is_published(asset: MediaAsset) -> bool:
         return True
     if Tutorial.objects.filter(published=True, image=asset).exists():  # T-M07-10
         return True
+    from .library import resolve  # una foto dins d'un bloc compartit (T-M07-20a)
+
     key = str(asset.key)
-    candidates = PageVersion.objects.filter(
-        page__status=Page.Status.PUBLISHED, blocks__icontains=key
-    )
+    mentions = Q(blocks__icontains=key)
+    if SharedBlockVersion.objects.filter(block__icontains=key).exists():
+        mentions |= Q(blocks__icontains='"shared"')
+    candidates = PageVersion.objects.filter(mentions, page__status=Page.Status.PUBLISHED)
     for version in candidates.select_related("page"):
         latest = version.page.versions.order_by("-number").values_list("number", flat=True)[0]
-        visible = block_media_keys(catalog.upgrade_all(version.blocks), public_only=True)
-        if version.number == latest and key in visible:
+        blocks = resolve(catalog.upgrade_all(version.blocks))
+        if version.number == latest and key in block_media_keys(blocks, public_only=True):
             return True
     return False
 

@@ -78,7 +78,11 @@ def validate_blocks(blocks, *, publishing: bool) -> None:
     """Esquema del catàleg (RN-M07-15, CA-M07-23) i, en publicar, les fotos (RN-M07-05)."""
     catalog.validate(blocks, publishing=publishing)
     if publishing:
-        media.check_publishable(media.block_media_keys(blocks))
+        from .library import resolve  # el contingut dels blocs compartits (T-M07-20a)
+
+        resolved = resolve(blocks)
+        catalog.validate(resolved, publishing=True)
+        media.check_publishable(media.block_media_keys(resolved))
 
 
 class DraftConflict(ValidationError):

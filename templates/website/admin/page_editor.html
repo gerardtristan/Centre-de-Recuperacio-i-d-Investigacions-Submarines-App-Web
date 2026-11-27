@@ -41,6 +41,11 @@
               <button class="boto boto-petit" type="submit" name="action" value="hide">{% if block.hidden %}{% translate "Mostra" %}{% else %}{% translate "Amaga" %}{% endif %}<span class="visualment-amagat">: {{ name }}</span></button>
               <button class="boto boto-petit boto-text" type="submit" name="action" value="remove">{% translate "Treu" %}<span class="visualment-amagat">: {{ name }}</span></button>
             </form>
+            {% if block.kind != "shared" %}<form class="formulari" method="post" action="{% url 'administration:website_page_library' page.pk %}">
+              {% csrf_token %}<input type="hidden" name="revision" value="{{ revision }}"><input type="hidden" name="action" value="make_shared"><input type="hidden" name="index" value="{{ index }}">
+              <div class="camp"><label for="compartit-nom">{% translate "Nom per fer-lo compartit" %}</label><input id="compartit-nom" name="name" maxlength="100"></div>
+              <div class="accions"><button class="boto boto-petit" type="submit">{% translate "Fes-lo compartit" %}</button></div>
+            </form>{% endif %}
           {% endif %}
         </li>
       {% empty %}
@@ -65,12 +70,32 @@
       <div class="accions"><button class="boto" type="submit">{% translate "Afegeix el bloc" %}</button></div>
     </form>
   </section>
+  <section class="targeta" aria-labelledby="titol-biblioteca">
+    <h2 id="titol-biblioteca">{% translate "Patrons i blocs compartits" %}</h2>
+    <p class="ajuda">{% translate "Un patró posa una còpia dels seus blocs a la pàgina. Un bloc compartit és el mateix a totes les pàgines on surt: si el canvies, canvia a totes." %}</p>
+    {% if patterns %}<form class="formulari" method="post" action="{% url 'administration:website_page_library' page.pk %}">
+      {% csrf_token %}<input type="hidden" name="revision" value="{{ revision }}"><input type="hidden" name="action" value="insert_pattern"><input type="hidden" name="index" value="{% if selected is not None %}{{ selected }}{% else %}{{ last }}{% endif %}">
+      <div class="camp"><label for="patro">{% translate "Patró" %}</label><select id="patro" name="pattern">{% for pattern in patterns %}<option value="{{ pattern.pk }}">{{ pattern.name }}</option>{% endfor %}</select></div>
+      <div class="accions"><button class="boto" type="submit">{% translate "Insereix el patró" %}</button></div>
+    </form>{% endif %}
+    {% if shared_blocks %}<form class="formulari" method="post" action="{% url 'administration:website_page_library' page.pk %}">
+      {% csrf_token %}<input type="hidden" name="revision" value="{{ revision }}"><input type="hidden" name="action" value="insert_shared"><input type="hidden" name="index" value="{% if selected is not None %}{{ selected }}{% else %}{{ last }}{% endif %}">
+      <div class="camp"><label for="compartit">{% translate "Bloc compartit" %}</label><select id="compartit" name="shared">{% for shared in shared_blocks %}<option value="{{ shared.pk }}">{{ shared.name }}</option>{% endfor %}</select></div>
+      <div class="accions"><button class="boto" type="submit">{% translate "Insereix el bloc compartit" %}</button></div>
+    </form>{% endif %}
+    <form class="formulari" method="post" action="{% url 'administration:website_page_library' page.pk %}">
+      {% csrf_token %}<input type="hidden" name="revision" value="{{ revision }}"><input type="hidden" name="action" value="save_pattern">
+      <div class="camp"><label for="patro-nom">{% translate "Nom del patró" %}</label><input id="patro-nom" name="name" maxlength="100" aria-describedby="patro-nom-ajuda"><div class="ajuda" id="patro-nom-ajuda">{% translate "Desa tots els blocs d'aquesta pàgina com a patró. Amb el nom d'un que ja existeix, en fa una versió nova." %}</div></div>
+      <div class="accions"><button class="boto" type="submit">{% translate "Desa com a patró" %}</button></div>
+    </form>
+  </section>
   {% if form %}
     <section class="targeta" aria-labelledby="titol-bloc">
       <h2 id="titol-bloc">{{ selected_kind }}</h2>
-      <form class="formulari" method="post" action="{% url 'administration:website_page_editor_action' page.pk %}" novalidate data-desat-auto>
+      {% if shared_selected %}<p class="avis avis-avis">{% translate "És un bloc compartit: el que desis aquí canvia a totes les pàgines on surt." %}</p>{% endif %}
+      <form class="formulari" method="post" action="{% if shared_selected %}{% url 'administration:website_page_library' page.pk %}{% else %}{% url 'administration:website_page_editor_action' page.pk %}{% endif %}" novalidate{% if not shared_selected %} data-desat-auto{% endif %}>
         {% csrf_token %}<input type="hidden" name="revision" value="{{ revision }}">
-        <input type="hidden" name="action" value="update"><input type="hidden" name="index" value="{{ selected }}"><input type="hidden" name="base" value="{{ base }}">
+        <input type="hidden" name="action" value="{% if shared_selected %}update_shared{% else %}update{% endif %}"><input type="hidden" name="index" value="{{ selected }}"><input type="hidden" name="base" value="{{ base }}">
         {% include "_errata.html" %}
         {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
         <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Desa el bloc" %}</button><p class="text-2" role="status" data-desat-estat data-desat="{% translate 'Desat.' %}" data-error="{% translate "No s'ha pogut desar. Si la sessió ha caducat, torna a entrar." %}"></p></div>

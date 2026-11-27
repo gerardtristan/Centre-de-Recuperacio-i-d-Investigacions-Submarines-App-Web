@@ -1490,6 +1490,16 @@ opcions:
       Ara no cal (els vídeos dels tutorials encara no s'han pujat) i és l'única que no arrisca cap
       ubicació; C és la bona a la llarga però és una dependència nova (PR risc:alt pròpia).
     data: 2026-11-28
+  P-688:
+    opcions:
+      A: "Un tipus més al catàleg, `shared` (número del bloc compartit), que es resol abans de pintar."
+      B: "Un camp comú `shared` a qualsevol bloc (com `hidden`), amb el contingut de la referència."
+      C: "Copiar el contingut a cada pàgina i actualitzar-les totes quan canvia."
+    recomanada: A
+    perque: >-
+      És explícit a l'esborrany i a les versions (es veu que és compartit), no toca els altres 26
+      tipus i DISSENY no ha de fer res; C trencaria les versions, que només admeten INSERT.
+    data: 2026-11-28
 noves:
   P-412:
     opcions:

@@ -15,9 +15,9 @@ from apps.core import business_settings
 from apps.core.permissions import require_perm
 
 from . import blocks as catalog
-from . import editor, pages, review, video
+from . import editor, library, pages, review, video
 from .editor_forms import GROUPS, KINDS, BlockForm, summary
-from .models import Page, PageDraft, PageVersion
+from .models import Page, PageDraft, PageVersion, Pattern, SharedBlock
 
 NewPageForm = forms.modelform_factory(Page, fields=["title", "slug", "template"])
 
@@ -46,18 +46,39 @@ def _editor(request, page, *, form=None, selected=None, status=200):
     if selected is None:
         bloc = request.GET.get("bloc", "")
         selected = int(bloc) if bloc.isdigit() and int(bloc) < len(blocks) else None
-    if form is None and selected is not None:
-        form = BlockForm(blocks[selected]["kind"], block=blocks[selected])
+    names = dict(SharedBlock.objects.values_list("pk", "name"))
+    chosen = blocks[selected] if selected is not None else None
+    is_shared = bool(chosen) and chosen["kind"] == "shared"
+    # D'un bloc compartit, el formulari edita el seu contingut (T-M07-20a).
+    target = chosen
+    if is_shared:
+        target = library.current_shared([chosen.get("shared")]).get(chosen.get("shared"))
+    if form is None and target:
+        form = BlockForm(target["kind"], block=target)
+    label = f"{KINDS['shared']}: {names.get(chosen.get('shared'), '')}" if is_shared else (
+        KINDS[chosen["kind"]] if chosen else "")  # fmt: skip
     context = {
         "page": page,
-        "items": [(i, b, summary(b)) for i, b in enumerate(blocks)],
+        "items": [
+            (
+                i,
+                b,
+                f"{KINDS['shared']} · {names.get(b.get('shared'), '')}"
+                if b["kind"] == "shared"
+                else summary(b),
+            )
+            for i, b in enumerate(blocks)
+        ],
         "selected": selected,
-        "selected_kind": KINDS[blocks[selected]["kind"]] if selected is not None else "",
+        "selected_kind": label,
+        "shared_selected": is_shared,
+        "patterns": Pattern.objects.all(),
+        "shared_blocks": SharedBlock.objects.all(),
         "last": len(blocks) - 1,
         "form": form,
         "groups": [(label, [(k, KINDS[k]) for k in kinds]) for label, kinds in GROUPS],
         "history": editor.can(request, page),
-        "base": editor.fingerprint(blocks[selected]) if selected is not None else "",
+        "base": editor.fingerprint(target) if target else "",
         "others": editor.touch(page, request.user),
         "autosave_ms": 1000 * business_settings.get("website.autosave_seconds"),
         "theme": "fosc" if request.GET.get("tema") == "fosc" else "clar",
