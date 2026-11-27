@@ -55,6 +55,15 @@ CHANGE_EMAIL = Purpose(
 )
 
 
+# T-M01-56 (108, D.3): entrar sense contrasenya. Caducitat curta i un sol ús: entrar canvia la
+# data d'última entrada, i la contrasenya o l'estat també l'invaliden.
+EMAIL_LOGIN = Purpose(
+    salt="apps.accounts.tokens.email_login",
+    max_age=timedelta(minutes=15),
+    fields=("login", "status", "password", "last_login"),
+)
+
+
 def _fingerprint(account: Account, purpose: Purpose) -> str:
     state = ":".join(str(getattr(account, name) or "") for name in purpose.fields)
     return salted_hmac(purpose.salt, f"{account.pk}:{state}", algorithm="sha256").hexdigest()

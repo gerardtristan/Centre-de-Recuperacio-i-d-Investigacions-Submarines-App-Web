@@ -115,6 +115,11 @@ PAYMENTS_LIVE_CHARGES_ALLOWED = env.bool("PAYMENTS_LIVE_CHARGES_ALLOWED", defaul
 # Decisió 092: el proveïdor i el banc ficticis no arrenquen on això és cert (producció, prod.py).
 FAKE_INTEGRATIONS_FORBIDDEN = False
 
+# T-M01-56 (108, D.3): entrar al compte personal amb un enllaç d'un sol ús pel correu, sense
+# contrasenya. Autenticació (D2): apagat fins que el responsable ho decideixi (P-707). Mai per a
+# l'entrada d'administració.
+PERSONAL_EMAIL_LOGIN_ENABLED = env.bool("PERSONAL_EMAIL_LOGIN_ENABLED", default=False)
+
 # Prefix de les referències de transferència (RN-T20, VC-10): d'1 a 12 majúscules o xifres.
 TRANSFER_REFERENCE_PREFIX = env("TRANSFER_REFERENCE_PREFIX", default="CRIS")
 # VC-09, només a l'entorn: canviar on paguen els socis és un risc de frau (#valors-configurables)

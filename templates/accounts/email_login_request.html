@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M01-56 (108, D.3): demanar l'enllaç per entrar sense contrasenya. La resposta és la mateixa per a qualsevol adreça (no diu si té compte). Només comptes personals. #}
+{% block cos_classe %}cos-estret{% endblock %}
+{% block title %}{% translate "Entra amb un enllaç pel correu" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <h1>{% translate "Entra amb un enllaç pel correu" %}</h1>
+  {% if sent %}
+    <div class="avis avis-ok" role="status">{% translate "Si l'adreça té un compte actiu, t'hi hem enviat un enllaç per entrar. Caduca d'aquí a 15 minuts i només serveix una vegada." %}</div>
+    <p class="enllacos"><a href="{% url 'accounts:login' %}">{% translate "Anar a l'entrada" %}</a></p>
+  {% else %}
+    <p>{% translate "Escriu el correu amb què entres a l'àrea de socis i t'hi enviarem un enllaç per entrar sense contrasenya." %}</p>
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+      {% with field=form.email %}{% include "accounts/_camp.html" %}{% endwith %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Envia'm l'enllaç" %}</button></div>
+    </form>
+    <p class="enllacos"><a href="{% url 'accounts:login' %}">{% translate "Entra amb la contrasenya" %}</a></p>
+  {% endif %}
+{% endblock %}

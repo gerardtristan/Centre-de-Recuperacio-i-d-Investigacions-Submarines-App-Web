@@ -7,6 +7,7 @@ L'entrada d'administració no té cap enllaç ni cap ruta de recuperació per co
 
 import logging
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_not_required
@@ -128,6 +129,7 @@ def login_view(request, area):
             "area": area,
             "next": safe_next(request, next_url),
             "can_resend": can_resend,
+            "email_login": settings.PERSONAL_EMAIL_LOGIN_ENABLED,  # T-M01-56
         },
     )
 

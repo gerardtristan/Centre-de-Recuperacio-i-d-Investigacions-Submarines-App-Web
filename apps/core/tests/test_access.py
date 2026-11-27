@@ -26,6 +26,10 @@ PUBLIC_ROUTES = {
     "accounts:password_reset_link",
     "accounts:password_reset_request",
     "accounts:signup",  # T-M01-53 (108, D)
+    # T-M01-56 (108, D.3): l'enllaç d'un sol ús és la credencial (apagat: «no trobat»).
+    "accounts:email_login_request",
+    "accounts:email_login",
+    "accounts:email_login_link",
     "accounts:resend_verification",
     # Confirmació del correu d'entrada nou (RN-M01-79): el testimoni lliga el compte i l'adreça.
     "accounts:change_email",

@@ -307,6 +307,7 @@ class EmailLinkRequest(models.Model):
         GUEST_LINK_REQUEST = "guestnew", _("Petició d'un enllaç de convidat nou")
         GUEST_LICENCE = "licguest", _("Sol·licitud de llicència d'un convidat")  # P-450
         SIGNUP = "signup", _("Compte personal nou")  # T-M01-53
+        EMAIL_LOGIN = "login", _("Entrada amb un enllaç pel correu")  # T-M01-56
 
     class Status(models.TextChoices):
         # T-M01-39b: només la recuperació de la contrasenya passa per la cua. La resta de

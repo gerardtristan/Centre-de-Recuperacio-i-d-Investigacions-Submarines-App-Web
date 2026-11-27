@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M01-56 (108, D.3): obrir l'enllaç no fa res; s'entra amb el botó (POST), perquè un programa que revisa els enllaços dels correus no entri. Un enllaç caducat, ja fet servir o d'un compte bloquejat dona el mateix missatge. #}
+{% block cos_classe %}cos-estret{% endblock %}
+{% block title %}{% translate "Entrar" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <h1>{% translate "Entrar a l'àrea de socis" %}</h1>
+  {% if state == "ready" %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Entra" %}</button></div>
+    </form>
+  {% else %}
+    <div class="avis avis-error" role="alert">{% translate "Aquest enllaç no és vàlid o ja ha caducat." %}</div>
+    <p class="enllacos"><a href="{% url 'accounts:email_login_request' %}">{% translate "Demana'n un altre" %}</a><a href="{% url 'accounts:login' %}">{% translate "Anar a l'entrada" %}</a></p>
+  {% endif %}
+{% endblock %}

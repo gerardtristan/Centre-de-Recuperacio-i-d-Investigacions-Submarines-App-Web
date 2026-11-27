@@ -55,6 +55,9 @@ RESET = EmailLinkRequest.Purpose.RESET_PASSWORD
 VERIFY = EmailLinkRequest.Purpose.VERIFY_EMAIL
 CHANGE = EmailLinkRequest.Purpose.CHANGE_EMAIL
 CHANGE_SESSION_KEY = "link_change_email"
+LOGIN = EmailLinkRequest.Purpose.EMAIL_LOGIN
+LOGIN_SESSION_KEY = "link_email_login"
+LOGIN_TEMPLATE = "entrada-correu"
 
 
 def _link(url_name: str, token: str) -> str:
@@ -152,6 +155,28 @@ def _send_link(request, purpose: str, find_account, wanted_status: str, send) ->
             details={"purpose": purpose},
             request=request,
         )
+
+
+def request_email_login(request, email: str, next_url: str = "") -> None:
+    """T-M01-56 (108, D.3): l'enllaç per entrar sense contrasenya, només a un compte personal
+    actiu, amb els límits de RN-M01-58; la resposta és la mateixa per a qualsevol adreça. `next`
+    ja validat: va signat dins del testimoni, perquè l'enllaç es pot obrir en un altre navegador."""
+    email = normalize_email(email)
+
+    def find_account():
+        return Account.objects.filter(login=email, kind=Account.Kind.PERSONAL).first()
+
+    def send(account):
+        token = tokens.make_token(account, tokens.EMAIL_LOGIN, n=next_url or "")
+        minutes = int(tokens.EMAIL_LOGIN.max_age.total_seconds() // 60)
+        mail.queue_email(
+            LOGIN_TEMPLATE,
+            to=account.login,
+            person=account.person,
+            context={"link": _link("accounts:email_login_link", token), "minutes": minutes},
+        )
+
+    _send_link(request, LOGIN, find_account, Account.Status.ACTIVE, send)
 
 
 def request_password_reset(request, email: str) -> None:

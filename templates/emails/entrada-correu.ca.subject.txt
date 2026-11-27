@@ -1,0 +1,1 @@
+{% load i18n %}{% translate "El teu enllaç per entrar al C.R.I.S." %}

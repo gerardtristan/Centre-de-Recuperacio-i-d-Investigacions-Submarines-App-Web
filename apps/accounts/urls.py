@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import signup_views, views
+from . import email_login_views, signup_views, views
 from .security import AREA_PERSONAL
 
 app_name = "accounts"
@@ -10,6 +10,14 @@ app_name = "accounts"
 urlpatterns = [
     path("entrar/", views.login_view, {"area": AREA_PERSONAL}, name="login"),
     path("entrar/codi/", views.login_totp_view, {"area": AREA_PERSONAL}, name="login_totp"),
+    # T-M01-56 (108, D.3): entrar amb un enllaç pel correu (apagat: «no trobat»).
+    path("entrar/correu/", email_login_views.email_login_request_view, name="email_login_request"),
+    path("entrar/correu/enllac/", email_login_views.email_login_view, name="email_login"),
+    path(
+        "entrar/correu/<str:token>/",
+        email_login_views.email_login_link_view,
+        name="email_login_link",
+    ),
     path("sortir/", views.logout_view, {"area": AREA_PERSONAL}, name="logout"),
     # T-M01-53 (108, D): crear el compte personal en una sola pantalla.
     path("compte/nou/", signup_views.signup_view, name="signup"),

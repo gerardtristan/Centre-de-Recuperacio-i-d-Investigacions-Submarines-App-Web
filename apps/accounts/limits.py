@@ -70,6 +70,7 @@ EMAIL_LINK_PURPOSES = (
     EmailLinkRequest.Purpose.RESET_PASSWORD,
     EmailLinkRequest.Purpose.VERIFY_EMAIL,
     EmailLinkRequest.Purpose.CHANGE_EMAIL,
+    EmailLinkRequest.Purpose.EMAIL_LOGIN,  # T-M01-56: el mateix límit conjunt per origen
 )
 
 

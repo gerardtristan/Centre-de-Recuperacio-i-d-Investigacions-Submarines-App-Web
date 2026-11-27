@@ -1,0 +1,10 @@
+{% load i18n %}{% autoescape off %}{% translate "Hola," %}
+
+{% translate "Per entrar a l'àrea de socis del C.R.I.S. sense contrasenya, obre aquest enllaç i prem «Entra»:" %}
+
+{{ link }}
+
+{% blocktranslate count minutes=minutes %}L'enllaç caduca d'aquí a {{ minutes }} minut i només serveix una vegada.{% plural %}L'enllaç caduca d'aquí a {{ minutes }} minuts i només serveix una vegada.{% endblocktranslate %}
+
+{% translate "Si no l'has demanat tu, no cal que facis res: sense obrir-lo, ningú no entra al teu compte." %}
+{% endautoescape %}
