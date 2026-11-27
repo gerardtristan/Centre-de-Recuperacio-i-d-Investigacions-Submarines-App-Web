@@ -5,6 +5,7 @@ l'editor (mateix origen), mai per una adreça pública."""
 
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
@@ -16,7 +17,8 @@ from apps.core.permissions import require_perm
 
 from . import editor, pages
 from . import render as renderer
-from .editor_views import save_block
+from .editor_views import _editor as render_editor
+from .editor_views import revision_of, save_block
 from .models import Page, PageVersion
 
 EDITOR = "administration:website_page_editor"
@@ -50,14 +52,16 @@ def autosave_view(request, pk):
     blocks = editor.editing_blocks(page)
     try:
         index = int(request.POST["index"])
-        form, status = save_block(request, page, blocks, index)
+        form, status, revision = save_block(request, page, blocks, index)
     except (ValueError, IndexError):
         return JsonResponse({"error": _("Aquest bloc ja no hi és."), "others": others}, status=409)
     if status != 200:
         errors = [str(e) for errors in form.errors.values() for e in errors]
         return JsonResponse({"error": " ".join(errors), "others": others}, status=status)
     base = editor.fingerprint(editor.editing_blocks(page)[index])
-    return JsonResponse({"base": base, "others": others})
+    # `revision` és None si algú altre havia desat abans: la pantalla ha de tornar a carregar
+    # abans de fer cap altra acció sobre la llista.
+    return JsonResponse({"base": base, "revision": revision, "others": others})
 
 
 @never_cache
@@ -83,8 +87,11 @@ def publish_view(request, pk):
     """Publica el que s'edita (RN-M07-03; queda al registre, RN-M07-14 i CA-M07-20)."""
     page = _page(request, pk)
     try:
-        version = pages.publish_draft(page, editor.editing_blocks(page), request.user,
-                                      request.POST.get("note", ""))  # fmt: skip
+        version = pages.publish_draft(page, request.user, request.POST.get("note", ""),
+                                      revision=revision_of(request))  # fmt: skip
+    except pages.DraftConflict as error:
+        messages.error(request, " ".join(error.messages))
+        return render_editor(request, page, status=409)  # amb l'esborrany tal com és ara
     except ValidationError as error:
         messages.error(request, " ".join(error.messages))
     else:
@@ -100,8 +107,12 @@ def revert_view(request, pk, number):
     page = _page(request, pk)
     version = get_object_or_404(PageVersion, page=page, number=number)
     try:
-        new = pages.revert_to(version, request.user)
-        editor.change(request, page, new.blocks)
+        with transaction.atomic():  # sobre una revisió antiga, ni es publica ni es desa res
+            new = pages.revert_to(version, request.user)
+            editor.change(request, page, lambda _blocks: new.blocks, revision=revision_of(request))
+    except pages.DraftConflict as error:
+        messages.error(request, " ".join(error.messages))
+        return render_editor(request, page, status=409)  # amb l'esborrany tal com és ara
     except ValidationError as error:
         messages.error(request, " ".join(error.messages))
     else:

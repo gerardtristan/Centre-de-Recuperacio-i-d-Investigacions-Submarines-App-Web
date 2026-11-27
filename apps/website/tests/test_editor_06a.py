@@ -32,6 +32,16 @@ def action_url(page):
     return reverse("administration:website_page_editor_action", args=[page.pk])
 
 
+def post(client, page, data, **kwargs):
+    """Amb la revisió i, per desar un bloc, l'empremta que tindria la pantalla (CA-M07-32)."""
+    blocks, revision = pages.draft_state(page)
+    data = {"revision": str(revision), **data}
+    index = int(data.get("index", -1))
+    if data.get("action") == "update" and 0 <= index < len(blocks):
+        data.setdefault("base", editor.fingerprint(blocks[index]))
+    return client.post(action_url(page), data, **kwargs)
+
+
 def draft(page):
     return PageDraft.objects.get(page=page).blocks
 
@@ -78,17 +88,18 @@ def test_wp1_creates_a_page_and_edits_its_blocks_with_undo_and_redo(page, presid
     response = client.post(LIST, {"title": "Nova", "slug": "nova-inventada", "template": "basica"})
     new = Page.objects.get(slug="nova-inventada")
     assert response["Location"] == reverse("administration:website_page_editor", args=[new.pk])
-    url = action_url(page)
-    client.post(url, {"action": "add", "index": "-1", "kind": "heading"})
-    response = client.post(url, {"action": "update", "index": "0", "text": "Qui som", "level": "3"})
+    post(client, page, {"action": "add", "index": "-1", "kind": "heading"})
+    response = post(
+        client, page, {"action": "update", "index": "0", "text": "Qui som", "level": "3"}
+    )
     assert response["Location"].endswith("?bloc=0")
     assert draft(page) == [{"kind": "heading", "text": "Qui som", "level": 3}]
-    client.post(url, {"action": "duplicate", "index": "0"})
-    client.post(url, {"action": "hide", "index": "1"})
-    client.post(url, {"action": "undo"})
-    client.post(url, {"action": "undo"})
+    post(client, page, {"action": "duplicate", "index": "0"})
+    post(client, page, {"action": "hide", "index": "1"})
+    post(client, page, {"action": "undo"})
+    post(client, page, {"action": "undo"})
     assert draft(page) == [{"kind": "heading", "text": "Qui som", "level": 3}]
-    client.post(url, {"action": "redo"})
+    post(client, page, {"action": "redo"})
     assert len(draft(page)) == 2
     editor_page = client.get(reverse("administration:website_page_editor", args=[page.pk]))
     assert "Títol · Qui som" in editor_page.content.decode()
@@ -98,12 +109,11 @@ def test_wp1_creates_a_page_and_edits_its_blocks_with_undo_and_redo(page, presid
 def test_ca_m07_23_a_block_out_of_schema_is_rejected_and_nothing_is_saved(page, president):
     client = admin_client(president)
     pages.save_draft(page, [H1], president)
-    url = action_url(page)
-    response = client.post(url, {"action": "update", "index": "0", "text": "T" * 121,
+    response = post(client, page, {"action": "update", "index": "0", "text": "T" * 121,
                                  "level": "2"})  # fmt: skip
     assert response.status_code == 400
-    assert client.post(url, {"action": "reorder", "order": "0,0"}).status_code == 302
-    assert client.post(url, {"action": "update", "index": "-1"}).status_code == 302
+    assert post(client, page, {"action": "reorder", "order": "0,0"}).status_code == 302
+    assert post(client, page, {"action": "update", "index": "-1"}).status_code == 302
     assert draft(page) == [H1]
 
 
@@ -155,7 +165,7 @@ def test_screens_and_edge_cases_of_the_editor(page, president):
     assert "Elements" in client.get(editor_url + "?bloc=0").content.decode()
     lines = "\n".join(f"Element {i}" for i in range(21))
     too_many = {"action": "update", "index": "0", "items": lines, "style": "bullets"}
-    assert client.post(action_url(page), too_many).status_code == 400  # el catàleg: 20 com a màxim
+    assert post(client, page, too_many).status_code == 400  # el catàleg: 20 com a màxim
     assert draft(page) == [block("list")]
-    response = client.post(action_url(page), {"action": "redo"}, follow=True)
+    response = post(client, page, {"action": "redo"}, follow=True)
     assert "No hi ha res per desfer o refer." in response.content.decode()

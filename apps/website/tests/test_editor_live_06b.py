@@ -94,13 +94,16 @@ def test_ca_m07_32_autosave_does_not_overwrite_someone_elses_block(page, admin, 
 
 def test_ca_m07_20_publish_and_revert_are_recorded_and_the_draft_follows(page, admin):
     client = admin_client(admin)
-    client.post(url("publish", page), {"note": "Primera"})
-    assert not PageDraft.objects.exists() and PageVersion.objects.get().blocks == [
+    client.post(url("publish", page), {"note": "Primera", "revision": rev(page)})
+    assert PageDraft.objects.exists() and PageVersion.objects.get().blocks == [
         H1, block("quote", text="Amagada", hidden=True), H2,
     ]  # fmt: skip
+    pages_list = reverse("administration:website_pages")
+    assert "Amb canvis sense publicar" not in client.get(pages_list).content.decode()
     pages.save_draft(page, [H2], admin)
-    client.post(url("publish", page))
-    client.post(url("revert", page, 1))
+    assert "Amb canvis sense publicar" in client.get(pages_list).content.decode()
+    client.post(url("publish", page), {"revision": rev(page)})
+    client.post(url("revert", page, 1), {"revision": rev(page)})
     versions = list(page.versions.order_by("number"))
     assert [v.number for v in versions] == [1, 2, 3] and versions[2].blocks == versions[0].blocks
     assert PageDraft.objects.get().blocks == versions[0].blocks
@@ -111,7 +114,7 @@ def test_ca_m07_20_publish_and_revert_are_recorded_and_the_draft_follows(page, a
 
 def test_an_unfinished_draft_is_not_published(page, admin):
     pages.save_draft(page, [{"kind": "text"}], admin)
-    response = admin_client(admin).post(url("publish", page), follow=True)
+    response = admin_client(admin).post(url("publish", page), {"revision": rev(page)}, follow=True)
     assert "no és com el seu tipus demana" in response.content.decode()
     assert not PageVersion.objects.exists()
 
@@ -141,3 +144,55 @@ def test_edge_cases_of_the_live_actions(page, admin):
     client.post(url("revert", page, broken.number))
     assert page.versions.count() == 1
     assert str(PageEditing.objects.get()) == f"Prèvia · {admin.login}"
+
+
+def rev(page):
+    """La revisió de l'esborrany que té la pantalla (revisió de la pila, CA-M07-32)."""
+    draft = PageDraft.objects.filter(page=page).first()
+    return str(draft.revision) if draft else "0"
+
+
+def test_review_undo_revert_publish_and_actions_with_an_old_revision_are_refused(
+    page,
+    admin,
+    make_admin,  # noqa: F811
+):
+    client, other = admin_client(admin), make_admin(R.PRESIDENT)
+    action = reverse("administration:website_page_editor_action", args=[page.pk])
+    old = rev(page)
+    client.post(action, {"action": "duplicate", "index": "0", "revision": old})
+    seen = rev(page)
+    pages.save_draft(page, [H2], other)  # l'altra persona desa entremig
+    for data in ({"action": "undo", "revision": seen},
+                 {"action": "remove", "index": "0", "revision": seen}):  # fmt: skip
+        assert client.post(action, data).status_code == 409
+    pages.publish_page(page, [H1], admin)
+    assert client.post(url("revert", page, 1), {"revision": seen}).status_code == 409
+    assert client.post(url("publish", page), {"revision": seen}).status_code == 409
+    assert PageDraft.objects.get().blocks == [H2] and page.versions.count() == 1
+
+
+def test_review_publish_keeps_the_draft_and_an_autosave_after_someone_else_is_stale(
+    page,
+    admin,
+    make_admin,  # noqa: F811
+):
+    client = admin_client(admin)
+    client.post(url("publish", page), {"revision": rev(page)})
+    assert PageDraft.objects.exists()  # el que s'edita continua; no s'esborra res
+    seen = rev(page)
+    pages.save_draft(page, [H1, H2, H1], make_admin(R.PRESIDENT))
+    data = {"index": "0", "base": editor.fingerprint(H1), "text": "Un (A)", "level": "2",
+            "revision": seen}  # fmt: skip
+    response = client.post(url("autosave", page), data).json()
+    assert response["revision"] is None  # la pantalla no sap el canvi de l'altre: ha de recarregar
+    assert PageDraft.objects.get().blocks[2] == H1
+
+
+def test_review_a_form_saved_over_someone_elses_block_is_reopened_fresh(page, admin):
+    action = reverse("administration:website_page_editor_action", args=[page.pk])
+    data = {"action": "update", "index": "0", "base": "antiga", "text": "Un (A)", "level": "2",
+            "revision": rev(page)}  # fmt: skip
+    response = admin_client(admin).post(action, data, follow=True)
+    assert "Una altra persona ha canviat" in response.content.decode()
+    assert PageDraft.objects.get().blocks[0] == H1

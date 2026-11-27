@@ -79,7 +79,7 @@ def _run(item: ScheduledAction) -> None:
     actor = item.created_by
     if item.action == ScheduledAction.Action.PUBLISH:
         note = _("Publicació programada")
-        pages.publish_draft(item.page, editor.editing_blocks(item.page), actor, note)
+        pages.publish_draft(item.page, actor, note)
     else:
         pages.retire_page(item.page, actor)
 
