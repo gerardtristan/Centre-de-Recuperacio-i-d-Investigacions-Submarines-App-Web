@@ -1,0 +1,2 @@
+{# Plantilla provisional (T-M07-04b): la definitiva és de DISSENY (T-M07-19, website/blocs/<kind>.html). #}
+{% load i18n %}<section><h2>{{ block.title }}</h2><ul>{% for activity in block.activities %}<li>{{ activity.title }} · <time datetime="{{ activity.starts_on|date:'Y-m-d' }}">{{ activity.starts_on|date:'d/m/Y' }}</time></li>{% empty %}<li>{% translate "Ara no hi ha cap activitat oberta." %}</li>{% endfor %}</ul></section>

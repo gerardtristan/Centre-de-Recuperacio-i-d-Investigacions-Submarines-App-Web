@@ -1,0 +1,2 @@
+{# Plantilla provisional (T-M07-04b): la definitiva és de DISSENY (T-M07-19, website/blocs/<kind>.html). #}
+<section>{% if block.title %}<h2>{{ block.title }}</h2>{% endif %}{% if block.style == 'numbers' %}<ol>{% for item in block.items %}<li>{{ item }}</li>{% endfor %}</ol>{% else %}<ul>{% for item in block.items %}<li>{{ item }}</li>{% endfor %}</ul>{% endif %}</section>
