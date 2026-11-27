@@ -645,3 +645,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [decisio-106](decisio-106.md) | Decisions 106 i 107: editor visual de la web pública i fotos reals del club; addenda del M07 (carril Y) | 24/11/2026 18:06 | 48268706 | cap (document) | [A comprovar] |
 | [decisio-108](decisio-108.md) | Respostes del propietari del 27/11/2026: tauler, contingut de la web, butlletí i compte ràpid | 27/11/2026 22:37 | (vegeu la PR) | cap (document) | [A comprovar] |
 | [T-M07-19a](T-M07-19a.md) | Blocs de la web pública: grup Text (títol, text, cita, llista, pregunta i avís) i catàleg | 27/11/2026 22:49 | 570ef7e0 | 2 noves | [A comprovar] |
+| [T-M07-19b](T-M07-19b.md) | Blocs de la web pública: Disposició i Acció (secció, separador, espai, botó, «Fes-te soci», butlletí i contacte) | 27/11/2026 23:20 | 9f51019e | 2 noves | [A comprovar] |
