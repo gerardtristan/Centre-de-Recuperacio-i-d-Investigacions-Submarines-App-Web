@@ -643,3 +643,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M07-10b](T-M07-10b.md) | Tutorials: pantalles d'administració (WP4; carril A) | 25/11/2026 03:48 | (vegeu la PR) | 5 noves i 1 e2e | [A comprovar] |
 | [T-M02-20-fotos](T-M02-20-fotos.md) | Fotos d'una sortida de medi ambient, apagades fins a la P-41 (torn del nucli i 02) | 25/11/2026 04:47 | (vegeu la PR) | 11 noves i 1 e2e | [A comprovar] |
 | [dep-markdown-it-py](dep-markdown-it-py.md) | markdown-it-py per al Markdown restringit (decisió 106) | 27/11/2026 22:14 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [T-M07-04a](T-M07-04a.md) | Nucli de blocs (decisió 106): catàleg, validació i Markdown restringit (carril E) | 27/11/2026 22:33 | (vegeu la PR) | 68 noves i 6 adaptades | [A comprovar] |
