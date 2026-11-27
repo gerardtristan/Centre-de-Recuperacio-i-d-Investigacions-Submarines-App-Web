@@ -9,6 +9,7 @@ CA-M07-26).
 """
 
 import difflib
+import logging
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -23,6 +24,7 @@ from . import editor, pages
 from .editor_forms import summary
 from .models import ScheduledAction
 
+logger = logging.getLogger(__name__)
 ACTION_SCHEDULED = "website.page_scheduled"
 ACTION_CANCELLED = "website.schedule_cancelled"
 S = ScheduledAction.Status
@@ -102,6 +104,10 @@ def run_due(now=None) -> int:
                 item.status = S.FAILED
                 messages = getattr(error, "messages", None) or [_("Ja no té permís.")]
                 item.error = " ".join(messages)[:300]
+            except Exception:  # una acció que peta no atura les altres ni la cua
+                logger.exception("Acció programada %s: error inesperat", item.pk)
+                item.status = S.FAILED
+                item.error = _("Error inesperat. Avisa l'administrador.")
             else:
                 item.status, done = S.DONE, done + 1
             item.save(update_fields=["status", "error"])

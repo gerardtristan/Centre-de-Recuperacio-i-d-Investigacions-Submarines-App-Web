@@ -172,13 +172,15 @@ def retire_page(page: Page, actor) -> Page:
 @transaction.atomic
 def recover_page(page: Page, actor) -> Page:
     """RN-M07-25 i CA-M07-33: torna a esborrany amb el contingut de l'última versió; el públic no
-    la veu fins que es torna a publicar."""
+    la veu fins que es torna a publicar. Si ja hi havia un esborrany, es conserva (P-686): l'última
+    versió es pot recuperar amb «Torna a aquesta versió»."""
     require(actor)
     page = Page.objects.select_for_update().get(pk=page.pk)
     if page.status != Page.Status.RETIRED:
         raise ValidationError(_("Només es pot recuperar una pàgina retirada."))
     version = current_version(page)
-    save_draft(page, catalog.upgrade_all(version.blocks) if version else [], actor)
+    if not PageDraft.objects.filter(page=page).exists():  # un esborrany pendent no es perd
+        save_draft(page, catalog.upgrade_all(version.blocks) if version else [], actor)
     page.status = Page.Status.DRAFT
     page.save(update_fields=["status"])
     audit.record(ACTION_RECOVERED, actor=actor, target=page, field="status",
