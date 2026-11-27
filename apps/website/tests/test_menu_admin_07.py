@@ -32,6 +32,9 @@ def test_wp9_adds_a_submenu_and_an_external_link_and_removes_one(make_admin):  #
     assert _main("Federació").parent == _main("El club")
     html = client.get(LIST).content.decode()
     assert "https://federacio.exemple.cat/" in html and "Treu «Federació»" in html
+    assert (
+        html.index("Treu «Ajuda»") < html.index("Treu «El club»") < html.index("Treu «Federació»")
+    )
     remove = reverse("administration:website_menu_item_remove", args=[_main("Federació").pk])
     client.post(remove)
     assert not MenuItem.objects.filter(label="Federació").exists()

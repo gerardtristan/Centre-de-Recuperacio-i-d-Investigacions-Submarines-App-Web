@@ -76,7 +76,14 @@ def admin_menu_view(request):
         else:
             messages.success(request, _("Capçalera i peu desats."))
             return redirect(LIST)
-    items = MenuItem.objects.filter(menu=_main_menu()).select_related("page", "parent")
+    items = list(MenuItem.objects.filter(menu=_main_menu()).select_related("page", "parent"))
+    # Cada enllaç de dalt, seguit del seu submenú.
+    items = [
+        row
+        for top in items
+        if top.parent_id is None
+        for row in (top, *(i for i in items if i.parent_id == top.pk))
+    ]
     context = {"items": items, "chrome": chrome, "form": form}
     return render(request, "website/admin/menu.html", context)
 
