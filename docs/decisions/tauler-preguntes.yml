@@ -1746,3 +1746,14 @@ noves:
       Encendre-ho publica fotos on poden sortir persones; és irreversible un cop vist. L'administrador
       ho fa quan la junta ho decideix, i l'opció es pot ampliar més endavant sense tocar dades.
     data: 2026-11-25
+  P-690:
+    opcions:
+      A: "Sense l'autor: la foto d'activitat surt a la web sense crèdit."
+      B: "Amb l'autor com a crèdit, només si l'autor hi ha donat permís explícit."
+      C: "Amb un crèdit genèric («Foto: C.R.I.S.»)."
+      D: "Amb les inicials de l'autor."
+    recomanada: A
+    perque: >-
+      RP-M07-02 demana les dades del 02 sense noms; l'autor d'una foto de sortida és sovint un soci.
+      Treure'l no perd cap dada (es queda al 02) i es pot afegir després si la junta ho vol amb la P-41.
+    data: 2026-11-27
