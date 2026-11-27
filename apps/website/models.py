@@ -6,7 +6,9 @@ import uuid
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.db import models
+from django.urls import Resolver404, resolve
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import AppendOnlyModel
@@ -93,6 +95,128 @@ class PageVersion(AppendOnlyModel):
 
     def __str__(self):
         return f"{self.page} v{self.number}"
+
+
+class Menu(models.Model):
+    """Menú de la web pública (addenda 106; decisió 034). El públic en veu 6 enllaços i la resta
+    a «Més» (`menus.public_menu`)."""
+
+    code = models.SlugField(_("codi"), max_length=30, unique=True)
+    name = models.CharField(_("nom"), max_length=100)
+
+    class Meta:
+        verbose_name = _("menú")
+        verbose_name_plural = _("menús")
+
+    def __str__(self):
+        return self.name
+
+
+class MenuItem(models.Model):
+    """Un enllaç del menú: a una pàgina, a una ruta de la plataforma («/noticies/») o extern, només
+    `https:`. Submenús d'un sol nivell; un enllaç de dalt sense destí és un grup."""
+
+    menu = models.ForeignKey(
+        Menu, on_delete=models.PROTECT, related_name="items", verbose_name=_("menú")
+    )
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="children",
+        verbose_name=_("dins de"),
+    )
+    label = models.CharField(_("text"), max_length=40)
+    page = models.ForeignKey(
+        Page,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("pàgina"),
+    )
+    url = models.CharField(_("adreça"), max_length=300, blank=True)
+    order = models.PositiveSmallIntegerField(_("ordre"), default=0)
+
+    class Meta:
+        verbose_name = _("enllaç del menú")
+        verbose_name_plural = _("enllaços del menú")
+        ordering = ["order", "pk"]
+        constraints = [
+            models.CheckConstraint(
+                condition=~(models.Q(page__isnull=False) & ~models.Q(url="")),
+                name="website_menuitem_one_target",
+            )
+        ]
+
+    def __str__(self):
+        return self.label
+
+    @property
+    def href(self) -> str:
+        return f"/{self.page.slug}/" if self.page_id else self.url
+
+    def clean(self):
+        errors = {}
+        if self.page_id and self.url:
+            errors["url"] = _("Tria una pàgina o escriu una adreça, no totes dues.")
+        elif self.url and not _valid_menu_url(self.url):
+            errors["url"] = _(
+                "Només una adreça de la plataforma que existeixi (p. ex. /noticies/) o una "
+                "adreça que comenci per https://."
+            )
+        if self.parent_id:
+            if self.parent.parent_id or self.parent.menu_id != self.menu_id:
+                errors["parent"] = _("Un submenú només pot penjar d'un enllaç de dalt del menú.")
+            elif self.pk and self.children.exists():
+                errors["parent"] = _("Aquest enllaç té un submenú: no pot anar dins d'un altre.")
+            elif not (self.page_id or self.url):
+                errors["url"] = _("Un enllaç d'un submenú ha de tenir una pàgina o una adreça.")
+        if errors:
+            raise ValidationError(errors)
+
+
+def _valid_menu_url(url: str) -> bool:
+    if url.lower().startswith("https:"):
+        try:
+            URLValidator(schemes=["https"])(url)
+        except ValidationError:
+            return False
+        return True
+    # Ruta interna: «//» o «\» els navegadors els llegeixen com un altre domini.
+    if not url.startswith("/") or url.startswith("//") or "\\" in url:
+        return False
+    try:
+        resolve(url.split("?")[0].split("#")[0])
+    except Resolver404:
+        return False
+    return True
+
+
+class SiteChrome(AppendOnlyModel):
+    """Capçalera i peu de la web pública (addenda 106). Cada desat és una versió nova i el públic
+    veu l'última; només d'INSERT, també a la base de dades (migració 0014), com `PageVersion`."""
+
+    number = models.PositiveIntegerField(_("número"), unique=True)
+    header_text = models.CharField(_("text de la capçalera"), max_length=120)
+    footer_text = models.TextField(_("text del peu"), max_length=1000, blank=True)
+    saved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("desada per"),
+    )
+    saved_at = models.DateTimeField(_("desada el"), auto_now_add=True)
+    note = models.CharField(_("nota"), max_length=300, blank=True)
+
+    class Meta:
+        verbose_name = _("versió de la capçalera i el peu")
+        verbose_name_plural = _("versions de la capçalera i el peu")
+        ordering = ["number"]
+
+    def __str__(self):
+        return f"v{self.number}"
 
 
 class MediaAsset(models.Model):
