@@ -8,13 +8,15 @@ import re
 import pytest
 from playwright.sync_api import expect
 
+from .conftest import login_visitor
+
 pytestmark = pytest.mark.e2e
 
 
 def test_join_form_with_errors_shows_the_summary_and_links_to_each_field(
     page, live_server, review, page_checks, texts
 ):
-    page.goto(f"{live_server.url}/fer-se-soci/")
+    login_visitor(page, live_server.url)  # T-M01-53: amb sessió
     page.get_by_role("button", name="Envia la sol·licitud").click()
 
     summary = page.locator("[data-errata]")
@@ -37,5 +39,5 @@ def test_join_form_with_errors_shows_the_summary_and_links_to_each_field(
 
 
 def test_without_errors_there_is_no_summary(page, live_server, page_checks, texts):
-    page.goto(f"{live_server.url}/fer-se-soci/")
+    login_visitor(page, live_server.url)  # T-M01-53: amb sessió
     expect(page.locator("[data-errata]")).to_have_count(0)

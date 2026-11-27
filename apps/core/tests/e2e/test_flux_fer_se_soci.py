@@ -41,7 +41,7 @@ from apps.members.models import (
 )
 from conftest import PASSWORD
 
-from .conftest import login_admin, make_admin
+from .conftest import login_admin, login_visitor, make_admin
 
 pytestmark = pytest.mark.e2e
 
@@ -112,8 +112,11 @@ def join_flow(page, base_url, builder, secretary, other, shoot, pay=None):
 
     # 1. Visitant: «Fer-se soci» a la web. La data torna a dibuixar la part del formulari que en
     # depèn (HTMX): s'espera l'etiqueta del document d'un major d'edat abans de continuar.
-    page.goto(f"{base_url}/fer-se-soci/")
+    # T-M01-53 (108, C.1): amb la sessió d'un compte personal; l'alta és per a una altra persona,
+    # que després rep la invitació per crear el seu compte.
+    login_visitor(page, base_url)
     expect(page.get_by_role("heading", name="Sol·licitud d'alta")).to_be_visible()
+    page.get_by_label("Per a una altra persona", exact=False).check()
     page.get_by_label("Nom", exact=True).fill(FIRST_NAME)
     page.get_by_label("Cognoms", exact=True).fill(LAST_NAME)
     page.get_by_label("Data de naixement").fill("1990-05-20")

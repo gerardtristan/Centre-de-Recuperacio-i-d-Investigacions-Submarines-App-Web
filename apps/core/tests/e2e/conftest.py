@@ -326,6 +326,18 @@ def login_admin(page, base_url, username, capture=None):
     page.get_by_role("button", name="Verificar").click()
 
 
+def login_visitor(page, base_url, email="visitant.prova@example.org"):
+    """T-M01-53 (108, C.1): «Fer-se soci» només amb la sessió d'un compte personal. Un compte
+    sense soci entra i torna a «Fer-se soci» (`next`)."""
+    person = Person.objects.create(first_name="Visitant", origin=Person.Origin.WEB)
+    account = Account.objects.create_personal(person, email, PASSWORD)
+    Account.objects.filter(pk=account.pk).update(status=Account.Status.ACTIVE)
+    page.goto(f"{base_url}/entrar/?next=/fer-se-soci/")
+    page.get_by_label("Correu electrònic").fill(email)
+    page.get_by_label("Contrasenya").fill(PASSWORD)
+    page.get_by_role("button", name="Entrar").click()
+
+
 def menu_entry(page, name):
     """Una entrada del menú de l'administració, a punt per clicar (T-DX-62): si és dins d'un grup
     plegat, primer s'obre el grup, com faria qui fa servir el menú."""

@@ -11,7 +11,7 @@ from apps.members.models import MemberRequest
 from conftest import PASSWORD
 
 from . import conftest as e2e_conftest
-from .conftest import login_admin
+from .conftest import login_admin, login_visitor
 
 pytestmark = pytest.mark.e2e
 
@@ -36,7 +36,7 @@ def test_admin_login_with_totp(page, live_server, secretary, capture):
 
 
 def test_join_on_the_web(page, live_server, texts, capture):
-    page.goto(f"{live_server.url}/fer-se-soci/")
+    login_visitor(page, live_server.url)  # T-M01-53: amb sessió
     expect(page.get_by_role("heading", name="Sol·licitud d'alta")).to_be_visible()
     capture("formulari")
     page.locator('[name="first_name"]').fill("Laia")
