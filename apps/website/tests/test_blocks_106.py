@@ -99,6 +99,7 @@ def test_rn_m07_15_a_complete_block_of_each_kind_is_valid_also_hidden(kind):
         block("button", target="http://exemple.cat"),
         block("button", target="javascript:alert(1)"),
         block("button", target="//exemple.cat"),
+        block("button", target=5),
         block("upcoming_activities", filters={"persona": "x"}),
         block("text", hidden="sí"),
         {"kind": "script"},
@@ -244,3 +245,13 @@ def test_review_filters_are_an_activity_kind_and_a_department_number(filters):
 
 def test_review_an_old_faq_block_without_topic_has_no_topic():
     assert blocks.upgrade_all([{"kind": "faq"}]) == [{"kind": "faq_topic", "topic": None}]
+
+
+def test_review_coverage_edge_cases(editor):
+    """Revisió de la #615 (cobertura): un element que no és un bloc es llegeix tal qual; la
+    miniatura d'un vídeo compta com a foto; una clau mal formada no es pot publicar."""
+    assert blocks.upgrade_all(["no és un bloc"]) == ["no és un bloc"]
+    assert media.block_media_keys([block("video", thumbnail=KEY)]) == [KEY]
+    with pytest.raises(ValidationError):
+        media.check_publishable(["no-és-una-clau"])
+    pages.validate_blocks([block("image", media=KEY)], publishing=False)  # en desar, cap foto

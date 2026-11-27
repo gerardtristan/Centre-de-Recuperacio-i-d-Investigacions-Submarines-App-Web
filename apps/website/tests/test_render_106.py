@@ -110,3 +110,8 @@ def test_review_photos_follow_the_public_images_switch_and_skip_empty_keys(page,
 
 def test_review_an_old_faq_block_without_topic_renders_nothing(page):
     assert "<details" not in render.render_blocks([{"kind": "faq"}], page)
+
+
+def test_review_an_invalid_photo_key_is_ignored(editor):
+    business_settings.change("website.public_images_enabled", True, editor, "Prova")
+    assert render._images([{"kind": "image", "media": "no-és-una-clau"}]) == {}
