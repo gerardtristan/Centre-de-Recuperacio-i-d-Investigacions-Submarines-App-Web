@@ -44,7 +44,9 @@ def email_login_request_view(request):
     _enabled()
     next_url = safe_next(request, request.POST.get("next") or request.GET.get("next")) or ""
     if request.method == "GET" and request.session.pop(SENT_KEY, False):
-        return render(request, "accounts/email_login_request.html", {"sent": True})
+        minutes = int(tokens.EMAIL_LOGIN.max_age.total_seconds() // 60)
+        context = {"sent": True, "minutes": minutes}
+        return render(request, "accounts/email_login_request.html", context)
     form = RecoveryRequestForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         email_links.request_email_login(request, form.cleaned_data["email"], next_url)

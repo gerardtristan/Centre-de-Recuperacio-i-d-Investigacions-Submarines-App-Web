@@ -35,6 +35,12 @@ class RecoveryRequestForm(forms.Form):
     )
 
 
+def catalan_password_errors(error) -> list:
+    """Django no porta en català els errors de les regles de V-01: el mateix error, amb el text
+    propi (`PASSWORD_ERRORS`, més avall). Un codi desconegut es queda com és."""
+    return [PASSWORD_ERRORS.get(e.code, e) for e in error.error_list]
+
+
 class NewPasswordForm(SetPasswordForm):
     """Contrasenya nova, dues vegades, amb les regles de V-01 (AUTH_PASSWORD_VALIDATORS)."""
 
@@ -45,6 +51,14 @@ class NewPasswordForm(SetPasswordForm):
         self.fields["new_password1"].label = gettext("Contrasenya nova")
         self.fields["new_password2"].label = gettext("Torna-la a escriure")
         self.fields["new_password2"].help_text = ""
+
+    def validate_password_for_user(self, user, password_field_name="new_password2"):  # noqa: S107
+        password = self.cleaned_data.get(password_field_name)
+        if password:
+            try:
+                password_validation.validate_password(password, user)
+            except forms.ValidationError as error:
+                self.add_error(password_field_name, catalan_password_errors(error))
 
 
 class OneTimeCodeInput(forms.TextInput):
@@ -213,7 +227,5 @@ class SignupForm(forms.Form):
             try:
                 password_validation.validate_password(password, probe)
             except forms.ValidationError as error:
-                # Django no porta aquests missatges en català: el mateix error, amb el text propi.
-                messages = [PASSWORD_ERRORS.get(e.code, e) for e in error.error_list]
-                self.add_error("password", messages)
+                self.add_error("password", catalan_password_errors(error))
         return data
