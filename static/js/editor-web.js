@@ -1,5 +1,4 @@
-// Editor de la web (T-M07-06a): arrossegar els blocs (SortableJS) i desfer i refer amb el teclat.
-// Sense JS, «Amunt», «Avall», «Desfés» i «Refés» fan el mateix: aquí només s'envien aquells formularis.
+// Editor de la web (T-M07-06a): arrossegar (SortableJS) i Ctrl+Z; sense JS, els botons fan el mateix.
 (function () {
   "use strict";
   var list = document.querySelector("[data-editor-blocs]");

@@ -1,11 +1,6 @@
-"""Editor de la web a l'administració (T-M07-06a, decisió 106; `/gestio/web/pagines/`).
-
-La llista de pàgines (i crear-ne una) i l'editor d'una pàgina: llista de blocs, formulari del
-bloc triat, afegir, moure (botons o arrossegar), duplicar, amagar, treure, i desfer i refer dins
-la sessió. Tot demana WP1 (`website.pages`, «Sí») i els serveis ho tornen a comprovar; cada
-canvi desa l'esborrany amb la validació del catàleg (RN-M07-15 i 16). Fins que WP1 es parteixi
-(T-M07-26), WP1 fa de WP1a.
-"""
+"""Editor de la web a l'administració (T-M07-06a, decisió 106; `/gestio/web/pagines/`): la llista
+de pàgines i l'editor de blocs d'una pàgina. Tot demana WP1 (`website.pages`, «Sí»; fa de WP1a fins
+a la T-M07-26) i els serveis ho tornen a comprovar; cada canvi desa l'esborrany validat."""
 
 from django import forms
 from django.contrib import messages
@@ -22,11 +17,7 @@ from . import editor, pages
 from .editor_forms import GROUPS, KINDS, BlockForm, summary
 from .models import Page, PageDraft
 
-
-class NewPageForm(forms.ModelForm):
-    class Meta:
-        model = Page
-        fields = ["title", "slug", "template"]
+NewPageForm = forms.modelform_factory(Page, fields=["title", "slug", "template"])
 
 
 @never_cache
@@ -47,17 +38,11 @@ def pages_view(request):
     return render(request, "website/admin/pages.html", {"rows": rows, "form": form})
 
 
-def _selected(request, blocks) -> int | None:
-    try:
-        index = int(request.GET.get("bloc", ""))
-    except ValueError:
-        return None
-    return index if 0 <= index < len(blocks) else None
-
-
 def _editor(request, page, *, form=None, selected=None, status=200):
     blocks = editor.editing_blocks(page)
-    selected = _selected(request, blocks) if selected is None else selected
+    if selected is None:
+        bloc = request.GET.get("bloc", "")
+        selected = int(bloc) if bloc.isdigit() and int(bloc) < len(blocks) else None
     if form is None and selected is not None:
         form = BlockForm(blocks[selected]["kind"], block=blocks[selected])
     context = {
@@ -80,13 +65,11 @@ def editor_view(request, pk):
     return _editor(request, get_object_or_404(Page, pk=pk))
 
 
-def _target(action: str, index: int, count: int) -> int | None:
+def _target(action: str, index: int) -> int | None:
     """Quin bloc queda triat després de l'acció."""
-    moves = {"add": index + 1, "up": index - 1, "down": index + 1, "duplicate": index + 1}
-    target = moves.get(action, index if action in ("hide", "update") else None)
-    if action == "add" and count == 1:
-        target = 0
-    return target
+    if action in ("add", "down", "duplicate"):
+        return index + 1 if index >= 0 else 0
+    return {"up": index - 1, "hide": index, "update": index}.get(action)
 
 
 @never_cache
@@ -97,8 +80,7 @@ def editor_action_view(request, pk):
     action = request.POST.get("action", "")
     url = reverse("administration:website_page_editor", args=[page.pk])
     if action in ("undo", "redo"):
-        done = (editor.undo if action == "undo" else editor.redo)(request, page)
-        if not done:
+        if not editor.step(request, page, action):
             messages.error(request, _("No hi ha res per desfer o refer."))
         return redirect(url)
     blocks = editor.editing_blocks(page)
@@ -127,5 +109,5 @@ def editor_action_view(request, pk):
         messages.error(request, " ".join(error.messages))
         return redirect(url)
     messages.success(request, _("Esborrany desat."))
-    target = _target(action, index, len(new))
+    target = _target(action, index)
     return redirect(f"{url}?bloc={target}" if target is not None and target < len(new) else url)

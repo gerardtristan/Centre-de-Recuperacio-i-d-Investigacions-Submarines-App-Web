@@ -1,9 +1,10 @@
-"""Formulari del bloc triat a l'editor (T-M07-06a), fet a partir de l'esquema del catàleg
-(`blocks.CATALOG`). El formulari només comprova els tipus; qui decideix si el bloc és vàlid és
-`blocks.validate`, en desar l'esborrany (RN-M07-15, CA-M07-23)."""
+"""Formulari del bloc triat a l'editor (T-M07-06a), fet de l'esquema del catàleg. Només comprova
+els tipus: qui decideix si el bloc és vàlid és `blocks.validate`, en desar (RN-M07-15)."""
 
 from django import forms
 from django.utils.translation import gettext_lazy as _
+
+from apps.activities.models import Activity
 
 from . import blocks as catalog
 from .models import FaqTopic, MediaAsset
@@ -27,8 +28,7 @@ GROUPS = (
     (_("Disposició"), ("divider", "spacer")),  # la secció, sense afegir fins a la P-682
     (_("Acció"), ("button", "join_cta", "newsletter", "contact_form")),
     (_("Dades del club"), ("upcoming_activities", "featured_activities", "past_activities",
-                           "recent_news", "faq_topic", "key_figures", "project_cards",
-                           "featured_trip")),
+     "recent_news", "faq_topic", "key_figures", "project_cards", "featured_trip")),
 )  # fmt: skip
 LABELS = {
     "text": _("Text"), "level": _("Nivell"), "title": _("Títol"), "body": _("Text"),
@@ -75,14 +75,23 @@ def _field(name: str, spec: catalog.Field):
         widget = forms.Textarea(attrs={"rows": 6}) if t == "md" else None
         return forms.CharField(label=label, required=False, max_length=spec.max, widget=widget,
                                help_text=HELP["md"] if t == "md" else "")  # fmt: skip
+    if t == "items" and spec.item.type == "media":  # galeria
+        return forms.MultipleChoiceField(label=label, choices=_photos(), required=False,
+                                         widget=forms.CheckboxSelectMultiple)  # fmt: skip
+    if t == "items":
+        return forms.CharField(label=label, required=False, help_text=HELP["lines"],
+                               widget=forms.Textarea(attrs={"rows": 5}))  # fmt: skip
     if t == "choice":
         options = [(c, CHOICES.get(c, c)) for c in spec.choices]
         return forms.TypedChoiceField(label=label, choices=options, coerce=type(spec.choices[0]))
+    if t == "filters" and name == "type":  # curs o sortida (02)
+        return forms.ChoiceField(label=label, choices=[("", "—"), *Activity.Kind.choices],
+                                 required=False)  # fmt: skip
     if t == "int" and name == "topic":
         topics = [("", "—")] + [(t.pk, t.name) for t in FaqTopic.objects.all()]
         return forms.TypedChoiceField(label=label, choices=topics, coerce=int, required=False)
-    if t == "int":
-        return forms.IntegerField(label=label, required=False, min_value=spec.min)
+    if t in ("int", "filters"):  # el departament, pel número fins que hi hagi el selector
+        return forms.IntegerField(label=label, required=False, min_value=spec.min or 1)
     if t == "media":
         return forms.ChoiceField(label=label, choices=[("", "—")] + _photos(), required=False)
     if t == "target":
@@ -97,7 +106,7 @@ def _fields(kind: str):
             continue  # P-682: les columnes d'una secció encara no s'editen
         if spec.type == "filters":
             for sub in ("type", "department"):
-                yield f"filters_{sub}", ("filters", sub), catalog.text(catalog.CODE_MAX)
+                yield f"filters_{sub}", ("filters", sub), spec
         elif spec.type == "items" and isinstance(spec.item, dict):
             for i in range(spec.max):
                 for sub, item_spec in spec.item.items():
@@ -111,27 +120,11 @@ class BlockForm(forms.Form):
         self.kind, block = kind, block or {}
         super().__init__(*args, **kwargs)
         for form_name, path, spec in _fields(kind):
-            parent = catalog.CATALOG[kind].get(path[0])
-            if _is_list_of(parent, "text") or _is_list_of(parent, "media"):
-                field = self._list_field(path[0], parent)
-            else:
-                field = _field(path[-1], spec)
-                if len(path) == 3:
-                    field.label = f"{LABELS[path[0]]} {path[1] + 1}: {field.label}"
-            field.initial = _get(block, path, parent)
+            field = _field(path[-1], spec)
+            if len(path) == 3:
+                field.label = f"{LABELS[path[0]]} {path[1] + 1}: {field.label}"
+            field.initial = _get(block, path, catalog.CATALOG[kind].get(path[0]))
             self.fields[form_name] = field
-
-    @staticmethod
-    def _list_field(name, spec):
-        if spec.item.type == "media":  # galeria
-            widget = forms.CheckboxSelectMultiple
-            return forms.MultipleChoiceField(
-                label=LABELS[name], choices=_photos(), required=False, widget=widget
-            )
-        widget = forms.Textarea(attrs={"rows": 5})
-        return forms.CharField(
-            label=LABELS[name], required=False, widget=widget, help_text=HELP["lines"]
-        )
 
     def to_block(self, old: dict) -> dict:
         """El bloc nou amb els camps omplerts; conserva `hidden` i les columnes."""
@@ -153,10 +146,7 @@ class BlockForm(forms.Form):
                 while len(items) <= path[1]:
                     items.append({})
                 items[path[1]][path[2]] = value
-        for name, spec in catalog.CATALOG[self.kind].items():
-            if spec.type == "items" and isinstance(spec.item, dict) and name in new:
-                new[name] = [item for item in new[name] if item]
-        return new
+        return {k: [i for i in v if i != {}] if isinstance(v, list) else v for k, v in new.items()}
 
 
 def _is_list_of(spec, item_type: str) -> bool:

@@ -1,12 +1,6 @@
-"""Editor de blocs d'una pàgina (T-M07-06a, decisió 106; RN-M07-15 i 16).
-
-- `editing_blocks(page)`: el que s'edita: l'esborrany o, si no n'hi ha, l'última versió (amb
-  els tipus antics ja traduïts) o res.
-- `apply(blocks, action, index, ...)`: afegir, moure, reordenar, duplicar, amagar, treure i
-  canviar un bloc. Torna una llista nova; no desa res.
-- `change`, `undo` i `redo`: desen l'esborrany amb `pages.save_draft` (WP1 i la validació de
-  desar) i porten l'historial de desfer i refer a la sessió del navegador, per pàgina.
-"""
+"""Editor de blocs d'una pàgina (T-M07-06a, decisió 106; RN-M07-15 i 16). `apply` canvia una
+llista de blocs sense desar res; `change` i `step` desen l'esborrany amb `pages.save_draft` (WP1
+i la validació de desar) i porten l'historial de desfer i refer a la sessió, per pàgina."""
 
 import copy
 
@@ -15,10 +9,10 @@ from . import pages
 from .models import PageDraft
 
 HISTORY_MAX = 50  # límit tècnic: la sessió no creix sense límit
-ACTIONS = ("add", "up", "down", "reorder", "duplicate", "hide", "remove", "update")
 
 
 def editing_blocks(page) -> list:
+    """L'esborrany o, si no n'hi ha, l'última versió (amb els tipus antics traduïts) o res."""
     draft = PageDraft.objects.filter(page=page).first()
     if draft is not None:
         return draft.blocks
@@ -72,25 +66,18 @@ def change(request, page, blocks: list) -> None:
     request.session.modified = True
 
 
-def _step(request, page, source: str, target: str) -> bool:
+def step(request, page, action: str) -> bool:
+    """`undo` o `redo`. Fals si no hi ha res a fer."""
+    source, target = ("undo", "redo") if action == "undo" else ("redo", "undo")
     history = _history(request, page)
     if not history[source]:
         return False
-    blocks = history[source][-1]
     current = editing_blocks(page)
-    pages.save_draft(page, blocks, request.user)  # torna a validar i a demanar WP1
+    pages.save_draft(page, history[source][-1], request.user)  # torna a validar i demanar WP1
     history[source].pop()
     history[target] = (history[target] + [current])[-HISTORY_MAX:]
     request.session.modified = True
     return True
-
-
-def undo(request, page) -> bool:
-    return _step(request, page, "undo", "redo")
-
-
-def redo(request, page) -> bool:
-    return _step(request, page, "redo", "undo")
 
 
 def can(request, page) -> dict:
