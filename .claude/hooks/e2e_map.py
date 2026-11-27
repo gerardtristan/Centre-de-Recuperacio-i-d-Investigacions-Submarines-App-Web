@@ -373,6 +373,11 @@ MAP = {
         "apps/website/newsletter.py",
         "templates/website/my_newsletter.html",
     ),
+    "test_avis_butlleti.py": (
+        "apps/website/templatetags/website_nav.py",
+        "templates/website/_avis_butlleti.html",
+        "templates/core/home.html",
+    ),
     "test_web_fluxos_07.py": (
         "apps/website/views.py",
         "apps/website/admin_views.py",

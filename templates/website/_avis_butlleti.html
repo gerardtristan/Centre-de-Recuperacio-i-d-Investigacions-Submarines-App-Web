@@ -1,0 +1,14 @@
+{% load i18n website_nav %}
+{# T-M07-34 (decisió 108, C.6): avís discret a l'inici de l'àrea del soci per subscriure's al butlletí, a qui no hi està subscrit (correu d'entrada, P-630 A). Tancar-lo es recorda per compte, al servidor (no és cap galeta). Amb `website.newsletter_enabled` apagat, no surt. Amagar-lo no és cap control: la subscripció la torna a comprovar `my_newsletter`. #}
+{% newsletter_notice user as show_notice %}
+{% if show_notice %}
+  <aside class="avis" aria-labelledby="avis-butlleti-titol">
+    <strong id="avis-butlleti-titol">{% translate "Vols rebre les sortides, els cursos i les novetats del C.R.I.S.?" %}</strong>
+    <p>{% translate "Subscriu-te al butlletí amb el correu amb què entres. Te'n pots donar de baixa quan vulguis." %}</p>
+    <form method="post" action="{% url 'website:newsletter_notice_dismiss' %}" class="accions">
+      {% csrf_token %}
+      <a class="boto boto-principal boto-petit" href="{% url 'website:my_newsletter' %}">{% translate "Subscriu-me" %}</a>
+      <button class="boto boto-text boto-petit" type="submit">{% translate "Ara no, gràcies" %}</button>
+    </form>
+  </aside>
+{% endif %}

@@ -31,7 +31,13 @@ from apps.core.models import Consent, OutgoingEmail
 from apps.core.permissions import has_perm
 from apps.core.persons import ANONYMOUS_EMAIL_DOMAIN
 
-from .models import Newsletter, NewsletterDelivery, NewsletterEvent, NewsletterSubscription
+from .models import (
+    Newsletter,
+    NewsletterDelivery,
+    NewsletterEvent,
+    NewsletterNoticeDismissal,
+    NewsletterSubscription,
+)
 
 ENABLED = "website.newsletter_enabled"
 CONFIRM_HOURS = "website.newsletter_confirm_hours"
@@ -179,6 +185,29 @@ def unsubscribe_member(account, *, request=None) -> None:
         forget(subscription)
     consents.withdraw(account.person, TEXT_KIND, channel=Consent.Channel.WEB, by=account,
                       request=request)  # fmt: skip
+
+
+def show_member_notice(account) -> bool:
+    """T-M07-34 (decisió 108, C.6): l'avís discret per subscriure's surt a un compte personal que
+    no té cap subscripció amb el seu correu d'entrada (P-630 A) i no l'ha tancat, només amb el
+    butlletí encès i el text publicat. Qui ja l'ha demanat, hi està o se n'ha donat de baixa no el
+    veu: no s'insisteix a qui ha dit que no."""
+    from apps.accounts.models import Account
+
+    if getattr(account, "kind", None) != Account.Kind.PERSONAL or not business_settings.get(
+        ENABLED
+    ):
+        return False
+    if consents.current_text(TEXT_KIND) is None:
+        return False
+    if NewsletterNoticeDismissal.objects.filter(account=account).exists():
+        return False
+    return member_subscription(account) is None
+
+
+def dismiss_member_notice(account) -> None:
+    """Es recorda per compte (una fila), no amb una galeta."""
+    NewsletterNoticeDismissal.objects.get_or_create(account=account)
 
 
 def recipients():

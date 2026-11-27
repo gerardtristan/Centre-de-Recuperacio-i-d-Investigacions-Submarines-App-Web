@@ -12,3 +12,9 @@ register = template.Library()
 @register.simple_tag
 def newsletter_enabled():
     return bool(business_settings.get(newsletter.ENABLED))
+
+
+@register.simple_tag
+def newsletter_notice(user):
+    """T-M07-34: si l'avís per subscriure's al butlletí surt a aquest compte."""
+    return newsletter.show_member_notice(user)

@@ -422,3 +422,21 @@ class Tutorial(models.Model):
     def step_list(self) -> list[str]:
         """Un pas per línia, sense les línies buides."""
         return [line.strip() for line in self.steps.splitlines() if line.strip()]
+
+
+class NewsletterNoticeDismissal(models.Model):
+    """L'avís del butlletí a l'àrea del soci, tancat per aquest compte (T-M07-34; decisió 108, C.6).
+    És una dada del compte, no una galeta: es recorda a qualsevol dispositiu i no segueix ningú."""
+
+    account = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="+",
+        verbose_name=_("compte"),
+    )  # fmt: skip
+    dismissed_at = models.DateTimeField(_("tancat el"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("avís del butlletí tancat")
+        verbose_name_plural = _("avisos del butlletí tancats")
+
+    def __str__(self):
+        return str(self.account_id)

@@ -20,7 +20,7 @@ from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from django.views.decorators.cache import never_cache
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.accounts import limits
 from apps.accounts.models import Account
@@ -171,6 +171,19 @@ def my_newsletter_view(request):
     status = subscription.status if subscription is not None else ""
     context = {"text": text, "status": status, "email": account.login}
     return render(request, "website/my_newsletter.html", context)
+
+
+@never_cache
+@require_POST
+def newsletter_notice_dismiss_view(request):
+    """T-M07-34: tanca l'avís de l'inici per a aquest compte personal i hi torna. Sessió
+    obligatòria (no és pública); un compte d'administrador, «no trobat»."""
+    if getattr(request.user, "kind", None) != Account.Kind.PERSONAL:
+        raise Http404
+    newsletter.dismiss_member_notice(request.user)
+    response = redirect("core:home")
+    response.status_code = 303
+    return response
 
 
 def _subscribe_member(request, account) -> str:

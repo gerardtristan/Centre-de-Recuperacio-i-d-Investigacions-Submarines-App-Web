@@ -34,4 +34,10 @@ urlpatterns = [
     path("ajuda/tutorials/<slug:slug>/", help_views.tutorial_view, name="tutorial"),
     # T-M07-13 (P-492): el butlletí des de l'àrea del soci (sessió obligatòria; no és pública).
     path("socis/butlleti/", views.my_newsletter_view, name="my_newsletter"),
+    # T-M07-34: tancar l'avís del butlletí de l'inici (es recorda per compte).
+    path(
+        "socis/butlleti/avis/tanca/",
+        views.newsletter_notice_dismiss_view,
+        name="newsletter_notice_dismiss",
+    ),
 ]
