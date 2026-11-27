@@ -53,13 +53,21 @@ def test_only_published_activities_already_done_are_listed(manager, done):  # no
     assert ended.pk not in {a.pk for a in public.public_past_list(today=ended.ends_on)}
 
 
-def test_filters_by_kind_and_department(done):
-    assert [a.pk for a in public.public_past_list({"kind": "outing"}, today=LATER)] == [done.pk]
-    assert public.public_past_list({"kind": "course"}, today=LATER) == []
+def test_filters_by_type_and_department(done):
+    """Els filtres com els desa l'esquema de blocs del 07 (#615): `type` i `department`."""
+    assert [a.pk for a in public.public_past_list({"type": "outing"}, today=LATER)] == [done.pk]
+    assert public.public_past_list({"type": "course"}, today=LATER) == []
     other = {"department": done.department_id + 1000}
     assert public.public_past_list(other, today=LATER) == []
     same = {"department": done.department_id}
     assert [a.pk for a in public.public_past_list(same, today=LATER)] == [done.pk]
+
+
+@pytest.mark.parametrize("department", ["abc", "", None, [1], {"x": 1}, True, 2**70])
+def test_an_invalid_department_is_ignored_never_an_error(done, department):
+    """La web pública mai no dona un 500 per un filtre estrany: s'ignora."""
+    items = public.public_past_list({"department": department}, today=LATER)
+    assert [a.pk for a in items] == [done.pk]
 
 
 def test_contract_no_person_name_in_the_past_list(done):

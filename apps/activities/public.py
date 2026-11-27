@@ -30,7 +30,8 @@ RN-M07-21 i 22):
 - `public_past_list(filters)`: les activitats publicades (`published_at`) que ja s'han fet:
   finalitzades, tancades econòmicament o publicades amb la data de final passada. Mai una de
   cancel·lada ni un esborrany. Les mateixes dades sense noms que `public_list`, de la més recent
-  a la més antiga. `filters`: `kind` i `department` (el bloc del 07 en valida l'esquema).
+  a la més antiga. `filters`, com els desa el bloc del 07: `type` (`course` o `outing`) i
+  `department` (enter); un valor no vàlid s'ignora.
 - `publishable_photos(activity)`: només les fotos de medi ambient actives, marcades com a
   publicables (CA-M02-22) i que encara compleixen autor, permís i, si hi surten persones,
   consentiment, d'una activitat feta i publicada. Amb `activities.environment_photos_enabled`
@@ -225,10 +226,12 @@ def public_past_list(filters=None, *, today=None) -> list[PublicActivity]:
     """Les activitats fetes i publicades (RP-M07-02), de la més recent a la més antiga."""
     filters = filters or {}
     activities = _past(today or timezone.localdate())
-    if filters.get("kind") in Activity.Kind.values:
-        activities = activities.filter(kind=filters["kind"])
-    if filters.get("department"):
-        activities = activities.filter(department_id=filters["department"])
+    if filters.get("type") in Activity.Kind.values:
+        activities = activities.filter(kind=filters["type"])
+    department = filters.get("department")
+    # Un valor que no és un identificador vàlid s'ignora: mai un error a la web pública.
+    if type(department) is int and 0 < department < 2**63:
+        activities = activities.filter(department_id=department)
     activities = activities.select_related(*_SELECT).order_by("-ends_on", "-pk")
     return [_data(a, detail=False) for a in activities]
 
