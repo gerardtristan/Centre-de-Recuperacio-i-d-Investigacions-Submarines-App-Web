@@ -643,3 +643,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M07-10b](T-M07-10b.md) | Tutorials: pantalles d'administració (WP4; carril A) | 25/11/2026 03:48 | (vegeu la PR) | 5 noves i 1 e2e | [A comprovar] |
 | [T-M02-20-fotos](T-M02-20-fotos.md) | Fotos d'una sortida de medi ambient, apagades fins a la P-41 (torn del nucli i 02) | 25/11/2026 04:47 | (vegeu la PR) | 11 noves i 1 e2e | [A comprovar] |
 | [T-M07-21](T-M07-21.md) | Menús, capçalera i peu de la web pública, i WP9 (torn del nucli; part a) | 27/11/2026 22:35 | (vegeu la PR) | 29 noves | [A comprovar] |
+| [T-M07-21](T-M07-21.md) | Menús, capçalera i peu: la pantalla de l'administració (WP9; part b) | 27/11/2026 22:47 | (vegeu la PR) | 9 noves i 1 e2e | [A comprovar] |
