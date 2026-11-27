@@ -133,6 +133,12 @@ def _last(person, kind) -> Consent | None:
     )
 
 
+def granted_text(person, kind: str) -> LegalText | None:
+    """La versió del text del consentiment donat que té ara la persona, o None si no en té."""
+    last = _last(person, kind)
+    return last.legal_text if last is not None and last.action == Consent.Action.GRANTED else None
+
+
 def has_consent(person, kind: str) -> bool:
     last = _last(person, kind)
     return last is not None and last.action == Consent.Action.GRANTED

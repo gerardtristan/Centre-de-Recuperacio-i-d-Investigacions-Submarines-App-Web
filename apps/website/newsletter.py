@@ -181,6 +181,53 @@ def unsubscribe_member(account, *, request=None) -> None:
                       request=request)  # fmt: skip
 
 
+# --- Casella en crear el compte i a «Fer-se soci» (T-M07-32; 108, C.2; RN-M07-06) -------------
+SUBSCRIBED_VERIFIED = "website.newsletter_subscribed"
+
+
+@transaction.atomic
+def subscribe_verified(account, *, source: str, request=None, now=None):
+    """Subscriu al moment, sense doble confirmació, amb el correu d'entrada del compte personal
+    (verificat; P-630 A) i la versió del text que la persona va acceptar (el seu consentiment de
+    la 00). Només amb `website.newsletter_enabled` encès, un compte personal actiu i el
+    consentiment donat; si no, no fa res i torna `None`. Un correu ja confirmat no canvia."""
+    from apps.accounts.models import Account
+
+    if not business_settings.get(ENABLED):
+        return None
+    if account.kind != Account.Kind.PERSONAL or account.status != Account.Status.ACTIVE:
+        return None
+    text = consents.granted_text(account.person, TEXT_KIND)
+    if text is None:
+        return None
+    now = now or timezone.now()
+    email = normalise(account.login)
+    subscription = NewsletterSubscription.objects.select_for_update().filter(email=email).first()
+    if subscription is not None and subscription.status == Status.CONFIRMED:
+        return subscription
+    subscription = subscription or NewsletterSubscription(email=email)
+    subscription.status, subscription.legal_text = Status.CONFIRMED, text
+    # El testimoni és l'enllaç de baixa de cada butlletí.
+    subscription.token = secrets.token_urlsafe(32)
+    subscription.requested_at = subscription.confirmed_at = now
+    subscription.save()
+    NewsletterEvent.objects.create(subscription=subscription, kind=Kind.CONFIRMED, legal_text=text)
+    audit.record(
+        SUBSCRIBED_VERIFIED,
+        actor=account,
+        target=account.person,
+        details={"source": source, "version": text.version},
+        request=request,
+    )
+    return subscription
+
+
+def on_email_verified(sender, *, account, request=None, **kwargs):
+    """Compte nou que confirma el correu: si en crear-lo va marcar la casella (consentiment de la
+    00), queda subscrit ara (108, C.2)."""
+    subscribe_verified(account, source="signup", request=request)
+
+
 def recipients():
     """Els únics que reben un butlletí (RN-M07-06): els confirmats."""
     return NewsletterSubscription.objects.filter(status=Status.CONFIRMED)

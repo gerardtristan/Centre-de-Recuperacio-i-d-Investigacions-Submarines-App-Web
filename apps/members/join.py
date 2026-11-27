@@ -155,6 +155,19 @@ def _complete(account, fields: dict, request) -> list[dict]:
     return warning
 
 
+def _subscribe(account, request) -> None:
+    """T-M07-32 (108, C.2): la casella del butlletí de l'alta «per a mi» subscriu al moment amb el
+    correu d'entrada (verificat): el consentiment de la 00 i la subscripció del 07, que no fa res
+    amb `website.newsletter_enabled` apagat."""
+    from apps.website import newsletter
+
+    text = consents.current_text("newsletter")
+    if text is None:
+        return
+    consents.grant_accepted(account.person, text, channel="web", by=account, request=request)
+    newsletter.subscribe_verified(account, source="join", request=request)
+
+
 @transaction.atomic
 def submit(
     data: dict, *, channel: str, by=None, request=None, send_receipt=True, account=None
@@ -200,6 +213,8 @@ def submit(
         if age < fee_rules.FULL_TYPE_MIN_AGE:
             raise ValidationError("Alta «per a mi» d'un menor de 14 anys (Q-012).")
         person, created, warning = account.person, False, _complete(account, fields, request)
+        if data.get("accept_newsletter") is True:
+            _subscribe(account, request)
     else:
         person, created, check = create_or_get(origin=origin, **fields)
         warning = _warnings(check, person, fields["contact_email"])

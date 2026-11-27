@@ -6,9 +6,13 @@ class WebsiteConfig(AppConfig):
     verbose_name = "Web pública i ajuda"
 
     def ready(self):
+        from apps.accounts.signals import email_verified
         from apps.core import privacy as core_privacy
 
-        from . import privacy
+        from . import newsletter, privacy
+
+        # T-M07-32 (108, C.2): la casella del compte nou subscriu en confirmar el correu.
+        email_verified.connect(newsletter.on_email_verified, dispatch_uid="website-newsletter")
 
         # T-M07-15 (CA-M07-21): l'exportació i l'esborrat RGPD dels missatges i del butlletí.
         core_privacy.register(

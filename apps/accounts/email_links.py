@@ -37,7 +37,7 @@ from django.utils import timezone
 from apps.core import audit, crypto, mail, persons
 from apps.core.normalization import normalize_email
 
-from . import limits, tokens
+from . import limits, signals, tokens
 from .forms import NewPasswordForm
 from .models import Account, EmailLinkRequest
 from .security import client_ip
@@ -328,6 +328,7 @@ def confirm_email(token: str, *, request=None) -> Account | None:
     )
     account.status = Account.Status.ACTIVE
     account.save(update_fields=["status", "updated_at"])
+    signals.email_verified.send(sender=Account, account=account, request=request)
     return account
 
 
