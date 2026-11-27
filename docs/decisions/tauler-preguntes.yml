@@ -1685,3 +1685,13 @@ noves:
       L'MP4 es reprodueix a tots els navegadors i un sol format es comprova millor; fins a la resposta,
       la pujada de vídeo no s'encén a producció, i C o D són més restrictives si no es vol cap vídeo pujat.
     data: 2026-11-24
+  P-428:
+    opcions:
+      A: "Dues alternatives: «Només les sortides i els cursos» i «Un resum al mes» (llista editable a Ajustos)."
+      B: "Només «Un resum al mes» (menys correus), sense partir el butlletí per temes."
+      C: "Cap alternativa: només la baixa d'un clic."
+    recomanada: A
+    perque: >-
+      És el que va demanar el propietari i les opcions són dades, de manera que la junta les pot canviar
+      sense tocar codi; la baixa total sempre és el primer botó i no depèn de cap alternativa.
+    data: 2026-11-28

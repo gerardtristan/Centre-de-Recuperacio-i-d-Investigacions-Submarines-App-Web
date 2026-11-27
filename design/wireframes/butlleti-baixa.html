@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Baixa del butlletí · C.R.I.S. (prototip, T-M07-33)</title>
+<script>
+/* Tema desat: s'aplica abans de pintar la pàgina */
+(function () { try { var t = localStorage.getItem('cris-tema'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();
+</script>
+<!-- Tokens i fonts: la mateixa còpia de static/ que fa servir la plataforma -->
+<link rel="stylesheet" href="../../static/css/fonts.css">
+<link rel="stylesheet" href="../../static/css/tokens.css">
+<style>
+/* ==========================================================================
+   Baixa del butlletí d'un clic amb alternatives (T-M07-33). Només peces de
+   tokens.css i del sistema: capçalera sense navegació, avisos, botons plans,
+   segmentat i plegable (details). Cap peça nova.
+   ========================================================================== */
+.index { padding: var(--e-4); max-width: var(--amplada-max); margin: 0 auto; }
+.index ol { display: grid; gap: var(--e-1); padding-left: var(--e-5); }
+.index a { display: inline-flex; align-items: center; min-height: var(--tactil); }
+.pantalla { border-top: var(--v-activa) solid var(--c-zona); padding-bottom: var(--e-6); }
+.nom-pantalla { margin: 0; padding: var(--e-3) var(--e-4) 0; font-size: var(--t-s); color: var(--c-text-2); font-family: var(--f-codi); }
+.capcalera-compte { display: flex; align-items: center; gap: var(--e-3); min-height: var(--capcalera-alcada); padding: var(--e-2) var(--e-4); border-bottom: var(--v-fina) solid var(--c-linia); }
+.capcalera-compte .marca { display: flex; align-items: center; gap: var(--e-2); color: var(--c-text); text-decoration: none; min-height: var(--tactil); }
+.capcalera-compte img { width: var(--logo-capcalera); height: auto; }
+.capcalera-compte .titol-zona { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-l); }
+.cos-compte { max-width: 32rem; margin: 0 auto; padding: var(--e-5) var(--e-4); display: grid; gap: var(--e-4); }
+.cos-compte h1 { font-size: var(--t-2xl); margin: 0; text-wrap: balance; }
+.cos-compte > div[data-estat] { display: grid; gap: var(--e-4); }
+.cos-compte p { margin: 0; text-wrap: pretty; }
+.formulari { display: grid; gap: var(--e-3); }
+.formulari fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: var(--e-2); }
+.formulari legend { font-weight: var(--p-semi); margin-bottom: var(--e-1); }
+.opcio-baixa { display: flex; align-items: flex-start; gap: var(--e-2); min-height: var(--tactil); }
+.opcio-baixa input { margin-top: var(--e-1); }
+.accions { display: flex; flex-wrap: wrap; gap: var(--e-2); align-items: center; }
+.alternatives { border-top: var(--v-fina) solid var(--c-linia); padding-top: var(--e-3); }
+.alternatives summary { display: flex; align-items: center; min-height: var(--tactil); font-weight: var(--p-semi); cursor: pointer; }
+.alternatives[open] summary { margin-bottom: var(--e-3); }
+.correu { border: var(--v-fina) solid var(--c-linia-forta); border-radius: var(--r-m); padding: var(--e-3) var(--e-4); display: grid; gap: var(--e-2); background: var(--c-superficie); }
+.correu p { margin: 0; }
+.correu .peu-correu { font-size: var(--t-s); color: var(--c-text-2); border-top: var(--v-fina) dashed var(--c-linia); padding-top: var(--e-2); }
+</style>
+</head>
+<body class="zona-publica">
+<a class="salt" href="#index">Vés a l'índex de pantalles</a>
+<p class="nota-wireframe">Prototip · baixa del butlletí (T-M07-33) · disseny en revisió · dades inventades <button class="boto-marques" type="button" data-marques aria-pressed="false"><span class="marca-activa" aria-hidden="true">✓ </span>Amaga les marques de revisió</button></p>
+
+<nav id="index" class="index" aria-labelledby="index-titol">
+  <h1 id="index-titol">Baixa del butlletí</h1>
+  <p class="text-2">Requisits (pilot, 27/11/2026): la baixa total es fa amb un sol clic, des del correu i des de la pàgina; les alternatives van abans, però són opcionals i mai no fan falta per donar-se de baixa; cap missatge no revela si una adreça és a la llista. Cada pantalla té la barra de demostració i, a sota, què s'aplica al servidor.</p>
+  <fieldset class="selector-tema">
+    <legend class="visualment-amagat">Tema</legend>
+    <label><input class="visualment-amagat" type="radio" name="tema-index" value="sistema"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">◐</span><span class="text-opcio">Sistema</span></span></label>
+    <label><input class="visualment-amagat" type="radio" name="tema-index" value="light"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">○</span><span class="text-opcio">Clar</span></span></label>
+    <label><input class="visualment-amagat" type="radio" name="tema-index" value="dark"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">●</span><span class="text-opcio">Fosc</span></span></label>
+  </fieldset>
+  <ol>
+    <li><a href="#p-correu">El peu del correu del butlletí</a></li>
+    <li><a href="#p-baixa">Pàgina de baixa (des de l'enllaç del correu)</a></li>
+    <li><a href="#p-enllac">Enllaç no vàlid o caducat</a></li>
+    <li><a href="#p-soci">Al compte del soci: «El butlletí»</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ===================== 1. Peu del correu ===================== -->
+<section id="p-correu" class="pantalla" aria-labelledby="t1" data-pantalla>
+  <p class="nom-pantalla">correu del butlletí · website/email/newsletter (peu)</p>
+  <div class="demo" role="group" aria-label="Demostració, peu del correu">
+    <span class="demo-titol">Estat:</span>
+    <label><input type="radio" name="e1" value="normal" checked> Correu rebut</label>
+  </div>
+  <div class="cos-compte">
+    <h1 id="t1">El peu de cada butlletí</h1>
+    <div class="correu" data-estat="normal">
+      <p><strong>Butlletí del C.R.I.S. · desembre</strong></p>
+      <p class="text-2">Text d'exemple: sortides del mes, el curs d'iniciació i les notícies del club.</p>
+      <p class="peu-correu">Reps aquest correu perquè t'hi vas subscriure a la web del club. <a href="#p-baixa">Dona't de baixa</a> · <a href="#p-baixa">Rep-ne menys</a></p>
+    </div>
+    <p class="text-2">Molts programes de correu mostren també un botó «Cancel·la la subscripció» al costat del remitent: és la baixa d'un clic, sense passar per la pàgina.</p>
+  </div>
+  <aside class="demo nota-servidor" aria-label="Seguretat i privacitat, peu del correu">
+    <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+    <ul>
+      <li>Capçaleres <code>List-Unsubscribe</code> (URL HTTPS amb el testimoni) i <code>List-Unsubscribe-Post: List-Unsubscribe=One-Click</code> (RFC 8058): el programa de correu fa un POST i la baixa es fa a l'acte, sense pàgina ni sessió.</li>
+      <li>El testimoni és propi de cada subscriptor, signat i sense dades personals a l'adreça; no caduca per a la baixa (un correu vell ha de poder donar de baixa).</li>
+      <li>«Dona't de baixa» i «Rep-ne menys» porten a la mateixa pàgina (2); «Rep-ne menys» hi obre les alternatives.</li>
+    </ul>
+  </aside>
+</section>
+
+<!-- ===================== 2. Pàgina de baixa ===================== -->
+<section id="p-baixa" class="pantalla" aria-labelledby="t2" data-pantalla>
+  <p class="nom-pantalla">website:newsletter_unsubscribe · website/newsletter_link.html</p>
+  <div class="demo" role="group" aria-label="Demostració, pàgina de baixa">
+    <span class="demo-titol">Estat:</span>
+    <label><input type="radio" name="e2" value="inicial" checked> Inicial</label>
+    <label><input type="radio" name="e2" value="fet"> Baixa feta</label>
+    <label><input type="radio" name="e2" value="menys"> Preferència desada</label>
+    <label><input type="radio" name="e2" value="error"> Error en desar</label>
+  </div>
+  <header class="capcalera-compte">
+    <a class="marca" href="#p-baixa">
+      <img class="logo-clar" src="../../assets/marca/CRIS_SenseFons.png" alt="Logotip del C.R.I.S.">
+      <img class="logo-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="Logotip del C.R.I.S.">
+      <span class="titol-zona">Butlletí</span>
+    </a>
+  </header>
+  <div class="cos-compte">
+    <div data-estat="inicial error">
+      <h1 id="t2">Vols deixar de rebre el butlletí?</h1>
+      <div class="avis avis-error" role="alert" data-estat="error" hidden>No s'ha pogut desar. Torna-ho a provar d'aquí a una estona; si no, escriu-nos a cris@cris.es.</div>
+      <form class="formulari" onsubmit="return false">
+        <div class="accions"><button class="boto boto-principal" type="submit">Dona'm de baixa</button></div>
+        <p class="text-2">No caldrà fer res més: no rebràs cap altre butlletí.</p>
+      </form>
+      <details class="alternatives">
+        <summary>O prefereixes rebre'n menys?</summary>
+        <form class="formulari" onsubmit="return false">
+          <fieldset>
+            <legend>Què vols rebre</legend>
+            <label class="opcio-baixa"><input type="radio" name="menys" checked> <span>Només les sortides i els cursos <span class="a-validar">A validar</span></span></label>
+            <label class="opcio-baixa"><input type="radio" name="menys"> <span>Un resum al mes</span></label>
+          </fieldset>
+          <div class="accions"><button class="boto" type="submit">Desa la preferència</button></div>
+        </form>
+      </details>
+    </div>
+    <div data-estat="fet" hidden>
+      <h1>T'has donat de baixa</h1>
+      <div class="avis avis-ok" role="status">No rebràs cap més butlletí del club.</div>
+      <p>Si ha estat un error, et pots tornar a subscriure: t'enviarem un correu per confirmar-ho.</p>
+      <div class="accions"><button class="boto" type="button">Torna'm a subscriure</button></div>
+    </div>
+    <div data-estat="menys" hidden>
+      <h1>Desat</h1>
+      <div class="avis avis-ok" role="status">A partir d'ara només rebràs les sortides i els cursos.</div>
+      <p>Cada butlletí continua portant l'enllaç per donar-te de baixa del tot.</p>
+    </div>
+  </div>
+  <aside class="demo nota-servidor" aria-label="Seguretat i privacitat, pàgina de baixa">
+    <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+    <ul>
+      <li>Obrir l'enllaç (GET) només mostra la pàgina: els antivirus i les previsualitzacions del correu obren enllaços sols i no han de donar ningú de baixa. La baixa és el POST del botó, amb el testimoni i CSRF; la d'un clic del programa de correu (1) no porta CSRF i només accepta <code>List-Unsubscribe=One-Click</code>.</li>
+      <li>La baixa és el primer botó i l'únic principal; les alternatives van plegades a sota i no s'han d'obrir ni triar per donar-se de baixa.</li>
+      <li>La pàgina diu el mateix tant si el testimoni correspon a una subscripció activa com si ja estava de baixa: no revela res de l'adreça (RN-M07-08). No mostra l'adreça.</li>
+      <li>«Torna'm a subscriure» envia un correu de confirmació nou (doble confirmació, com l'alta): mai no subscriu directament.</li>
+      <li>Baixa i canvi de preferència queden al registre de la subscripció (data, canal: correu o pàgina), sense l'adreça al registre d'activitat.</li>
+      <li><span class="a-validar">A validar</span> quines alternatives hi ha (<a href="../../docs/decisions/pendents.md">P-428</a>): depèn de si el butlletí es parteix per temes. Les opcions són dades (una llista editable), no codi.</li>
+    </ul>
+  </aside>
+</section>
+
+<!-- ===================== 3. Enllaç no vàlid ===================== -->
+<section id="p-enllac" class="pantalla" aria-labelledby="t3" data-pantalla>
+  <p class="nom-pantalla">website:newsletter_unsubscribe (testimoni no vàlid) · website/newsletter_link.html</p>
+  <div class="demo" role="group" aria-label="Demostració, enllaç no vàlid">
+    <span class="demo-titol">Estat:</span>
+    <label><input type="radio" name="e3" value="inicial" checked> Enllaç no vàlid</label>
+    <label><input type="radio" name="e3" value="enviat"> Adreça enviada</label>
+  </div>
+  <div class="cos-compte">
+    <h1 id="t3">Aquest enllaç no funciona</h1>
+    <div data-estat="inicial">
+      <p>Pot ser que s'hagi copiat a mitges. Fes servir l'enllaç del butlletí més recent o escriu la teva adreça i t'enviarem un enllaç per donar-te de baixa.</p>
+      <form class="formulari" onsubmit="return false" novalidate>
+        <div class="camp"><label for="c3-correu">Correu electrònic</label><input id="c3-correu" type="email" autocomplete="email" value="nom.prova@example.org"></div>
+        <div class="accions"><button class="boto boto-principal" type="submit">Envia'm l'enllaç</button></div>
+      </form>
+    </div>
+    <div data-estat="enviat" hidden>
+      <div class="avis avis-ok" role="status">Si aquesta adreça rep el butlletí, t'hi hem enviat un enllaç per donar-te de baixa.</div>
+    </div>
+  </div>
+  <aside class="demo nota-servidor" aria-label="Seguretat i privacitat, enllaç no vàlid">
+    <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+    <ul>
+      <li>El missatge és el mateix tant si l'adreça és a la llista com si no; el correu només s'envia si hi és.</li>
+      <li>Límit de peticions per adreça i per origen (com el contacte); CSRF.</li>
+      <li>No es demana cap altra dada ni es crea cap compte.</li>
+    </ul>
+  </aside>
+</section>
+
+<!-- ===================== 4. Al compte del soci ===================== -->
+<section id="p-soci" class="pantalla zona-soci" aria-labelledby="t4" data-pantalla>
+  <p class="nom-pantalla">website:my_newsletter · website/my_newsletter.html</p>
+  <div class="demo" role="group" aria-label="Demostració, butlletí del soci">
+    <span class="demo-titol">Estat:</span>
+    <label><input type="radio" name="e4" value="subscrit" checked> Subscrit</label>
+    <label><input type="radio" name="e4" value="fet"> Baixa feta</label>
+    <label><input type="radio" name="e4" value="denegat"> Sessió caducada</label>
+  </div>
+  <div class="cos-compte">
+    <h1 id="t4">El butlletí</h1>
+    <div data-estat="subscrit">
+      <p>Reps el butlletí del club a l'adreça del teu compte.</p>
+      <form class="formulari" onsubmit="return false">
+        <div class="accions"><button class="boto" type="submit">Dona'm de baixa</button></div>
+      </form>
+      <details class="alternatives">
+        <summary>O prefereixes rebre'n menys?</summary>
+        <form class="formulari" onsubmit="return false">
+          <fieldset>
+            <legend>Què vols rebre</legend>
+            <label class="opcio-baixa"><input type="radio" name="menys-soci" checked> <span>Només les sortides i els cursos <span class="a-validar">A validar</span></span></label>
+            <label class="opcio-baixa"><input type="radio" name="menys-soci"> <span>Un resum al mes</span></label>
+          </fieldset>
+          <div class="accions"><button class="boto" type="submit">Desa la preferència</button></div>
+        </form>
+      </details>
+    </div>
+    <div data-estat="fet" hidden>
+      <div class="avis avis-ok" role="status">T'has donat de baixa del butlletí. Els avisos de les teves quotes i activitats continuaran arribant: no són el butlletí.</div>
+    </div>
+    <div data-estat="denegat" hidden>
+      <div class="avis avis-avis" role="alert">Per seguretat, torna a entrar. No s'ha desat res.</div>
+    </div>
+  </div>
+  <aside class="demo nota-servidor" aria-label="Seguretat i privacitat, butlletí del soci">
+    <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+    <ul>
+      <li>Només la subscripció del compte que ha entrat; el permís és de l'àrea del soci, no cal cap altre.</li>
+      <li>La baixa del butlletí no toca els correus de servei (quotes, pagaments, inscripcions), que no depenen del consentiment del butlletí.</li>
+      <li>Aquí no hi ha cap botó principal: la pàgina no empeny ni cap a la baixa ni cap a quedar-s'hi.</li>
+    </ul>
+  </aside>
+</section>
+
+</main>
+
+<script src="interaccions.js"></script>
+<script>
+(function () {
+  'use strict';
+  CRIS.tema();
+  CRIS.marques();
+  /* Barra de demostració: mostra els blocs [data-estat] que inclouen l'estat triat */
+  document.querySelectorAll('[data-pantalla]').forEach(p => {
+    const radios = p.querySelectorAll('.demo input[type="radio"]');
+    function aplica(v) {
+      p.querySelectorAll('[data-estat]').forEach(b => { b.hidden = !b.getAttribute('data-estat').split(' ').includes(v); });
+    }
+    radios.forEach(r => r.addEventListener('change', () => { if (r.checked) aplica(r.value); }));
+    const triat = Array.from(radios).find(r => r.checked);
+    if (triat) aplica(triat.value);
+  });
+})();
+</script>
+</body>
+</html>
