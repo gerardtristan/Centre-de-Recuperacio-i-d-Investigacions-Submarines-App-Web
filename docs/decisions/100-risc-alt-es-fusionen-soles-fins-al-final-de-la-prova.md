@@ -2,6 +2,7 @@
 
 - **Data:** 19/11/2026
 - **Estat:** Acceptada (propietari, instrucció escrita del 19/11/2026). **Val des del 19/11/2026 a les 21:58**, quan el propietari la va escriure, i no des que aquesta PR entra a `master`. El 20/11/2026 el propietari ho va precisar: «des del 19/11 a les 21:58 ja no cal el meu "fusiona la #N": si el CI és verd, fusiona tu mateix també les risc:alt i informa-me'n al resum D4». Temporal: s'acaba el 27/11/2026.
+- **Pròrroga (27/11/2026):** el propietari l'allarga, amb les mateixes condicions i excepcions, fins al final de la fase 2, com la prova de la [089](089-prova-d-acceleracio-interruptors-d1-a-d6.md) (registre d'estat de la 089). Llavors ho torna a decidir; si no diu res, la regla torna a la 098 (punt 5). On aquesta decisió diu «27/11/2026», val «el final de la fase 2».
 - **Canvia:** el punt 1 de la [098](098-risc-alt-nomes-amb-el-si-escrit-del-propietari.md) i la D4 del `CLAUDE.md` ([089](089-prova-d-acceleracio-interruptors-d1-a-d6.md)), fins al 27/11/2026. La resta de la 098 continua vigent, i la 098 sencera val per a les excepcions del punt 2.
 
 ## Context
