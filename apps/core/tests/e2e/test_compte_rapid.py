@@ -9,7 +9,7 @@ from playwright.sync_api import expect
 from apps.accounts.models import Account
 from apps.core import consents
 
-from .conftest import PASSWORD, make_admin
+from .conftest import PASSWORD, login_visitor, make_admin
 
 pytestmark = pytest.mark.e2e
 
@@ -36,3 +36,19 @@ def test_a_visitor_creates_the_account_in_one_screen(page, live_server, transact
     account = Account.objects.get(login="nura.blau@example.org")
     assert account.status == Account.Status.PENDING
     assert consents.has_consent(account.person, "newsletter")
+
+
+def test_join_is_announced_without_a_session_and_comes_back_after_login(
+    page, live_server, texts, review
+):
+    """T-M01-53 b (108, C.1): sense sessió, l'anunci sense preu; després d'entrar, el formulari
+    amb «Per a qui és l'alta?» i el nom del compte."""
+    page.goto(f"{live_server.url}{reverse('members:join')}")
+    expect(page.get_by_role("link", name="Crea el compte")).to_be_visible()
+    expect(page.get_by_text("quota anual")).to_have_count(0)
+    review("fer-se-soci-sense-sessio")
+    login_visitor(page, live_server.url)
+    expect(page).to_have_url(f"{live_server.url}/fer-se-soci/")
+    expect(page.get_by_role("group", name="Per a qui és l'alta?")).to_be_visible()
+    expect(page.get_by_label("Nom", exact=True)).to_have_value("Visitant")
+    review("fer-se-soci-amb-sessio")

@@ -1707,3 +1707,25 @@ noves:
       La 108 vol el compte amb el mínim de camps; l'edat real es demana quan cal (fer-se soci) i
       allà es comprova. B és més prudent si l'assessor ho demana, i es pot afegir sense tocar dades.
     data: 2026-11-27
+  P-704:
+    opcions:
+      A: "«Per a mi» o «per a una altra persona», sense límit d'edat per a l'altra, com el formulari d'abans; la secretaria revisa."
+      B: "«Per a una altra persona» només per a menors d'edat."
+      C: "Només «per a mi»: cada persona adulta es crea el seu compte."
+      D: "Només «per a mi» i, per als menors, un formulari a part."
+    recomanada: A
+    perque: >-
+      No exposa res que el formulari obert d'abans no exposés i les famílies poden fer l'alta dels
+      fills; B o C són més estrictes i es poden aplicar després sense tocar dades.
+    data: 2026-11-27
+  P-705:
+    opcions:
+      A: "Omplir només el que la persona del compte no té; res no se sobreescriu i un document d'una altra persona deixa l'avís."
+      B: "Desar les dades de soci a la sol·licitud i que la secretaria les passi a la persona en aprovar."
+      C: "Sobreescriure la persona amb el que s'escriu a «Fer-se soci»."
+      D: "Demanar el document en crear el compte."
+    recomanada: A
+    perque: >-
+      La persona escriu les seves dades una sola vegada i res del que ja hi era es perd; cap perfil
+      no es fusiona sol. C podria esborrar dades bones i D contradiu la 108 (D.1).
+    data: 2026-11-27

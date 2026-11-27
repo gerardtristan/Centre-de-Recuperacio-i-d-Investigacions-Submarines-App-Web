@@ -367,6 +367,8 @@ MAP = {
         "apps/accounts/signup.py",
         "apps/accounts/signup_views.py",
         "templates/accounts/signup.html",
+        "apps/members/views/public.py",
+        "templates/members/join.html",
     ),
     "test_tutorials_admin.py": (
         "apps/website/tutorial_admin_views.py",
