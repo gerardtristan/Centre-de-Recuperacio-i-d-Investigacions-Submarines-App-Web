@@ -1,11 +1,15 @@
 """Fotos i fitxers de la web (T-M07-07; P-M07-C, RN-M07-05 i 14; CA-M07-05; P-489). WP1 i WP3,
 amb la matriu inicial de la T-M07-02 (`core/0078`). Fitxers inventats."""
 
+import io
+
 import pytest
 from django.core.exceptions import ValidationError
 from django.core.files.storage import storages
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.http import Http404
+from PIL import Image
+from PIL.PngImagePlugin import PngInfo
 
 from apps.core.models import AuditEntry, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
@@ -44,15 +48,16 @@ def _image(asset):
 def test_upload_keeps_the_content_private_under_a_random_key(editor):
     asset = _photo(editor, name="nom-de-la-persona.png", **COMPLETE)
     assert "nom-de-la-persona" not in asset.storage_key
-    assert asset.content_type == "image/png" and asset.size_bytes == len(PNG)
     with media.open_content(asset) as handle:
-        assert handle.read() == PNG
+        stored = handle.read()
+    # Tornada a codificar amb Pillow (RN-M07-19): un PNG de debò, de la mida desada.
+    assert asset.content_type == "image/png" and asset.size_bytes == len(stored)
+    assert stored.startswith(b"\x89PNG")
 
 
 @pytest.mark.parametrize(
     ("name", "content", "alt"),
     [
-        ("doc.pdf", b"%PDF-1.7\n%inventat\n", "Un document"),
         ("foto.heic", b"\x00\x00\x00\x18ftypheic" + b"\x00" * 8, "Una foto"),
         ("foto.png", PNG, "   "),
     ],
@@ -203,33 +208,38 @@ def test_names_and_unknown_page_fields(editor):
         pages.save_page(page, actor=editor, status="published")
 
 
-# Un JPEG inventat amb EXIF (GPS i número de sèrie) i un comentari: SOI, APP1, COM, SOS i EOI.
-EXIF = b"Exif\x00\x00GPS 41.38N 2.17E; serie INVENTADA-123"
-JPEG = (
-    b"\xff\xd8"
-    + b"\xff\xe1" + (len(EXIF) + 2).to_bytes(2, "big") + EXIF
-    + b"\xff\xfe\x00\x0cPropietari"
-    + b"\xff\xda\x00\x08\x01\x01\x00\x00\x3f\x00" + b"\x12\x34\x56" + b"\xff\xd9"
-)  # fmt: skip
+# Un JPEG inventat amb EXIF (GPS, número de sèrie i propietari) i un comentari, fet amb Pillow.
+def _jpeg_with_metadata() -> bytes:
+    exif = Image.Exif()
+    exif[0x013B] = "Propietari Inventat"  # Artist
+    exif.get_ifd(0x8769)[0xA431] = "INVENTADA-123"  # número de sèrie
+    exif.get_ifd(0x8825)[1] = "N"  # GPS
+    out = io.BytesIO()
+    Image.new("RGB", (16, 16), (30, 90, 140)).save(out, "JPEG", exif=exif, comment=b"Comentari")
+    return out.getvalue()
 
 
 def test_the_metadata_of_a_jpeg_is_removed_on_upload(editor):
     """Revisió de la #597: el fitxer desat i servit no porta GPS, número de sèrie ni propietari."""
-    asset = _photo(editor, name="foto.jpg", content=JPEG, **COMPLETE)
+    content = _jpeg_with_metadata()
+    assert b"INVENTADA-123" in content and b"Comentari" in content  # la prova és vàlida
+    asset = _photo(editor, name="foto.jpg", content=content, **COMPLETE)
     with media.open_content(asset) as handle:
         kept = handle.read()
-    assert b"GPS" not in kept and b"INVENTADA" not in kept and b"Propietari" not in kept
-    assert kept.startswith(b"\xff\xd8") and kept.endswith(b"\x12\x34\x56\xff\xd9")
-    assert asset.size_bytes == len(kept)
+    assert b"INVENTADA" not in kept and b"Propietari" not in kept and b"Comentari" not in kept
+    assert not Image.open(io.BytesIO(kept)).getexif()
+    assert kept.startswith(b"\xff\xd8") and asset.size_bytes == len(kept)
 
 
 def test_the_text_chunks_of_a_png_are_removed_on_upload(editor):
-    text = b"tEXt" + b"Author\x00Persona Inventada"
-    chunk = (len(text) - 4).to_bytes(4, "big") + text + b"\x00\x00\x00\x00"
-    content = PNG[:33] + chunk + PNG[33:]  # després de l'IHDR
-    asset = _photo(editor, content=content, **COMPLETE)
+    info = PngInfo()
+    info.add_text("Author", "Persona Inventada")
+    out = io.BytesIO()
+    Image.new("RGB", (8, 8)).save(out, "PNG", pnginfo=info)
+    assert b"Persona Inventada" in out.getvalue()
+    asset = _photo(editor, content=out.getvalue(), **COMPLETE)
     with media.open_content(asset) as handle:
-        assert handle.read() == PNG
+        assert b"Persona Inventada" not in handle.read()
 
 
 def test_p633_webp_is_rejected_because_it_cannot_be_cleaned_without_a_new_library(editor):
