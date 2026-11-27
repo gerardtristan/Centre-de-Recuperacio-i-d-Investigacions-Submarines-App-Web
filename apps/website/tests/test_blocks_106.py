@@ -41,8 +41,8 @@ VALID = {
     "join_cta": {"title": "Fes-te soci", "body": MD, "background": "accent"},
     "newsletter": {"title": "Butlletí"},
     "contact_form": {},
-    "upcoming_activities": {"title": "Properes", "filters": {"type": "sortida"}, "count": 6,
-                            "layout": "cards"},
+    "upcoming_activities": {"title": "Properes", "filters": {"type": "outing", "department": 2},
+                            "count": 6, "layout": "cards"},
     "featured_activities": {"title": "Destacades"},
     "past_activities": {"title": "Fetes", "count": 12, "layout": "list"},
     "recent_news": {"title": "Notícies", "count": 3},
@@ -173,7 +173,7 @@ def test_rn_m07_10_only_the_allowed_formats_and_link_schemes():
 
 LEGACY = [
     {"kind": "text", "title": "Hola", "text": "Text antic."},
-    {"kind": "activities", "filters": {"type": "curs"}},
+    {"kind": "activities", "filters": {"type": "course"}},
     {"kind": "news"},
     {"kind": "faq", "topic": 3},
     {"kind": "join_button"},
@@ -187,7 +187,7 @@ def test_the_initial_kinds_are_translated_on_reading_and_validate():
         "text", "upcoming_activities", "recent_news", "faq_topic", "join_cta", "contact_form",
     ]  # fmt: skip
     assert upgraded[0] == {"kind": "text", "title": "Hola", "body": "Text antic."}
-    assert upgraded[1]["filters"] == {"type": "curs"} and upgraded[1]["count"] == 6
+    assert upgraded[1]["filters"] == {"type": "course"} and upgraded[1]["count"] == 6
     assert upgraded[2]["count"] == 3
     blocks.validate(upgraded, publishing=True)
     assert blocks.upgrade_all(upgraded) == upgraded  # el catàleg nou no es toca
@@ -228,3 +228,19 @@ def test_the_editor_settings_start_as_the_addendum_says():
         "website.autosave_seconds": (20, 5, 120),
         "website.upload_max_mb": (10, 1, 25),
     }
+
+
+def test_review_a_half_filled_gallery_has_no_empty_photo_keys():
+    """Revisió de la #615: un forat d'una galeria a mig fer (P-680) no és cap clau de foto."""
+    blocks.validate([block("gallery", media=["", KEY])], publishing=False)
+    assert media.block_media_keys([block("gallery", media=["", KEY])]) == [KEY]
+
+
+@pytest.mark.parametrize("filters", [{"type": "sortida"}, {"department": "3"}, {"department": 0}])
+def test_review_filters_are_an_activity_kind_and_a_department_number(filters):
+    with pytest.raises(ValidationError):
+        blocks.validate([block("upcoming_activities", filters=filters)], publishing=False)
+
+
+def test_review_an_old_faq_block_without_topic_has_no_topic():
+    assert blocks.upgrade_all([{"kind": "faq"}]) == [{"kind": "faq_topic", "topic": None}]
