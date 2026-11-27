@@ -5,7 +5,6 @@ personals actius; obrir l'enllaç no fa res; 15 minuts i un sol ús; amb doble f
 contrasenya nova. Només dades inventades."""
 
 import dataclasses
-import re
 from datetime import timedelta
 
 import pytest
@@ -18,6 +17,7 @@ from apps.accounts.forms import NewPasswordForm
 from apps.accounts.models import Account, EmailLinkRequest
 from apps.core.models import AuditEntry, OutgoingEmail, Person
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
+from apps.members.tests.test_join import strip_tokens
 from conftest import PASSWORD
 
 pytestmark = pytest.mark.django_db
@@ -68,8 +68,7 @@ def test_the_answer_is_the_same_for_any_address_and_only_an_active_account_gets_
         client = Client()
         assert client.post(REQUEST, {"email": email})["Location"] == REQUEST
         pages.append(client.get(REQUEST).content.decode())
-    strip = lambda html: re.sub(r'csrf[^"]*"[^"]*"', "", html)  # noqa: E731
-    assert strip(pages[0]) == strip(pages[1])
+    assert strip_tokens(pages[0]) == strip_tokens(pages[1])
     assert OutgoingEmail.objects.filter(template=email_links.LOGIN_TEMPLATE).count() == 1
     assert OutgoingEmail.objects.get(template=email_links.LOGIN_TEMPLATE).to_address == EMAIL
 

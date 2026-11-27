@@ -370,6 +370,10 @@ MAP = {
         "apps/members/views/public.py",
         "templates/members/join.html",
     ),
+    "test_entrada_correu.py": (
+        "apps/accounts/email_login_views.py",
+        "templates/accounts/email_login*.html",
+    ),
     "test_tutorials_admin.py": (
         "apps/website/tutorial_admin_views.py",
         "apps/website/help.py",

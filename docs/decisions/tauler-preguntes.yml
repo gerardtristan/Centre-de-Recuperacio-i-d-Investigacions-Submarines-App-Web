@@ -1740,3 +1740,14 @@ noves:
       Compleix la 108 per al titular, que té el correu verificat, sense subscriure ningú que no
       ho hagi fet ell mateix amb el butlletí encès; B es pot fer més endavant amb una ordre.
     data: 2026-11-27
+  P-707:
+    opcions:
+      A: "Enllaç d'un sol ús de 15 minuts amb el botó «Entra», apagat fins que el responsable l'encengui."
+      B: "Codi de sis xifres pel correu (es pot escriure en un altre dispositiu), també apagat."
+      C: "Enllaç i codi alhora."
+      D: "Encès ja a producció."
+    recomanada: A
+    perque: >-
+      Reaprofita els enllaços del correu que ja hi ha (límits, testimoni signat d'un sol ús) i no
+      deixa entrar sense prémer el botó; el codi és útil, però cal un comptador d'intents propi.
+    data: 2026-11-28
