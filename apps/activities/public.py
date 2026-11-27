@@ -37,6 +37,9 @@ RN-M07-21 i 22):
   consentiment, d'una activitat feta i publicada. Amb `activities.environment_photos_enabled`
   apagat (P-41), cap. Mai carnets de titulació (104), avatars ni documents: no surten d'aquí.
   Sense l'autor (és un nom; P-690) i amb un text alternatiu fet amb el títol de l'activitat.
+- **Preu i foto per als blocs del 07** (P-683): cada activitat porta `price_cents` (el preu que
+  veu un visitant, `_visitor_price`) i, a `public_past_list`, `photo` (la primera foto
+  publicable o `None`). `public_list` també filtra per `department`.
 
 **Fora d'aquesta peça:** el preu «que
 et correspon» segons si ets soci i el botó d'inscriure's (T-M02-11 i T-M02-14) i l'enllaç al
@@ -45,7 +48,7 @@ servir el de l'ajust `activities.marine_forecast_url` (VC-25, RN-M02-24; T-M02-2
 """
 
 import datetime
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from django.db.models import Q
 from django.utils import timezone
@@ -85,6 +88,16 @@ class PublicBlock:
 
 
 @dataclass(frozen=True)
+class PublicPhoto:
+    """Una foto que el 07 pot posar a la web (RN-M07-22). Cap nom: ni l'autor ni qui hi surt."""
+
+    pk: int
+    activity: int
+    content_type: str
+    alt_text: str
+
+
+@dataclass(frozen=True)
 class PublicActivity:
     """Tot el que es pot ensenyar d'una activitat a qui no ha entrat. Cap dada personal."""
 
@@ -114,6 +127,9 @@ class PublicActivity:
     forecast_url: str
     sessions: tuple[PublicSession, ...] = field(default=())
     blocks: tuple[PublicBlock, ...] = field(default=())
+    # P-683 (blocs del 07): el preu que veu un visitant, en cèntims, i la primera foto publicable.
+    price_cents: int | None = None
+    photo: PublicPhoto | None = None
 
 
 def _public(today):
@@ -168,7 +184,22 @@ def _data(activity, *, detail: bool) -> PublicActivity:
         forecast_url=_forecast_url(activity),
         sessions=sessions,
         blocks=blocks,
+        price_cents=_visitor_price(activity),
     )
+
+
+def _visitor_price(activity) -> int | None:
+    """P-683 A: el de no soci si l'activitat és oberta a no socis; si no, el de soci (el que la
+    fitxa pública ensenya primer). Surt de les dades de preu de l'activitat; cap valor al codi."""
+    if activity.open_to_non_members:
+        return activity.price_non_member_cents
+    return activity.price_member_cents
+
+
+def _valid_department(value) -> int | None:
+    """Un identificador de departament enter i positiu; qualsevol altra cosa s'ignora (mai un
+    error a la web pública)."""
+    return value if type(value) is int and 0 < value < 2**63 else None
 
 
 def _forecast_url(activity) -> str:
@@ -178,12 +209,14 @@ def _forecast_url(activity) -> str:
     return activity.forecast_url or business_settings.get(FORECAST_KEY)
 
 
-def public_list(*, kind: str = "", today=None) -> list[PublicActivity]:
+def public_list(*, kind: str = "", department=None, today=None) -> list[PublicActivity]:
     """Les activitats publicades, de la més propera a la més llunyana. `kind`: `course`,
-    `outing` o buit per a totes."""
+    `outing` o buit per a totes; `department`: un enter (si no és vàlid, s'ignora)."""
     activities = _public(today or timezone.localdate())
     if kind in Activity.Kind.values:
         activities = activities.filter(kind=kind)
+    if _valid_department(department):
+        activities = activities.filter(department_id=department)
     activities = activities.select_related(
         "catalogue_entry", "outing_type", "subtype", "place", "min_level"
     )
@@ -203,16 +236,6 @@ def get_activity(pk, *, today=None) -> PublicActivity:
     return _data(activity, detail=True)
 
 
-@dataclass(frozen=True)
-class PublicPhoto:
-    """Una foto que el 07 pot posar a la web (RN-M07-22). Cap nom: ni l'autor ni qui hi surt."""
-
-    pk: int
-    activity: int
-    content_type: str
-    alt_text: str
-
-
 _SELECT = ("catalogue_entry", "outing_type", "subtype", "place", "min_level")
 
 
@@ -228,12 +251,16 @@ def public_past_list(filters=None, *, today=None) -> list[PublicActivity]:
     activities = _past(today or timezone.localdate())
     if filters.get("type") in Activity.Kind.values:
         activities = activities.filter(kind=filters["type"])
-    department = filters.get("department")
-    # Un valor que no és un identificador vàlid s'ignora: mai un error a la web pública.
-    if type(department) is int and 0 < department < 2**63:
+    department = _valid_department(filters.get("department"))
+    if department:
         activities = activities.filter(department_id=department)
     activities = activities.select_related(*_SELECT).order_by("-ends_on", "-pk")
-    return [_data(a, detail=False) for a in activities]
+    today = today or timezone.localdate()
+    items = []
+    for activity in activities:
+        photos = publishable_photos(activity, today=today)
+        items.append(replace(_data(activity, detail=False), photo=photos[0] if photos else None))
+    return items
 
 
 def publishable_photos(activity, *, today=None) -> list[PublicPhoto]:

@@ -110,3 +110,38 @@ def test_no_photos_of_an_activity_that_is_not_public(manager, done, switch_on): 
         published_at=timezone.now(), status=S.CANCELLED, cancellation_reason="Motiu inventat"
     )
     assert public.publishable_photos(done, today=LATER) == []
+
+
+def test_p683_price_cents_is_what_a_visitor_sees(manager, done):  # noqa: F811
+    Activity.objects.filter(pk=done.pk).update(
+        open_to_non_members=True, price_member_cents=4500, price_non_member_cents=6000
+    )
+    (item,) = public.public_past_list(today=LATER)
+    assert item.price_cents == 6000
+    Activity.objects.filter(pk=done.pk).update(open_to_non_members=False)
+    (item,) = public.public_past_list(today=LATER)
+    assert item.price_cents == 4500  # només socis: el de soci, com a la fitxa
+
+
+def test_p683_the_photo_is_the_first_publishable_one_or_none(manager, done, switch_on):  # noqa: F811
+    (item,) = public.public_past_list(today=LATER)
+    assert item.photo is None
+    upload(done, manager)  # no marcada
+    first = environment_photos.mark_publishable(upload(done, manager), by=manager)
+    environment_photos.mark_publishable(upload(done, manager), by=manager)
+    (item,) = public.public_past_list(today=LATER)
+    assert item.photo.pk == first.pk and "Autora Inventada" not in repr(item)
+    Setting.objects.filter(key=environment_photos.SWITCH).update(initial_value=False)
+    assert public.public_past_list(today=LATER)[0].photo is None
+
+
+@pytest.mark.parametrize("department", ["abc", None, [1], True, 2**70])
+def test_public_list_filters_by_department_and_ignores_invalid_ones(manager, department):  # noqa: F811
+    upcoming = env_outing(manager, status=S.OPEN)
+    today = upcoming.starts_on
+    assert [a.pk for a in public.public_list(department=department, today=today)] == [upcoming.pk]
+    same = public.public_list(department=upcoming.department_id, today=today)
+    assert [a.pk for a in same] == [upcoming.pk]
+    assert public.public_list(department=upcoming.department_id + 1000, today=today) == []
+    (item,) = same
+    assert item.photo is None and item.price_cents is not None and NAME not in repr(item)
