@@ -209,7 +209,8 @@ def purge_old(now=None) -> int:
     recuperació que encara són pendents passat el retard màxim (sense l'empremta) i buida la IP
     de les de recuperació de més de 30 minuts."""
     now = now or timezone.now()
-    reset = EmailLinkRequest.objects.filter(purpose=EmailLinkRequest.Purpose.RESET_PASSWORD)
+    queued = (EmailLinkRequest.Purpose.RESET_PASSWORD, EmailLinkRequest.Purpose.EMAIL_LOGIN)
+    reset = EmailLinkRequest.objects.filter(purpose__in=queued)  # les que passen per la cua
     reset.filter(
         status=EmailLinkRequest.Status.PENDING, created_at__lt=now - RESET_MAX_DELAY
     ).update(status=EmailLinkRequest.Status.EXPIRED, recipient_hash="")

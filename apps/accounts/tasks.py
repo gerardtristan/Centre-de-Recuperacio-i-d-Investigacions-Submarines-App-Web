@@ -18,6 +18,16 @@ def send_password_reset(request_id: int) -> None:
     email_links.process_password_reset(request_id)
 
 
+# T-M01-56 (revisió G): l'enllaç per entrar sense contrasenya, com la recuperació.
+@app.task(
+    name="accounts.send_email_login",
+    queue="email",
+    retry=RetryStrategy(max_attempts=3, wait=5, exponential_wait=2),
+)
+def send_email_login(request_id: int) -> None:
+    email_links.process_email_login(request_id)
+
+
 # Cada 5 minuts (T-M01-39b; abans, cada dia): les peticions de més de 24 hores ja no compten per
 # a cap límit (RN-M01-58) i no es guarden més; les de recuperació perden la IP als 30 minuts i,
 # si encara són pendents passat el retard màxim, caduquen.

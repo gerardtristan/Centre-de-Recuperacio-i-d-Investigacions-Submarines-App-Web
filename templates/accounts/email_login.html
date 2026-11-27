@@ -5,7 +5,11 @@
 {% block title %}{% translate "Entrar" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <h1>{% translate "Entrar a l'àrea de socis" %}</h1>
-  {% if state == "ready" %}
+  {% if state == "signed_in" %}
+    <div class="avis avis-avis" role="status">{% translate "Ja tens una sessió oberta. Si vols entrar amb un altre compte, surt primer i torna a obrir l'enllaç." %}</div>
+    <p class="enllacos"><a href="{% url 'core:home' %}">{% translate "Anar a l'inici" %}</a></p>
+  {% elif state == "ready" %}
+    <p>{% blocktranslate %}Entraràs amb el compte {{ masked }}.{% endblocktranslate %}</p>
     <form method="post">
       {% csrf_token %}
       <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Entra" %}</button></div>

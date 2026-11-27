@@ -26,6 +26,6 @@
     </form>
   {% endif %}
   {% if area == "personal" %}
-    <p class="enllacos"><a href="{% url 'accounts:signup' %}{% if next %}?next={{ next|urlencode }}{% endif %}">{% translate "No tinc compte: crea'l" %}</a>{% if email_login %}<a href="{% url 'accounts:email_login_request' %}{% if next %}?next={{ next|urlencode }}{% endif %}">{% translate "Entra amb un enllaç pel correu" %}</a>{% endif %}<a href="{% url 'accounts:password_reset_request' %}">{% translate "He oblidat la contrasenya" %}</a><a href="{% url 'core:install_help_iphone' %}">{% translate "Com instal·lar la plataforma a l'iPhone" %}</a></p>
+    <p class="enllacos"><a href="{% url 'accounts:signup' %}{% if next %}?next={{ next|urlencode }}{% endif %}">{% translate "No tinc compte: crea'l" %}</a>{% if email_login %}<a href="{% url 'accounts:email_login_request' %}">{% translate "Entra amb un enllaç pel correu" %}</a>{% endif %}<a href="{% url 'accounts:password_reset_request' %}">{% translate "He oblidat la contrasenya" %}</a><a href="{% url 'core:install_help_iphone' %}">{% translate "Com instal·lar la plataforma a l'iPhone" %}</a></p>
   {% endif %}
 {% endblock %}

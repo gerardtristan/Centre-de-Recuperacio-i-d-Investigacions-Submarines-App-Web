@@ -12,7 +12,6 @@
     <p>{% translate "Escriu el correu amb què entres a l'àrea de socis i t'hi enviarem un enllaç per entrar sense contrasenya." %}</p>
     <form class="formulari" method="post" novalidate>
       {% csrf_token %}
-      {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
       {% with field=form.email %}{% include "accounts/_camp.html" %}{% endwith %}
       <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Envia'm l'enllaç" %}</button></div>
     </form>
