@@ -135,3 +135,38 @@ def test_new_password_errors_are_in_catalan(account):
     form = NewPasswordForm(account, {"new_password1": "curta", "new_password2": "curta"})
     assert not form.is_valid()
     assert "La contrasenya és massa curta" in str(form.errors)
+
+
+# --- Revisió independent (28/11/2026) -------------------------------------------------------
+
+
+def test_the_request_does_the_same_work_for_any_address_and_the_queue_sends(enabled, account):
+    """Revisió G: la petició només desa una fila pendent amb l'empremta (no busca el compte); la
+    tasca de la cua envia l'enllaç només a un compte personal actiu."""
+    for email in (EMAIL, "ningu@example.org"):
+        Client().post(REQUEST, {"email": email})
+    rows = EmailLinkRequest.objects.filter(purpose=EmailLinkRequest.Purpose.EMAIL_LOGIN)
+    assert [r.status for r in rows] == [EmailLinkRequest.Status.PENDING] * 2
+    assert not OutgoingEmail.objects.filter(template=email_links.LOGIN_TEMPLATE).exists()
+    results = [email_links.process_email_login(r.pk) for r in rows.order_by("pk")]
+    assert results == [EmailLinkRequest.Status.SENT, EmailLinkRequest.Status.NOT_SENT]
+    assert OutgoingEmail.objects.get(template=email_links.LOGIN_TEMPLATE).to_address == EMAIL
+
+
+def test_an_open_session_is_never_replaced_and_the_account_is_shown_masked(
+    enabled,
+    account,
+    make_admin,  # noqa: F811
+):
+    """Revisió H: amb una sessió oberta, l'enllaç no entra; a «Entra», el correu emmascarat."""
+    client = Client()
+    client.get(reverse("accounts:email_login_link", args=[_token(account)]))
+    assert "n***@example.org" in client.get(CONFIRM).content.decode()
+    other = Person.objects.create(first_name="Altra", origin=Person.Origin.WEB)
+    signed = Account.objects.create_personal(other, "altra@example.org", PASSWORD)
+    Account.objects.filter(pk=signed.pk).update(status=Account.Status.ACTIVE)
+    signed.refresh_from_db()
+    client.force_login(signed)
+    client.get(reverse("accounts:email_login_link", args=[_token(account)]))
+    client.post(CONFIRM)
+    assert int(client.session["_auth_user_id"]) == signed.pk
