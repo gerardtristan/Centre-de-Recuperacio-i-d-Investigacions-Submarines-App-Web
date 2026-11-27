@@ -647,3 +647,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [dep-markdown-it-py](dep-markdown-it-py.md) | markdown-it-py per al Markdown restringit (decisió 106) | 27/11/2026 22:14 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [dep-sortablejs](dep-sortablejs.md) | SortableJS per arrossegar blocs (decisió 106) | 27/11/2026 22:14 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [T-M07-36](T-M07-36.md) | Excepció de client de l'art. 21.2 LSSI, apagada fins a la P-710 (decisió 108, C.3; carril B) | 28/11/2026 00:35 | (vegeu la PR) | 11 noves | [A comprovar] |
+| [T-M07-36b](T-M07-36b.md) | Casella per dir que no a la informació d'activitats, al 02 i al 06 (carril B) | 28/11/2026 00:52 | (vegeu la PR) | 4 noves i 3 e2e | [A comprovar] |
