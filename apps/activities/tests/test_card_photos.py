@@ -1,11 +1,15 @@
-"""Fotos dels carnets de titulació (T-M02-42; addenda de la 104; RN-M02-47; CA-M02-49, 50 i 52).
-Només dades inventades."""
+"""Fotos dels carnets de titulació (T-M02-42; addenda de la 104; RN-M02-47; CA-M02-49, 50 i 52;
+la reducció, T-M02-55 amb la P-551 A de la decisió 108). Només dades inventades."""
+
+import io
 
 import pytest
 from django.core.exceptions import ValidationError
 from django.core.files.storage import storages
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.http import Http404
+from PIL import Image
+from PIL.PngImagePlugin import PngInfo
 
 from apps.activities import card_photos, filings
 from apps.activities.models import CertificationCardPhoto, DiverCertification
@@ -24,22 +28,34 @@ def segment(marker: int, payload: bytes) -> bytes:
     return bytes([0xFF, marker]) + (len(payload) + 2).to_bytes(2, "big") + payload
 
 
-JFIF = segment(0xE0, b"JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00")
-SCAN = segment(0xDA, b"\x01\x01\x00\x00\x3f\x00") + b"\x12\x34\x56" + b"\xff\xd9"
-JPEG = (
-    b"\xff\xd8" + JFIF + segment(0xE1, b"Exif\x00\x00" + GPS) + segment(0xFE, b"comentari")
-    + segment(0xDB, b"\x00" * 65) + SCAN
-)  # fmt: skip
-
-
 def chunk(kind: bytes, payload: bytes) -> bytes:
-    return len(payload).to_bytes(4, "big") + kind + payload + b"\x00\x00\x00\x00"
+    return len(payload).to_bytes(4, "big") + kind + payload + bytes(4)
 
 
-PNG = (
-    b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", b"\x00" * 13) + chunk(b"tEXt", b"Comment\x00" + GPS)
-    + chunk(b"IDAT", b"\x78\x9c") + chunk(b"IEND", b"")
-)  # fmt: skip
+# Fragments fets a mà per a les proves de `strip_jpeg` i `strip_png`.
+JFIF = segment(0xE0, b"JFIF" + bytes([0, 1, 1, 0, 0, 1, 0, 1, 0, 0]))
+SCAN = segment(0xDA, bytes([1, 1, 0, 0, 0x3F, 0])) + bytes([0x12, 0x34, 0x56, 0xFF, 0xD9])
+
+
+def jpeg(size=(40, 25)) -> bytes:
+    """Un JPEG de debò (Pillow) amb el GPS a l'EXIF i un comentari."""
+    exif = Image.Exif()
+    exif[0x010E] = GPS.decode()  # ImageDescription
+    out = io.BytesIO()
+    Image.new("RGB", size, (30, 90, 140)).save(out, "JPEG", exif=exif, comment=b"comentari")
+    return out.getvalue()
+
+
+def png() -> bytes:
+    info = PngInfo()
+    info.add_text("Comment", GPS.decode())
+    out = io.BytesIO()
+    Image.new("RGB", (40, 25)).save(out, "PNG", pnginfo=info)
+    return out.getvalue()
+
+
+JPEG = jpeg()
+PNG = png()
 
 
 @pytest.fixture
@@ -73,7 +89,7 @@ def test_ca_m02_49_the_photo_is_stored_encrypted_without_exif_and_audited(photos
     assert not raw.startswith(b"\xff\xd8") and GPS not in raw  # sense la clau no és una imatge
     content = crypto.decrypt_bytes(raw)
     assert GPS not in content and b"comentari" not in content and b"Exif" not in content
-    assert content == b"\xff\xd8" + JFIF + segment(0xDB, b"\x00" * 65) + SCAN
+    assert Image.open(io.BytesIO(content)).size == (40, 25)  # ja hi cabia: no es toca
     assert (photo.file.kind, photo.file.owner, photo.content_type) == (
         PrivateFile.Kind.CERTIFICATION_PHOTO,
         holder.person,
@@ -92,7 +108,16 @@ def test_png_text_chunks_are_removed(photos_on, cert, holder):
     photo = upload(cert, holder, "carnet.png", PNG, side="back")
     content = crypto.decrypt_bytes(stored(photo))
     assert GPS not in content and b"tEXt" not in content
-    assert content.startswith(b"\x89PNG") and content.endswith(chunk(b"IEND", b""))
+    assert content.startswith(b"\x89PNG") and Image.open(io.BytesIO(content)).size == (40, 25)
+
+
+@pytest.mark.parametrize("size", [(3000, 1200), (900, 2600)])
+def test_ca_m02_49_the_long_side_is_reduced(photos_on, cert, holder, size):
+    photo = upload(cert, holder, content=jpeg(size))
+    content = crypto.decrypt_bytes(stored(photo))
+    image = Image.open(io.BytesIO(content))
+    assert max(image.size) == card_photos.MAX_SIDE and not image.getexif()
+    assert GPS not in content and b"comentari" not in content
 
 
 def test_a_pdf_is_stored_as_it_is(photos_on, cert, holder):
