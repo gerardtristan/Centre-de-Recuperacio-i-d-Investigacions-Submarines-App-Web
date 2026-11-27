@@ -339,6 +339,13 @@ Cada entorn (local, proves, producció) té els seus valors, guardats a Coolify 
 | `DASHBOARD_CACHE_SECONDS` | Segons que el dashboard guarda les xifres d'un panell, compartides per a tots els comptes (per defecte 300; RN-M08-09). Només xifres, mai dades personals [A validar: informàtica] |
 | `BREVO_WEBHOOK_SECRET` | Verificació dels avisos de rebots i baixes |
 
+### Entrada amb Google (OpenID Connect, [108](decisions/108-respostes-del-propietari-del-27-11-2026-web-butlleti-i-compte-rapid.md), D.2)
+| Variable | Ús |
+|---|---|
+| `GOOGLE_OIDC_CLIENT_ID` | Identificador del client OAuth de Google (no és secret, però no va al repositori) |
+| `GOOGLE_OIDC_CLIENT_SECRET` | Secret del client OAuth de Google. Mai al repositori, als registres ni als exemples |
+| (ajust) `accounts.google_login_enabled` | Interruptor, apagat fins que hi hagi les dues variables; només comptes personals, mai l'entrada d'administració |
+
 ### Pagaments (Stripe i transferència)
 | Variable | Ús |
 |---|---|
@@ -428,6 +435,7 @@ Les tasques amb temps d'espera (marcades ⏳) han de començar ja: vegeu §9.3.
 - [ ] Portar a la junta els punts oberts de [pendents.md](decisions/pendents.md) (sobretot P-24, P-27 a P-29 i P-33) i aplicar al .docx els textos de P-22.
 
 ### Abans de l'entorn de proves i la primera demo (porta 1)
+- [ ] **Google (entrada opcional, [108](decisions/108-respostes-del-propietari-del-27-11-2026-web-butlleti-i-compte-rapid.md)):** el propietari crea, gratuït, un client OAuth a la consola de Google Cloud amb el compte del club: projecte nou, pantalla de consentiment (tipus «extern», nom C.R.I.S., només els àmbits `openid`, `email` i `profile`), credencial «ID de client OAuth» de tipus «aplicació web» amb l'URI de redirecció `https://cris1954.cat/socis/entra/google/retorn/` (i la de l'entorn de proves quan existeixi). L'ID i el secret es posen a `GOOGLE_OIDC_CLIENT_ID` i `GOOGLE_OIDC_CLIENT_SECRET` a Coolify, mai al repositori. La ruta exacta la fixa la T-M01-54. Apple no es fa (cal un compte de pagament).
 - [ ] Crear el compte de **Hetzner** (Cloud i Storage Box), activar el doble factor i fixar un límit o alerta de despesa.
 - [ ] Crear el compte de **Scaleway**, regió París, amb doble factor; crear els buckets privats per entorn i el bucket de còpies amb claus separades.
 - [ ] Crear el compte de **Cloudflare** i afegir-hi **cris1954.cat**; canviar els servidors de noms al registrador **només** després de copiar tots els registres actuals.
