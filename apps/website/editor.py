@@ -7,24 +7,21 @@ import datetime
 import hashlib
 import json
 
+from django.db import transaction
 from django.utils import timezone
 
 from apps.core import business_settings
 
 from . import blocks as catalog
 from . import pages
-from .models import PageDraft, PageEditing
+from .models import Page, PageDraft, PageEditing
 
 HISTORY_MAX = 50  # límit tècnic: la sessió no creix sense límit
 
 
 def editing_blocks(page) -> list:
     """L'esborrany o, si no n'hi ha, l'última versió (amb els tipus antics traduïts) o res."""
-    draft = PageDraft.objects.filter(page=page).first()
-    if draft is not None:
-        return draft.blocks
-    version = pages.current_version(page)
-    return catalog.upgrade_all(version.blocks) if version else []
+    return pages.draft_state(page)[0]
 
 
 def apply(blocks: list, action: str, index: int, *, kind="", order=(), block=None) -> list:
@@ -63,24 +60,35 @@ def _history(request, page) -> dict:
     return request.session.setdefault(f"website.editor.{page.pk}", {"undo": [], "redo": []})
 
 
-def change(request, page, blocks: list) -> None:
-    """Desa l'esborrany i apunta l'estat anterior per desfer-lo. `ValidationError`: res."""
-    previous = editing_blocks(page)
-    pages.save_draft(page, blocks, request.user)
+@transaction.atomic
+def _write(request, page, compute, revision) -> tuple[list, int, PageDraft]:
+    """Amb la pàgina bloquejada: `compute(blocs actuals)` dona la llista nova. `revision`: la que
+    té la pantalla; si no coincideix, `pages.DraftConflict` i no es desa res."""
+    Page.objects.select_for_update().get(pk=page.pk)
+    previous, current = pages.draft_state(page)
+    if revision is not None and revision != current:
+        raise pages.DraftConflict
+    return previous, current, pages.save_draft(page, compute(previous), request.user)
+
+
+def change(request, page, compute, *, revision: int | None) -> tuple[PageDraft, int]:
+    """Desa l'esborrany i apunta l'estat anterior per desfer-lo. Torna l'esborrany i la revisió
+    que hi havia abans. `ValidationError` (també `DraftConflict`): res."""
+    previous, before, draft = _write(request, page, compute, revision)
     history = _history(request, page)
     history["undo"] = (history["undo"] + [previous])[-HISTORY_MAX:]
     history["redo"] = []
     request.session.modified = True
+    return draft, before
 
 
-def step(request, page, action: str) -> bool:
-    """`undo` o `redo`. Fals si no hi ha res a fer."""
+def step(request, page, action: str, *, revision: int | None) -> bool:
+    """`undo` o `redo`, només sobre la revisió que té la pantalla. Fals si no hi ha res a fer."""
     source, target = ("undo", "redo") if action == "undo" else ("redo", "undo")
     history = _history(request, page)
     if not history[source]:
         return False
-    current = editing_blocks(page)
-    pages.save_draft(page, history[source][-1], request.user)  # torna a validar i demanar WP1
+    current, _before, _draft = _write(request, page, lambda _blocks: history[source][-1], revision)
     history[source].pop()
     history[target] = (history[target] + [current])[-HISTORY_MAX:]
     request.session.modified = True

@@ -81,12 +81,35 @@ def validate_blocks(blocks, *, publishing: bool) -> None:
         media.check_publishable(media.block_media_keys(blocks))
 
 
+class DraftConflict(ValidationError):
+    """Algú altre ha desat l'esborrany des que es va obrir (CA-M07-32): no es desa res."""
+
+    def __init__(self):
+        super().__init__(_("Una altra persona ha canviat l'esborrany mentrestant. Torna a carregar "
+                           "la pàgina: no s'ha desat res."))  # fmt: skip
+
+
+def draft_state(page: Page) -> tuple[list, int]:
+    """Els blocs que s'editen i la seva revisió: l'esborrany o, si no n'hi ha, l'última versió
+    (amb els tipus antics traduïts) amb la revisió 0."""
+    draft = PageDraft.objects.filter(page=page).first()
+    if draft is not None:
+        return draft.blocks, draft.revision
+    version = current_version(page)
+    return (catalog.upgrade_all(version.blocks) if version else []), 0
+
+
+@transaction.atomic
 def save_draft(page: Page, blocks, actor) -> PageDraft:
-    """RN-M07-16: l'únic esborrany de la pàgina, amb la validació de desar (CA-M07-23)."""
+    """RN-M07-16: l'únic esborrany de la pàgina, amb la validació de desar (CA-M07-23). Bloqueja
+    la pàgina (dos desats alhora no es trepitgen) i puja la revisió; qui ha de comprovar que la
+    pantalla estava al dia ho fa abans, amb la pàgina ja bloquejada (`editor.change`)."""
     require(actor)
     validate_blocks(blocks, publishing=False)
+    Page.objects.select_for_update().get(pk=page.pk)
+    current = draft_state(page)[1]
     draft, _created = PageDraft.objects.update_or_create(
-        page=page, defaults={"blocks": blocks, "updated_by": actor}
+        page=page, defaults={"blocks": blocks, "updated_by": actor, "revision": current + 1}
     )
     return draft
 
@@ -120,11 +143,16 @@ def publish_page(page: Page, blocks, actor, note: str = "") -> PageVersion:
     return version
 
 
-def publish_draft(page: Page, blocks, actor, note: str = "") -> PageVersion:
-    """Publica el que s'editava i treu l'esborrany: ara coincideix amb la versió nova."""
-    version = publish_page(page, blocks, actor, note)
-    PageDraft.objects.filter(page=page).delete()
-    return version
+@transaction.atomic
+def publish_draft(page: Page, actor, note: str = "", *, revision: int | None = None) -> PageVersion:
+    """Publica el que s'edita. Amb `revision`, només si ningú no l'ha canviat des de llavors
+    (`DraftConflict`). L'esborrany es queda: continua sent el que s'edita."""
+    require(actor)
+    Page.objects.select_for_update().get(pk=page.pk)
+    blocks, current = draft_state(page)
+    if revision is not None and revision != current:
+        raise DraftConflict
+    return publish_page(page, blocks, actor, note)
 
 
 @transaction.atomic
@@ -144,13 +172,15 @@ def retire_page(page: Page, actor) -> Page:
 @transaction.atomic
 def recover_page(page: Page, actor) -> Page:
     """RN-M07-25 i CA-M07-33: torna a esborrany amb el contingut de l'última versió; el públic no
-    la veu fins que es torna a publicar."""
+    la veu fins que es torna a publicar. Si ja hi havia un esborrany, es conserva (P-686): l'última
+    versió es pot recuperar amb «Torna a aquesta versió»."""
     require(actor)
     page = Page.objects.select_for_update().get(pk=page.pk)
     if page.status != Page.Status.RETIRED:
         raise ValidationError(_("Només es pot recuperar una pàgina retirada."))
     version = current_version(page)
-    save_draft(page, catalog.upgrade_all(version.blocks) if version else [], actor)
+    if not PageDraft.objects.filter(page=page).exists():  # un esborrany pendent no es perd
+        save_draft(page, catalog.upgrade_all(version.blocks) if version else [], actor)
     page.status = Page.Status.DRAFT
     page.save(update_fields=["status"])
     audit.record(ACTION_RECOVERED, actor=actor, target=page, field="status",

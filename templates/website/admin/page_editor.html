@@ -9,7 +9,7 @@
     <h1>{% blocktranslate with title=page.title %}Editor: {{ title }}{% endblocktranslate %}</h1>
     <p class="text-2"><span class="codi">/{{ page.slug }}/</span> · {{ page.get_status_display }}</p>
     <form class="accions" method="post" action="{% url 'administration:website_page_editor_action' page.pk %}">
-      {% csrf_token %}
+      {% csrf_token %}<input type="hidden" name="revision" value="{{ revision }}">
       <a class="boto" href="{% url 'administration:website_page_versions' page.pk %}">{% translate "Versions i programació" %}</a>
       <button class="boto" type="submit" name="action" value="undo" id="editor-desfes" aria-keyshortcuts="Control+Z"{% if not history.undo %} disabled aria-disabled="true"{% endif %}>{% translate "Desfés" %}</button>
       <button class="boto" type="submit" name="action" value="redo" id="editor-refes" aria-keyshortcuts="Control+Shift+Z"{% if not history.redo %} disabled aria-disabled="true"{% endif %}>{% translate "Refés" %}</button>
@@ -33,7 +33,7 @@
           {% if block.hidden %}<span class="estat estat-neutre">{% translate "Amagat" %}</span>{% endif %}
           {% if index == selected %}
             <form class="accions" method="post" action="{% url 'administration:website_page_editor_action' page.pk %}">
-              {% csrf_token %}
+              {% csrf_token %}<input type="hidden" name="revision" value="{{ revision }}">
               <input type="hidden" name="index" value="{{ index }}">
               {% if index > 0 %}<button class="boto boto-petit" type="submit" name="action" value="up">{% translate "Amunt" %}<span class="visualment-amagat">: {{ name }}</span></button>{% endif %}
               {% if index < last %}<button class="boto boto-petit" type="submit" name="action" value="down">{% translate "Avall" %}<span class="visualment-amagat">: {{ name }}</span></button>{% endif %}
@@ -48,11 +48,11 @@
       {% endfor %}
     </ol>
     <form id="editor-ordre" method="post" action="{% url 'administration:website_page_editor_action' page.pk %}">
-      {% csrf_token %}
+      {% csrf_token %}<input type="hidden" name="revision" value="{{ revision }}">
       <input type="hidden" name="action" value="reorder"><input type="hidden" name="order" value="">
     </form>
     <form class="formulari" method="post" action="{% url 'administration:website_page_editor_action' page.pk %}">
-      {% csrf_token %}
+      {% csrf_token %}<input type="hidden" name="revision" value="{{ revision }}">
       <input type="hidden" name="action" value="add">
       <input type="hidden" name="index" value="{% if selected is not None %}{{ selected }}{% else %}{{ last }}{% endif %}">
       <div class="camp">
@@ -69,7 +69,7 @@
     <section class="targeta" aria-labelledby="titol-bloc">
       <h2 id="titol-bloc">{{ selected_kind }}</h2>
       <form class="formulari" method="post" action="{% url 'administration:website_page_editor_action' page.pk %}" novalidate data-desat-auto>
-        {% csrf_token %}
+        {% csrf_token %}<input type="hidden" name="revision" value="{{ revision }}">
         <input type="hidden" name="action" value="update"><input type="hidden" name="index" value="{{ selected }}"><input type="hidden" name="base" value="{{ base }}">
         {% include "_errata.html" %}
         {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
@@ -108,7 +108,7 @@
       <p class="text-2">{% translate "El revisor de qualitat no hi ha trobat res." %}</p>
     {% endif %}
     <form class="formulari" method="post" action="{% url 'administration:website_page_publish' page.pk %}">
-      {% csrf_token %}
+      {% csrf_token %}<input type="hidden" name="revision" value="{{ revision }}">
       <div class="camp"><label for="publicar-nota">{% translate "Nota de la versió (opcional)" %}</label><input id="publicar-nota" name="note" maxlength="300"></div>
       <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Publica l'esborrany" %}</button></div>
     </form>
@@ -118,7 +118,7 @@
         {% for version in versions %}
           <li>
             <form class="accions" method="post" action="{% url 'administration:website_page_revert' page.pk version.number %}">
-              {% csrf_token %}
+              {% csrf_token %}<input type="hidden" name="revision" value="{{ revision }}">
               <span>{% blocktranslate with n=version.number %}Versió {{ n }}{% endblocktranslate %} · <time datetime="{{ version.published_at|date:'c' }}">{{ version.published_at|date:"d/m/Y H:i" }}</time>{% if version.note %} · {{ version.note }}{% endif %}</span>
               {% if not forloop.first %}<button class="boto boto-petit" type="submit">{% translate "Torna a aquesta versió" %}<span class="visualment-amagat"> {{ version.number }}</span></button>{% endif %}
             </form>
