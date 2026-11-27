@@ -3,6 +3,8 @@ demanar l'enllaç des de l'entrada, la resposta que no diu si l'adreça té comp
 «Entra» de l'enllaç. Pantalles a 1280, 390 i 320 px. Dades inventades."""
 
 import pytest
+from django.conf import settings as django_settings
+from django.test import Client
 from django.urls import reverse
 from playwright.sync_api import expect
 
@@ -30,7 +32,16 @@ def test_a_member_enters_with_a_link_by_email(
     review("entrada-correu-enviat")
     account.refresh_from_db()
     token = tokens.make_token(account, tokens.EMAIL_LOGIN, n="")
-    page.goto(f"{live_server.url}{reverse('accounts:email_login_link', args=[token])}")
+    # L'enllaç porta «:» (testimoni signat) i el servidor de proves de Django a Windows no el
+    # serveix (`url2pathname`): el primer pas el fa un client de proves i la sessió passa al
+    # navegador. La resta, al navegador.
+    client = Client()
+    client.get(reverse("accounts:email_login_link", args=[token]))
+    cookie = client.cookies[django_settings.SESSION_COOKIE_NAME].value
+    page.context.add_cookies(
+        [{"name": django_settings.SESSION_COOKIE_NAME, "value": cookie, "url": live_server.url}]
+    )
+    page.goto(f"{live_server.url}{reverse('accounts:email_login')}")
     expect(page.get_by_role("button", name="Entra")).to_be_visible()
     review("entrada-correu-boto")
     page.get_by_role("button", name="Entra").click()
