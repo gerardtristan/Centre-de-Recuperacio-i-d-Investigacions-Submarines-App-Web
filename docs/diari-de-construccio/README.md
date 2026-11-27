@@ -643,5 +643,6 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M07-10b](T-M07-10b.md) | Tutorials: pantalles d'administració (WP4; carril A) | 25/11/2026 03:48 | (vegeu la PR) | 5 noves i 1 e2e | [A comprovar] |
 | [T-M02-20-fotos](T-M02-20-fotos.md) | Fotos d'una sortida de medi ambient, apagades fins a la P-41 (torn del nucli i 02) | 25/11/2026 04:47 | (vegeu la PR) | 11 noves i 1 e2e | [A comprovar] |
 | [T-M01-53](T-M01-53.md) | Compte personal ràpid (torn del nucli; part a) | 27/11/2026 23:28 | (vegeu la PR) | 17 noves i 1 e2e | [A comprovar] |
+| [T-M01-53](T-M01-53.md) | «Fer-se soci» darrere de la sessió (torn del nucli; part b) | 27/11/2026 23:51 | (vegeu la PR) | 5 noves i 1 e2e | [A comprovar] |
 | [decisio-106](decisio-106.md) | Decisions 106 i 107: editor visual de la web pública i fotos reals del club; addenda del M07 (carril Y) | 24/11/2026 18:06 | 48268706 | cap (document) | [A comprovar] |
 | [decisio-108](decisio-108.md) | Respostes del propietari del 27/11/2026: tauler, contingut de la web, butlletí i compte ràpid | 27/11/2026 22:37 | (vegeu la PR) | cap (document) | [A comprovar] |
