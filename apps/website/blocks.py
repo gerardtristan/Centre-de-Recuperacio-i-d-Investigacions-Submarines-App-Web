@@ -25,6 +25,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from markdown_it import MarkdownIt
 
+from apps.activities.models import Activity
 from apps.core import business_settings
 
 # Límits de format i de seguretat (no són valors de negoci).
@@ -164,10 +165,13 @@ def _check(field: Field, value, publishing: bool) -> None:
             raise _Bad
     elif t == "target":
         _check_target(value)
-    elif t == "filters":
+    elif t == "filters":  # `type`: curs o sortida (02); `department`: un departament de la 00
         if not isinstance(value, dict) or set(value) - {"type", "department"}:
             raise _Bad
-        if any(not isinstance(v, str) or len(v) > CODE_MAX for v in value.values()):
+        if value.get("type") not in (None, "", *Activity.Kind.values):
+            raise _Bad
+        department = value.get("department")
+        if department is not None and (type(department) is not int or department < 1):
             raise _Bad
     elif t == "items":
         if not isinstance(value, list) or len(value) > field.max:
@@ -261,7 +265,7 @@ def _upgrade(block):
         count = business_settings.get("website.news_on_home")
         return {"kind": "recent_news", "title": _("Notícies"), "count": count}
     if kind == "faq":
-        return {"kind": "faq_topic", "topic": block.get("topic", "")}
+        return {"kind": "faq_topic", "topic": block.get("topic")}
     if kind == "join_button":
         return {"kind": "join_cta", "title": _("Fes-te soci"), "body": _("Uneix-te al C.R.I.S.")}
     return block
