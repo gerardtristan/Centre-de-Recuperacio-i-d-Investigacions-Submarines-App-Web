@@ -101,6 +101,17 @@ def test_submenus_have_a_single_level(editor, menu):
         menus.save_item(None, actor=editor, menu=menu, parent=top, label="Buit")
 
 
+def test_an_item_with_a_submenu_does_not_change_menu(editor, menu):
+    # Revisió de la #617: els fills es quedarien al menú antic amb el pare en un altre.
+    top = menus.save_item(None, actor=editor, menu=menu, label="Grup")
+    menus.save_item(None, actor=editor, menu=menu, parent=top, label="A", url="/ajuda/")
+    other = Menu.objects.create(code="altre", name="Un altre menú")
+    with pytest.raises(ValidationError):
+        menus.save_item(top, actor=editor, menu=other)
+    top.refresh_from_db()
+    assert top.menu == menu
+
+
 def test_unpublished_pages_empty_groups_and_switched_off_screens_are_not_shown(editor, menu):
     page = Page.objects.get(slug="qui-som")
     menus.save_item(None, actor=editor, menu=menu, label="Qui som", page=page, order=1)
