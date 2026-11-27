@@ -361,7 +361,8 @@ class TestDuplicates:
         submit(id_document="00000002W", **overrides)
         request = MemberRequest.objects.get()
         assert request.person != existing
-        assert Person.objects.filter(origin__in=["web", "in_person"]).count() == 3
+        people = Person.objects.filter(origin__in=["web", "in_person"])
+        assert people.exclude(first_name="Visitant").count() == 3
         assert request.duplicate_warning == [{"match": match, "person_id": existing.pk}]
         existing.refresh_from_db()
         assert (existing.first_name, existing.contact_email) == ("Pau", "pau.mero@example.org")
@@ -490,7 +491,8 @@ class TestRateLimit:
         assert counts() == before
         assert AuditEntry.objects.filter(action=LIMITED).count() == 1
         # Un altre origen no en queda afectat.
-        other = Client(REMOTE_ADDR="192.0.2.10")
+        other = visitor()
+        other.defaults["REMOTE_ADDR"] = "192.0.2.10"
         assert submit(other, id_document="00000003A").status_code == 303
 
     def test_join_and_email_link_counters_are_separate(self, db):

@@ -8,6 +8,7 @@ from django.test import Client
 from django.urls import reverse
 
 from apps.core.models import Person
+from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.members.models import MemberRequest
 from apps.members.tests.test_join import (  # noqa: F401 (fixture texts)
     PUBLIC,
