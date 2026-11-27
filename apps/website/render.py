@@ -16,7 +16,9 @@ T-M07-19) o, mentre no existeix, amb `website/blocs/_provisional/<kind>.html`, a
   (o `None`). Sense dades, `items` buit: la plantilla pinta l'estat buit. Les destacades i les
   fetes són buides fins a la T-M07-29.
 
-No es pinten encara: `video` (T-M07-23) i `file` (els PDF, T-M07-07). El butlletí i el contacte,
+El vídeo de YouTube porta `embed_url` (només `youtube-nocookie.com`, que obre el clic) i `notice`
+(l'avís, P-574), i surt només amb `website.youtube_enabled`. No es pinten encara: el vídeo propi
+(T-M07-23b) i `file` (els PDF, T-M07-07). El butlletí i el contacte,
 només amb el seu ajust encès.
 """
 
@@ -34,10 +36,10 @@ from apps.core import business_settings
 
 from . import blocks as catalog
 from . import help as faq
-from . import media, news
+from . import media, news, video
 from .models import FaqTopic, MediaAsset
 
-NOT_YET = {"video", "file"}
+NOT_YET = {"file"}
 IMAGES = "website.public_images_enabled"
 SWITCHES = {"newsletter": "website.newsletter_enabled", "contact_form": "website.contact_enabled"}
 
@@ -116,6 +118,8 @@ def _data(block: dict) -> dict:
              "date": n.date, "photo": _image(n.image) if on and n.image and n.image.publishable
              else None} for n in news.published()[:count]
         ]}  # fmt: skip
+    if kind == "video":
+        return video.youtube_context(block)
     if kind == "faq_topic":
         topic_id = block.get("topic")
         topic = FaqTopic.objects.filter(pk=topic_id).first() if topic_id else None
@@ -126,6 +130,11 @@ def _data(block: dict) -> dict:
     return {}
 
 
+def _video_shown(block: dict) -> bool:
+    """CA-M07-25: YouTube, només amb `website.youtube_enabled`; el vídeo propi, amb la T-M07-23b."""
+    return block.get("source") == "youtube" and business_settings.get(video.ENABLED)
+
+
 def _render(blocks, page, images) -> str:
     parts = []
     for block in blocks:
@@ -133,6 +142,8 @@ def _render(blocks, page, images) -> str:
         if block.get("hidden") or kind in NOT_YET:
             continue
         if kind in SWITCHES and not business_settings.get(SWITCHES[kind]):
+            continue
+        if kind == "video" and not _video_shown(block):
             continue
         context = _fields(catalog.CATALOG[kind], block, images) | _data(block)
         if kind == "section":

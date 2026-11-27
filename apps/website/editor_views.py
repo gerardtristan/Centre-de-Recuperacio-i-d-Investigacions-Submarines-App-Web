@@ -14,7 +14,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 from apps.core import business_settings
 from apps.core.permissions import require_perm
 
-from . import editor, pages, review
+from . import editor, pages, review, video
 from .editor_forms import GROUPS, KINDS, BlockForm, summary
 from .models import Page, PageDraft
 
@@ -81,9 +81,9 @@ def save_block(request, page, blocks: list, index: int) -> tuple[BlockForm, int]
         return form, 409
     if not form.is_valid():
         return form, 400
+    block = video.with_thumbnail(form.to_block(blocks[index]), request.user)
     try:
-        editor.change(request, page, editor.apply(blocks, "update", index,
-                                                  block=form.to_block(blocks[index])))  # fmt: skip
+        editor.change(request, page, editor.apply(blocks, "update", index, block=block))
     except ValidationError as error:
         form.add_error(None, error)
         return form, 400
