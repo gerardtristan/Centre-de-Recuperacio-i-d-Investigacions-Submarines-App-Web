@@ -1,8 +1,7 @@
 """T-M07-21 (addenda 106; decisió 034): menús, capçalera i peu de la web pública. Les versions de
 la capçalera i el peu només admeten INSERT, també amb una consulta directa (com les de les pàgines,
-0002). El menú principal inicial és el de la capçalera del wireframe públic
-(`design/wireframes/publica.html`), amb «Notícies» i «Ajuda» (P-700): els enllaços a pàgines no
-surten fins que la pàgina es publica. Depèn de la 0010 (el PILOT l'encadena en fusionar)."""
+0002). El menú principal inicial és mínim (P-700): el de la capçalera pública actual («Inici»)
+més «Notícies» i «Ajuda». Depèn de la 0010 (el PILOT l'encadena en fusionar)."""
 
 import django.db.models.deletion
 from django.conf import settings
@@ -32,43 +31,21 @@ DROP TRIGGER website_chrome_no_update_or_delete ON website_sitechrome;
 DROP FUNCTION website_chrome_immutable();
 """
 
-# (text, pàgina o adreça, submenú). Els sis primers, a la pastilla; la resta, a «Més».
-INITIAL_MENU = [
-    ("Inici", "/", []),
-    ("Activitats", "/activitats/", [("Formació i cursos", "formacio"), ("Sortides", "sortides")]),
-    ("Qui som", "qui-som", []),
-    ("El Centre", "el-centre", []),
-    ("Projectes", "projectes", []),
-    ("Notícies", "/noticies/", []),
-    ("Medi ambient", "medi-ambient", []),
-    ("Galeria", "galeria", []),
-    ("Fer-se soci", "/fer-se-soci/", []),
-    ("Contacte", "/contacte/", []),
-    ("Ajuda", "/ajuda/", []),
-]
+# Mínim i fàcil de substituir: l'enllaç de la capçalera pública actual (el logotip, «Inici») més
+# «Notícies» i «Ajuda». El menú real (el de cris1954.cat) arriba amb les pàgines inicials (P-700).
+INITIAL_MENU = [("Inici", "/"), ("Notícies", "/noticies/"), ("Ajuda", "/ajuda/")]
 
 
 def load(apps, schema_editor):
     Menu = apps.get_model("website", "Menu")
     MenuItem = apps.get_model("website", "MenuItem")
-    Page = apps.get_model("website", "Page")
     menu, created = Menu.objects.get_or_create(
         code="principal", defaults={"name": "Menú principal"}
     )
     if not created:
         return
-
-    def target(value):
-        if value.startswith("/"):
-            return {"url": value}
-        return {"page": Page.objects.filter(slug=value).first()}
-
-    for order, (label, value, children) in enumerate(INITIAL_MENU, start=1):
-        item = MenuItem.objects.create(menu=menu, label=label, order=order, **target(value))
-        for sub_order, (sub_label, sub_value) in enumerate(children, start=1):
-            MenuItem.objects.create(
-                menu=menu, parent=item, label=sub_label, order=sub_order, **target(sub_value)
-            )
+    for order, (label, url) in enumerate(INITIAL_MENU, start=1):
+        MenuItem.objects.create(menu=menu, label=label, url=url, order=order)
 
 
 def unload(apps, schema_editor):
