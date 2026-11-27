@@ -1746,3 +1746,15 @@ noves:
       Encendre-ho publica fotos on poden sortir persones; és irreversible un cop vist. L'administrador
       ho fa quan la junta ho decideix, i l'opció es pot ampliar més endavant sense tocar dades.
     data: 2026-11-25
+  P-691:
+    opcions:
+      A: "Treure'n les metadades amb una biblioteca de PDF nova (pypdf, dependència risc:alt) en pujar-los."
+      B: "Rebutjar en pujar-lo un PDF que porti Author, Creator o Producer amb text."
+      C: "Encendre els PDF tal qual: qui el puja és responsable de les metadades (avís a la pantalla)."
+      D: "Cap PDF a la web pública: només enllaços a documents d'una altra web."
+    recomanada: A
+    perque: >-
+      Treure les metadades és el que ja es fa amb les fotos i no demana res a qui puja el fitxer; B
+      fa rebutjar molts PDF fets amb Word sense que l'usuari entengui per què, i C deixa el risc a
+      qui no el veu. Fins a la resposta, la pujada de PDF és apagada.
+    data: 2026-11-27

@@ -93,6 +93,7 @@ def validate_blocks(blocks) -> None:
         if any(not isinstance(block.get(f, ""), str) for f in ("title", "text")):
             raise ValidationError(_("El text d'un bloc ha de ser text."))
     media.check_publishable(media.block_media_keys(blocks))  # RN-M07-05
+    media.check_publishable(media.block_file_keys(blocks), kind="file")
 
 
 def current_version(page: Page) -> PageVersion | None:

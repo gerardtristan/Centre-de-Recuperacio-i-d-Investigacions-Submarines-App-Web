@@ -15,7 +15,9 @@ obrir la imatge com a aquest format i la torna a codificar, cosa que en treu l'E
 comentaris i qualsevol altra metadada (la rotació de l'EXIF s'aplica abans). Es desen també les
 mides en WebP (les fa el servidor, P-633 A) de `RENDITION_WIDTHS` més petites que l'original. El
 punt focal (`focal_x`, `focal_y`, en %) s'edita amb `update_details`. Els PDF no es tornen a
-codificar: la vista pública els serveix com a descàrrega.
+codificar: la vista pública els serveix com a descàrrega. Com que un PDF pot portar el nom de
+qui l'ha fet (Author, Creator), la pujada de PDF és darrere de `website.pdf_uploads_enabled`,
+apagat fins a la P-691 (D2).
 """
 
 import io
@@ -48,6 +50,7 @@ WEB_IMAGE_TYPES = frozenset({"image/jpeg", "image/png"})
 UPLOAD_TYPES = WEB_IMAGE_TYPES | {PDF}
 _PIL_FORMAT = {"image/jpeg": "JPEG", "image/png": "PNG"}
 MAX_MB_KEY = "website.upload_max_mb"
+PDF_SWITCH = "website.pdf_uploads_enabled"  # P-691: apagat
 MAX_MB_FALLBACK = 10  # shortcut: fins que el carril E creï la clau (`website/0011`); llavors fora
 RENDITION_WIDTHS = (480, 960, 1600)  # format de les mides automàtiques, no un valor de negoci
 DETAIL_FIELDS = (
@@ -75,6 +78,8 @@ def upload(uploaded, *, actor, alt_text, shows_people, **details) -> MediaAsset:
         raise ValueError(f"Camps desconeguts: {sorted(unknown)}")
     _check_size(uploaded)
     content_type = files.validate_upload(uploaded, allowed=UPLOAD_TYPES)
+    if content_type == PDF and not business_settings.get(PDF_SWITCH):
+        raise ValidationError(_("Ara mateix no es poden pujar PDF a la web."), code="type")
     uploaded.seek(0)
     data, renditions = uploaded.read(), {}
     if content_type != PDF:
@@ -192,24 +197,34 @@ def retire(asset: MediaAsset, *, actor, reason: str) -> MediaAsset:
 
 
 def block_media_keys(blocks) -> list[str]:
-    """Claus de les fotos dels blocs d'imatge (una) i de galeria (una llista)."""
+    """Claus de les imatges dels blocs: d'imatge (una), de galeria (una llista) i la miniatura
+    d'un vídeo (`thumbnail`). Només poden ser imatges (`check_publishable`)."""
     keys = []
     for block in blocks:
         if not isinstance(block, dict):
             continue  # el rebutja `pages.validate_blocks`
         value = block.get("media")
+        if isinstance(block.get("thumbnail"), str):
+            keys.append(block["thumbnail"])
         if block.get("kind") == "image":
             if not isinstance(value, str):
                 raise ValidationError(_("Un bloc d'imatge porta una sola foto."))
             keys.append(value)
-        elif block.get("kind") == "file":  # PDF de la biblioteca (catàleg de la 106)
-            if not isinstance(block.get("file"), str):
-                raise ValidationError(_("Un bloc de fitxer porta un sol PDF."))
-            keys.append(block["file"])
         elif block.get("kind") == "gallery":
             if not isinstance(value, list) or not all(isinstance(v, str) for v in value):
                 raise ValidationError(_("Una galeria porta una llista de fotos."))
             keys.extend(value)
+    return keys
+
+
+def block_file_keys(blocks) -> list[str]:
+    """Claus dels PDF dels blocs de fitxer (catàleg de la 106). Només poden ser PDF."""
+    keys = []
+    for block in blocks:
+        if isinstance(block, dict) and block.get("kind") == "file":
+            if not isinstance(block.get("file"), str):
+                raise ValidationError(_("Un bloc de fitxer porta un sol PDF."))
+            keys.append(block["file"])
     return keys
 
 
@@ -220,9 +235,12 @@ def _as_uuids(keys) -> set[uuid.UUID]:
         raise ValidationError(NOT_PUBLISHABLE) from None
 
 
-def check_publishable(keys) -> None:
+def check_publishable(keys, *, kind: str = "image") -> None:
+    """Cada clau és publicable i del tipus del camp: `image` (imatges) o `file` (PDF)."""
     wanted = _as_uuids(keys)
-    ok = {a.key for a in MediaAsset.objects.filter(key__in=wanted) if a.publishable}
+    assets = MediaAsset.objects.filter(key__in=wanted)
+    assets = assets.filter(content_type=PDF) if kind == "file" else assets.exclude(content_type=PDF)
+    ok = {a.key for a in assets if a.publishable}
     if wanted - ok:
         raise ValidationError(NOT_PUBLISHABLE)
 
@@ -239,6 +257,7 @@ def _is_published(asset: MediaAsset) -> bool:
         Q(blocks__contains=[{"kind": "image", "media": key}])
         | Q(blocks__contains=[{"kind": "gallery", "media": [key]}])
         | Q(blocks__contains=[{"kind": "file", "file": key}])
+        | Q(blocks__contains=[{"thumbnail": key}])
     )
     for version in candidates.select_related("page"):
         latest = version.page.versions.order_by("-number").values_list("number", flat=True)[0]

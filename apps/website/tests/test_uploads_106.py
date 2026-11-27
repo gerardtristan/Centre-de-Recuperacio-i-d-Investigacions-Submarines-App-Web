@@ -123,7 +123,41 @@ def test_the_focal_point_is_a_detail_with_the_previous_value_recorded(editor):
         media.update_details(asset, actor=editor, focal_x=101)
 
 
-def test_rn_m07_19_a_pdf_is_served_only_as_a_download(editor, client):
+PDF = b"%PDF-1.7\n%inventat\n"
+
+
+@pytest.fixture
+def pdfs_on():
+    Setting.objects.filter(key=media.PDF_SWITCH).update(initial_value=True)
+
+
+def test_p691_pdf_uploads_are_switched_off_until_the_answer(editor):
+    assert Setting.objects.get(key=media.PDF_SWITCH).initial_value is False
+    with pytest.raises(ValidationError):
+        upload(editor, "horari.pdf", PDF)
+    assert not MediaAsset.objects.exists()
+
+
+def test_each_block_field_takes_only_its_file_type(editor, pdfs_on):
+    """`media` i `thumbnail` només imatges; `file` només PDF (revisió de la #620)."""
+    image, pdf = upload(editor, "foto.jpg", picture()), upload(editor, "horari.pdf", PDF)
+    page = pages.save_page(None, actor=editor, slug="tipus", title="Tipus")[0]
+    with pytest.raises(ValidationError):
+        pages.publish_page(page, [{"kind": "image", "media": str(pdf.key)}], editor)
+    with pytest.raises(ValidationError):
+        pages.publish_page(page, [{"kind": "gallery", "media": [str(pdf.key)]}], editor)
+    with pytest.raises(ValidationError):
+        media.check_publishable(media.block_file_keys([{"kind": "file", "file": str(image.key)}]),
+                                kind="file")  # fmt: skip
+    with pytest.raises(ValidationError):
+        media.check_publishable(media.block_media_keys([{"kind": "video",
+                                                         "thumbnail": str(pdf.key)}]))  # fmt: skip
+    media.check_publishable([str(pdf.key)], kind="file")
+    media.check_publishable([str(image.key)])
+    assert not page.versions.exists()
+
+
+def test_rn_m07_19_a_pdf_is_served_only_as_a_download(editor, client, pdfs_on):
     Setting.objects.filter(key="website.public_images_enabled").update(initial_value=True)
     pdf = upload(editor, "horari.pdf", b"%PDF-1.7\n%inventat\n")
     assert pdf.content_type == "application/pdf" and pdf.renditions == {}

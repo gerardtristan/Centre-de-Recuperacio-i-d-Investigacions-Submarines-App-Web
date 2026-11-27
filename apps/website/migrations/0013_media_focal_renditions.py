@@ -3,10 +3,23 @@
 import django.core.validators
 from django.db import migrations, models
 
+PDF_SWITCH = "website.pdf_uploads_enabled"
+
+
+def load(apps, schema_editor):
+    """P-691 (D2): la pujada de PDF a la web, apagada. El permís per editar-lo és del catàleg del
+    nucli: fins llavors, ningú no l'encén des de l'app."""
+    Setting = apps.get_model("core", "Setting")
+    Setting.objects.get_or_create(
+        key=PDF_SWITCH,
+        defaults={"module": "website", "value_type": "boolean", "initial_value": False},
+    )
+
 
 class Migration(migrations.Migration):
     dependencies = [
         ("website", "0010_tutorials"),
+        ("core", "0013_business_settings"),
     ]
 
     operations = [
@@ -33,4 +46,5 @@ class Migration(migrations.Migration):
             name="renditions",
             field=models.JSONField(blank=True, default=dict, verbose_name="mides automàtiques"),
         ),
+        migrations.RunPython(load, migrations.RunPython.noop),
     ]
