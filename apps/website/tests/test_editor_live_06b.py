@@ -128,3 +128,16 @@ def test_rn_m07_13_long_share_texts_are_saved_with_a_warning(page, admin):
 def test_without_wp1_the_actions_are_not_found(page, make_admin, name):  # noqa: F811
     response = admin_client(make_admin(R.SECRETARY)).post(url(name, page), {"note": "x"})
     assert response.status_code == 404 and not PageVersion.objects.exists()
+
+
+def test_edge_cases_of_the_live_actions(page, admin):
+    client = admin_client(admin)
+    gone = client.post(url("autosave", page), {"index": "9", "text": "x", "level": "2"})
+    assert gone.status_code == 409 and gone.json()["error"]
+    long = client.post(url("share", page), {"share_title": "T" * 201}, follow=True)
+    assert long.status_code == 200 and not page.share_title
+    broken = PageVersion.objects.create(page=page, number=1, published_by=admin,
+                                        blocks=[{"kind": "script"}])  # fmt: skip
+    client.post(url("revert", page, broken.number))
+    assert page.versions.count() == 1
+    assert str(PageEditing.objects.get()) == f"Prèvia · {admin.login}"
