@@ -109,7 +109,9 @@ def test_versions_compare_schedule_retire_and_recover(page, live_server, transac
 GOOGLE = ("google", "youtube", "ytimg", "gstatic", "doubleclick", "ggpht")
 
 
-def test_ca_m07_25_no_request_to_google_before_the_click(page, live_server, transactional_db):
+def test_ca_m07_25_no_request_to_google_before_the_click(
+    page, live_server, transactional_db, review
+):
     """T-M07-23: amb `website.youtube_enabled` encès, el bloc de vídeo no demana res a cap domini
     de Google fins que es prem; després, només a youtube-nocookie.com (aquí, una resposta falsa)."""
     from apps.core.models import Setting
@@ -130,6 +132,8 @@ def test_ca_m07_25_no_request_to_google_before_the_click(page, live_server, tran
     button = page.get_by_role("button", name="En prémer, es carrega YouTube (Google)")
     expect(button).to_be_visible()
     page.wait_for_load_state("networkidle")
+    assert not [h for h in hosts if any(g in h for g in GOOGLE)]
+    review("video-abans-del-clic")
     assert not [h for h in hosts if any(g in h for g in GOOGLE)]
     button.click()
     expect(page.frame_locator("iframe").get_by_text("video fals")).to_be_visible()

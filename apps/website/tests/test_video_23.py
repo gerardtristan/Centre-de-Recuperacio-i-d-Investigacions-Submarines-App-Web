@@ -11,7 +11,7 @@ from apps.core import business_settings
 from apps.core.models import Role, Setting
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.core.tests.test_guest_links import admin_client
-from apps.website import pages, render, video
+from apps.website import editor, pages, render, video
 from apps.website.models import MediaAsset, PageDraft
 from apps.website.tests.test_blocks_106 import block
 from apps.website.tests.test_media_07 import PNG
@@ -112,9 +112,10 @@ def test_the_download_goes_only_to_the_thumbnail_address(monkeypatch):
 def test_saving_a_video_block_in_the_editor_stores_the_thumbnail(
     page, admin, youtube_on, downloads
 ):
-    pages.save_draft(page, [block("video", title="")], admin)
+    draft = pages.save_draft(page, [block("video", title="")], admin)
     data = {"action": "update", "index": "0", "source": "youtube", "youtube_id": "dQw4w9WgXcQ",
-            "title": "Immersió inventada", "width": "normal"}  # fmt: skip
+            "title": "Immersió inventada", "width": "normal", "revision": str(draft.revision),
+            "base": editor.fingerprint(draft.blocks[0])}  # fmt: skip
     admin_client(admin).post(reverse("administration:website_page_editor_action", args=[page.pk]),
                              data)  # fmt: skip
     saved = PageDraft.objects.get().blocks[0]
