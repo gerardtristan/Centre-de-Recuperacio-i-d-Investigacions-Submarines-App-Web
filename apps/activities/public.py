@@ -24,6 +24,23 @@ models del 02.
   inscripció (`enrolment.free_places`: places menys les inscripcions que ocupen plaça). Mai qui hi
   és inscrit.
 
+**Activitats fetes i fotos per a la web** (T-M02-53; RP-M07-02, addenda M07 de la 106; RN-M02-23;
+RN-M07-21 i 22):
+
+- `public_past_list(filters)`: les activitats publicades (`published_at`) que ja s'han fet:
+  finalitzades, tancades econòmicament o publicades amb la data de final passada. Mai una de
+  cancel·lada ni un esborrany. Les mateixes dades sense noms que `public_list`, de la més recent
+  a la més antiga. `filters`, com els desa el bloc del 07: `type` (`course` o `outing`) i
+  `department` (enter); un valor no vàlid s'ignora.
+- `publishable_photos(activity)`: només les fotos de medi ambient actives, marcades com a
+  publicables (CA-M02-22) i que encara compleixen autor, permís i, si hi surten persones,
+  consentiment, d'una activitat feta i publicada. Amb `activities.environment_photos_enabled`
+  apagat (P-41), cap. Mai carnets de titulació (104), avatars ni documents: no surten d'aquí.
+  Sense l'autor (és un nom; P-690) i amb un text alternatiu fet amb el títol de l'activitat.
+- **Preu i foto per als blocs del 07** (P-683): cada activitat porta `price_cents` (el preu que
+  veu un visitant, `_visitor_price`) i, a `public_past_list`, `photo` (la primera foto
+  publicable o `None`). `public_list` també filtra per `department`.
+
 **Fora d'aquesta peça:** el preu «que
 et correspon» segons si ets soci i el botó d'inscriure's (T-M02-11 i T-M02-14) i l'enllaç al
 butlletí quan no hi ha cap activitat (mòdul 07). Una sortida sense enllaç propi a la previsió fa
@@ -31,18 +48,21 @@ servir el de l'ajust `activities.marine_forecast_url` (VC-25, RN-M02-24; T-M02-2
 """
 
 import datetime
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
+from django.db.models import Q
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from apps.core import business_settings
 from apps.core.charges import euros
 
-from . import enrolment
-from .models import Activity
+from . import enrolment, environment_photos
+from .models import Activity, EnvironmentalPhoto
 
 S = Activity.Status
 PUBLIC_STATUSES = (S.OPEN, S.REGISTRATION_CLOSED, S.IN_PROGRESS)
+DONE_STATUSES = (S.DONE, S.CLOSED)
 FORECAST_KEY = "activities.marine_forecast_url"  # VC-25
 
 
@@ -65,6 +85,16 @@ class PublicBlock:
     label: str
     place: str
     responsible_label: str
+
+
+@dataclass(frozen=True)
+class PublicPhoto:
+    """Una foto que el 07 pot posar a la web (RN-M07-22). Cap nom: ni l'autor ni qui hi surt."""
+
+    pk: int
+    activity: int
+    content_type: str
+    alt_text: str
 
 
 @dataclass(frozen=True)
@@ -97,6 +127,9 @@ class PublicActivity:
     forecast_url: str
     sessions: tuple[PublicSession, ...] = field(default=())
     blocks: tuple[PublicBlock, ...] = field(default=())
+    # P-683 (blocs del 07): el preu que veu un visitant, en cèntims, i la primera foto publicable.
+    price_cents: int | None = None
+    photo: PublicPhoto | None = None
 
 
 def _public(today):
@@ -151,7 +184,22 @@ def _data(activity, *, detail: bool) -> PublicActivity:
         forecast_url=_forecast_url(activity),
         sessions=sessions,
         blocks=blocks,
+        price_cents=_visitor_price(activity),
     )
+
+
+def _visitor_price(activity) -> int | None:
+    """P-683 A: el de no soci si l'activitat és oberta a no socis; si no, el de soci (el que la
+    fitxa pública ensenya primer). Surt de les dades de preu de l'activitat; cap valor al codi."""
+    if activity.open_to_non_members:
+        return activity.price_non_member_cents
+    return activity.price_member_cents
+
+
+def _valid_department(value) -> int | None:
+    """Un identificador de departament enter i positiu; qualsevol altra cosa s'ignora (mai un
+    error a la web pública)."""
+    return value if type(value) is int and 0 < value < 2**63 else None
 
 
 def _forecast_url(activity) -> str:
@@ -161,12 +209,14 @@ def _forecast_url(activity) -> str:
     return activity.forecast_url or business_settings.get(FORECAST_KEY)
 
 
-def public_list(*, kind: str = "", today=None) -> list[PublicActivity]:
+def public_list(*, kind: str = "", department=None, today=None) -> list[PublicActivity]:
     """Les activitats publicades, de la més propera a la més llunyana. `kind`: `course`,
-    `outing` o buit per a totes."""
+    `outing` o buit per a totes; `department`: un enter (si no és vàlid, s'ignora)."""
     activities = _public(today or timezone.localdate())
     if kind in Activity.Kind.values:
         activities = activities.filter(kind=kind)
+    if _valid_department(department):
+        activities = activities.filter(department_id=department)
     activities = activities.select_related(
         "catalogue_entry", "outing_type", "subtype", "place", "min_level"
     )
@@ -184,3 +234,52 @@ def get_activity(pk, *, today=None) -> PublicActivity:
     if activity is None:
         raise NotFound
     return _data(activity, detail=True)
+
+
+_SELECT = ("catalogue_entry", "outing_type", "subtype", "place", "min_level")
+
+
+def _past(today):
+    return Activity.objects.filter(published_at__isnull=False).filter(
+        Q(status__in=DONE_STATUSES) | Q(status__in=PUBLIC_STATUSES, ends_on__lt=today)
+    )
+
+
+def public_past_list(filters=None, *, today=None) -> list[PublicActivity]:
+    """Les activitats fetes i publicades (RP-M07-02), de la més recent a la més antiga."""
+    filters = filters or {}
+    activities = _past(today or timezone.localdate())
+    if filters.get("type") in Activity.Kind.values:
+        activities = activities.filter(kind=filters["type"])
+    department = _valid_department(filters.get("department"))
+    if department:
+        activities = activities.filter(department_id=department)
+    activities = activities.select_related(*_SELECT).order_by("-ends_on", "-pk")
+    today = today or timezone.localdate()
+    items = []
+    for activity in activities:
+        photos = publishable_photos(activity, today=today)
+        items.append(replace(_data(activity, detail=False), photo=photos[0] if photos else None))
+    return items
+
+
+def publishable_photos(activity, *, today=None) -> list[PublicPhoto]:
+    """Les fotos publicables d'una activitat feta i publicada (RP-M07-02; RN-M02-23)."""
+    if not environment_photos.enabled():  # P-41: apagat, cap foto
+        return []
+    pk = getattr(activity, "pk", activity)
+    found = _past(today or timezone.localdate()).filter(pk=pk).first()
+    if found is None:
+        return []
+    photos = (
+        EnvironmentalPhoto.objects.filter(
+            result__activity=found,
+            status=EnvironmentalPhoto.Status.ACTIVE,
+            publishable=True,
+            usage_permission=True,
+        )  # fmt: skip
+        .exclude(author__regex=r"^\s*$")
+        .exclude(shows_people=True, people_consent=False)
+    )
+    alt = _("Foto de l'activitat «%(title)s»") % {"title": found.title}
+    return [PublicPhoto(p.pk, found.pk, p.content_type, alt) for p in photos]
