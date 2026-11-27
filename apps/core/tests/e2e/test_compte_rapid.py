@@ -52,3 +52,41 @@ def test_join_is_announced_without_a_session_and_comes_back_after_login(
     expect(page.get_by_role("group", name="Per a qui és l'alta?")).to_be_visible()
     expect(page.get_by_label("Nom", exact=True)).to_have_value("Visitant")
     review("fer-se-soci-amb-sessio")
+
+
+def test_verifying_from_another_browser_asks_for_a_new_password(
+    page, live_server, transactional_db, review
+):
+    """Revisió A (P-740): des d'un altre navegador, el compte només s'activa triant-hi una
+    contrasenya nova."""
+    from django.conf import settings as django_settings
+    from django.test import Client
+
+    from apps.accounts import email_links, tokens
+
+    publisher = make_admin("publica.prova", "administrator")
+    consents.publish_text("privacy", "Text de prova: privacy.", by=publisher)
+    Client().post(
+        reverse("accounts:signup"),
+        {"first_name": "Nura", "last_name": "Blau", "email": "nura.blau@example.org",
+         "password": PASSWORD, "accept_privacy": "on", "text_versions": "privacy:1"},
+    )  # fmt: skip
+    account = Account.objects.get(login="nura.blau@example.org")
+    other = Client()  # un altre navegador: el testimoni a la sessió, com fa l'enllaç
+    session = other.session
+    session[email_links.VERIFY_SESSION_KEY] = tokens.make_token(account, tokens.VERIFY_EMAIL)
+    session.save()
+    name = django_settings.SESSION_COOKIE_NAME
+    page.context.add_cookies(
+        [{"name": name, "value": other.cookies[name].value, "url": live_server.url}]
+    )
+    page.goto(f"{live_server.url}{reverse('accounts:verify_email')}")
+    expect(page.get_by_label("Contrasenya nova")).to_be_visible()
+    review("verificacio-contrasenya-nova")
+    new = "contrasenya-de-proves-1954-nova"  # noqa: S105 gitleaks:allow (dada inventada)
+    page.get_by_label("Contrasenya nova").fill(new)
+    page.get_by_label("Torna-la a escriure").fill(new)
+    page.get_by_role("button", name="Confirmar el correu").click()
+    expect(page.get_by_text("Correu confirmat")).to_be_visible()
+    account.refresh_from_db()
+    assert account.status == Account.Status.ACTIVE and account.check_password(new)
