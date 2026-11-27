@@ -1120,18 +1120,6 @@ opcions:
       dies dels terminis són «com la quota». Només és una proposta: el tresorer marca l'impagat a mà, amb
       motiu, i el carnet continua vàlid fins llavors.
     data: 2026-11-19
-  P-551:
-    opcions:
-      A: "Com s'ha construït: sense reduir; es treuen les metadades dels JPEG i dels PNG, i el límit és el de validate_upload (10 MB)."
-      B: "Afegir Pillow (dependència nova, risc:alt): reduir el costat llarg i tornar a desar la imatge sense cap metadada."
-      C: "A, i a més un límit de mida més petit només per a les fotos (un ajust)."
-      D: "Acceptar només PDF i JPEG fets des de la pantalla, que redueix la imatge al navegador abans d'enviar-la."
-    recomanada: A
-    perque: >-
-      Mentre VC-56 és apagat no es desa cap foto; A compleix el que importa per a la privacitat
-      (sense GPS ni metadades) sense cap dependència, i B es pot afegir després sense tocar les dades.
-    data: 2026-11-24
-
   P-403:
     opcions:
       A: "Com s'ha construït: desactivar-la només deixa d'oferir-la; les quotes amb una targeta ja guardada es continuen cobrant."
@@ -1216,17 +1204,6 @@ opcions:
       Explica per què es demana i què passa si no es marca, sense demanar cap data de naixement
       (minimització); C i D recullen més dades personals del que cal mentre el club no admeti menors.
     data: 2026-11-21
-  P-500:
-    opcions:
-      A: "El criteri vol dir «la llicència canvia dues vegades després de la versió 1» (per exemple, pagada i cancel·lada): l'esdeveniment i la font del 01 porten la mateixa versió."
-      B: "Renovar també puja la versió de la llicència anterior (es desa l'enllaç amb la nova), i el criteri es prova tal com està escrit."
-      C: "Es corregeix el text del criteri amb una decisió numerada, sense canviar el codi."
-    recomanada: A
-    perque: >-
-      És el que assegura la 054 (el 01 compara versions de la mateixa llicència) i el que ja fa el codi; B
-      faria pujar la versió d'una llicència que no ha canviat, i C es pot fer quan es desfaci la congelació.
-    data: 2026-11-23
-
   P-501:
     opcions:
       A: "Només el nombre de llicències per data i categoria, i on és el llistat; cap nom ni enllaç a l'administració."
@@ -1271,26 +1248,6 @@ opcions:
       És el termini més curt que encara deixa respondre i fer seguiment; tots dos valors són ajustos i una llista que
       l'administrador pot canviar sense tocar codi quan la junta reparteixi els motius.
     data: 2026-11-21
-  P-590:
-    opcions:
-      A: "Quatre plantilles (Bàsica i les tres de l'editor) i vuit pàgines inicials de text; Inici és la portada i Notícies, Fer-se soci, Contacte, Preguntes freqüents, Tutorials i Butlletí tenen pantalla pròpia."
-      B: "Només les tres plantilles de l'editor (Portada, Activitats i Notícies), i les pàgines de text fan servir «Portada»."
-      C: "Totes les pàgines de F §8.2 com a pàgines de blocs, també les que tenen pantalla pròpia."
-      D: "Cap pàgina inicial: les crea qui edita la web quan tingui el contingut (P-40)."
-    recomanada: A
-    perque: >-
-      Una pàgina de text no és una portada, i duplicar com a pàgina de blocs les que ja tenen pantalla pròpia
-      faria dues adreces per a la mateixa cosa; tot és reversible (pàgines sense contingut ni publicar).
-    data: 2026-11-24
-  P-591:
-    opcions:
-      A: "Fila pròpia del 07 amb una clau aleatòria a l'emmagatzematge privat de la 00 i la validació de la 00, sense fila a PrivateFile."
-      B: "Un tipus nou «foto de la web» a PrivateFile, amb el propietari opcional (torn del nucli)."
-      C: "Un tipus nou a PrivateFile amb la persona que la puja com a propietària."
-    recomanada: A
-    perque: >-
-      Una foto de la web no és de cap persona i el seu accés el decideix el 07 (publicada o no), no el propietari;
-      el contingut ja és al mateix emmagatzematge privat i amb la mateixa validació, sense tocar el nucli.
   P-592:
     opcions:
       A: "De qui l'ha demanada amb MG9 (el registre de la factura manual); només ho canvia una decisió nova."
@@ -1322,29 +1279,6 @@ opcions:
       comptar des de l'arribada podria esborrar un missatge que encara no ha llegit ningú.
     data: 2026-11-24
 
-  P-621:
-    opcions:
-      A: "L'enllaç obre una pàgina amb el botó «Confirma la subscripció»; la baixa, immediata en obrir l'enllaç."
-      B: "Obrir l'enllaç ja confirma, com la baixa."
-      C: "Botó per confirmar i també per donar-se de baixa."
-    recomanada: A
-    perque: >-
-      Els servidors de correu que obren els enllaços per revisar-los confirmarien subscripcions sense la persona (el consentiment ha de ser
-      seu); una baixa per error només deixa de rebre el butlletí, i la regla la vol d'un sol clic.
-    data: 2026-11-24
-
-  P-622:
-    opcions:
-      A: "Com diu la regla: obrir l'enllaç de baixa dona de baixa a l'instant."
-      B: "L'enllaç mostra el botó «Dona'm de baixa» i la baixa es fa en prémer-lo (POST), més la baixa d'un clic dels programes de correu (RFC 8058, List-Unsubscribe-Post)."
-      C: "Botó a la pàgina, sense la baixa d'un clic dels programes de correu."
-      D: "Obrir l'enllaç dona de baixa i la pàgina ofereix «Desfés-ho» durant uns minuts."
-    recomanada: B
-    perque: >-
-      Els programes que revisen els enllaços del correu no donarien de baixa ningú, i la baixa continua sent d'un sol clic, també des
-      del botó del programa de correu (el que demanen avui Gmail i Yahoo per als enviaments en massa).
-    data: 2026-11-24
-
   P-623:
     opcions:
       A: "Anonimitzar: nom a la referència, correu anonimitzat, text i resposta buits; el missatge es tanca i la purga l'esborra passat el termini."
@@ -1369,44 +1303,17 @@ opcions:
       compartida surt al resum perquè ho revisi una persona; C deixaria sense esborrar els missatges dels visitants sense compte.
     data: 2026-11-24
 
-  P-633:
+  P-710:
     opcions:
-      A: "Rebutjar el WebP fins que hi hagi una biblioteca d'imatge (decisió 106); JPEG i PNG, nets sense biblioteca nova."
-      B: "Acceptar el WebP sense treure'n les metadades."
-      C: "Afegir ara Pillow per tornar a codificar totes les fotos (dependència nova, PR risc:alt pròpia)."
+      A: "Activar l'excepció per a socis i per a qui ha pagat una activitat, un curs o una llicència, amb la casella per dir que no en donar les dades i la baixa a cada correu."
+      B: "Com A, però només durant els 12 mesos següents a l'últim pagament o a l'última quota."
+      C: "Només els socis actius, amb la mateixa casella i la mateixa baixa."
+      D: "Cap excepció: només reben la informació d'activitats els subscrits de manera expressa."
     recomanada: A
     perque: >-
-      Cap foto pública no ha de portar el GPS ni el número de sèrie del mòbil; el JPEG i el PNG cobreixen les fotos del club,
-      i la biblioteca nova ja és a la proposta de la decisió 106.
-  P-630:
-    opcions:
-      A: "El correu d'entrada del compte personal (únic i verificat)."
-      B: "El correu de contacte de la persona."
-      C: "Que el soci triï entre tots dos."
-    recomanada: A
-    perque: >-
-      És l'únic correu únic i verificat de la persona; el de contacte pot ser compartit (famílies, P-624) i obriria la porta
-      a subscriure algú altre.
-    data: 2026-11-25
-  P-631:
-    opcions:
-      A: "Doble confirmació també des de l'àrea: l'enllaç al correu d'entrada i, en prémer el botó, la subscripció i el consentiment de la 00."
-      B: "Subscripció immediata: el correu d'entrada ja és verificat i el soci actua amb la seva sessió."
-    recomanada: A
-    perque: >-
-      És un consentiment (irreversible, D2): l'opció conservadora és la mateixa doble confirmació que a la web, i el consentiment
-      de la 00 només queda donat quan la persona prem el botó; la B és més còmoda i es pot triar després.
-    data: 2026-11-25
-  P-632:
-    opcions:
-      A: "No: el consentiment de l'alta no crea cap subscripció; el soci se subscriu des de la seva àrea."
-      B: "Sí: en aprovar l'alta, la casella marcada crea una subscripció confirmada amb el correu d'entrada."
-      C: "Es treu la casella del butlletí de «Fer-se soci» i el soci se subscriu des de la seva àrea."
-    recomanada: C
-    perque: >-
-      Tenir una casella que no fa res confon el soci; un sol lloc per subscriure's, amb el text i la baixa del 07, evita
-      dues fonts del mateix consentiment.
-    data: 2026-11-25
+      És el que demana el propietari i el que permet l'art. 21.2 si la gestoria hi està d'acord; B és la
+      variant més prudent si la gestoria vol un límit de temps. Fins a la resposta, l'interruptor és apagat (D).
+    data: 2026-11-27
 
 noves:
   P-412:
@@ -1746,3 +1653,35 @@ noves:
       Encendre-ho publica fotos on poden sortir persones; és irreversible un cop vist. L'administrador
       ho fa quan la junta ho decideix, i l'opció es pot ampliar més endavant sense tocar dades.
     data: 2026-11-25
+  P-574:
+    opcions:
+      A: "«En prémer, es carrega YouTube (Google)», com diu l'encàrrec."
+      B: "El mateix, amb un enllaç a la política de privacitat del club."
+      C: "«En prémer, el vídeo es carrega des de YouTube (Google), que pot desar dades al teu navegador.»"
+      D: "Cap vídeo de YouTube: només vídeos al servidor propi."
+    recomanada: B
+    perque: >-
+      Diu el mateix en poques paraules i deixa a un clic què vol dir; fins a la resposta, el vídeo continua
+      apagat (website.youtube_enabled), i l'opció D és la més conservadora si la junta no vol cap tercer.
+    data: 2026-11-24
+  P-575:
+    opcions:
+      A: "Flux apagat; l'Administrador i el President editen i publiquen (com l'actual WP1)."
+      B: "El Responsable de comunicació edita (WP1a) i l'Administrador o el President publiquen (WP1b), amb el flux encès."
+      C: "Cada departament edita les seves pàgines (abast per pàgina) i la junta publica."
+    recomanada: A
+    perque: >-
+      És la configuració inicial que ja hi ha i no canvia res fins que la junta respongui la P-43; B o C es
+      fan des de la matriu i un ajust, sense tocar codi.
+    data: 2026-11-24
+  P-610:
+    opcions:
+      A: "Només MP4 (H.264 i AAC), comprovat pel contingut, amb la mida màxima en un ajust."
+      B: "MP4 i WebM, comprovats pel contingut, amb la mida màxima en un ajust."
+      C: "Cap pujada des de l'editor: el bloc només fa servir vídeos de tutorials ja carregats."
+      D: "Cap vídeo propi: només YouTube amb clic per carregar."
+    recomanada: A
+    perque: >-
+      L'MP4 es reprodueix a tots els navegadors i un sol format es comprova millor; fins a la resposta,
+      la pujada de vídeo no s'encén a producció, i C o D són més restrictives si no es vol cap vídeo pujat.
+    data: 2026-11-24

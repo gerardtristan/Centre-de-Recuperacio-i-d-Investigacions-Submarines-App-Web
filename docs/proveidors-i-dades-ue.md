@@ -65,6 +65,12 @@ L'app no guarda mai dades de targeta ni credencials del banc.
 | App Store i Play Store | Apple i Google | EUA | Compte del club i descàrregues | **CONFLICTE** (no es fan servir, 041) |
 | Web instal·lable (PWA) | Servidor propi | UE | Les de l'app | Compleix |
 
+### Identitat
+| Servei | Proveïdor | Seu | Dades que rep | Estat |
+|---|---|---|---|---|
+| «Continua amb Google» (OpenID Connect, opcional, només comptes personals) | Google | EUA | Google sap que la persona entra a la plataforma; la plataforma només en rep el nom i el correu verificat, i les dades continuen desades a la UE | **Excepció acotada** ([108](decisions/108-respostes-del-propietari-del-27-11-2026-web-butlleti-i-compte-rapid.md), D.2): opció voluntària de la persona; apagat fins que hi hagi la clau |
+| Clau d'accés (WebAuthn) i codi pel correu | Servidor propi (el codi surt per Brevo) | UE | Clau pública del dispositiu; correu | Compleix |
+
 ### Contingut i web
 | Servei | Proveïdor | Seu | Dades que rep | Estat |
 |---|---|---|---|---|
