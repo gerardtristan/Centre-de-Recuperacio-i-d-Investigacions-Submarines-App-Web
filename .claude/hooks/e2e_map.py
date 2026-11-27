@@ -324,6 +324,8 @@ MAP = {
         "apps/website/admin_urls.py",
         "static/js/editor-web.js",
         "static/js/previa-web.js",
+        "static/js/video-web.js",
+        "apps/website/video.py",
         "templates/website/admin/page*.html",
     ),
     "test_web_admin_continguts.py": (

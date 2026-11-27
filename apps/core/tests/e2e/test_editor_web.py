@@ -104,3 +104,34 @@ def test_versions_compare_schedule_retire_and_recover(page, live_server, transac
     expect(page.get_by_text("Pàgina retirada. Es pot recuperar.")).to_be_visible()
     page.get_by_role("button", name="Recupera la pàgina").click()
     expect(page.get_by_text("Pàgina recuperada en esborrany.", exact=False)).to_be_visible()
+
+
+GOOGLE = ("google", "youtube", "ytimg", "gstatic", "doubleclick", "ggpht")
+
+
+def test_ca_m07_25_no_request_to_google_before_the_click(page, live_server, transactional_db):
+    """T-M07-23: amb `website.youtube_enabled` encès, el bloc de vídeo no demana res a cap domini
+    de Google fins que es prem; després, només a youtube-nocookie.com (aquí, una resposta falsa)."""
+    from apps.core.models import Setting
+    from apps.website import pages
+
+    Setting.objects.filter(key="website.youtube_enabled").update(initial_value=True)
+    president = make_admin("presidencia.prova", "president")
+    web = pages.save_page(None, actor=president, slug="video-inventat", title="Vídeo")[0]
+    blocks = [{"kind": "video", "source": "youtube", "youtube_id": "dQw4w9WgXcQ",
+               "title": "Immersió inventada"}]  # fmt: skip
+    pages.save_draft(web, blocks, president)
+    login_admin(page, live_server.url, president.login)
+    hosts = []
+    page.on("request", lambda request: hosts.append(request.url.split("/")[2]))
+    page.route("https://www.youtube-nocookie.com/**", lambda route: route.fulfill(
+        status=200, content_type="text/html", body="<p>video fals</p>"))  # fmt: skip
+    page.goto(f"{live_server.url}{reverse('administration:website_page_preview', args=[web.pk])}")
+    button = page.get_by_role("button", name="En prémer, es carrega YouTube (Google)")
+    expect(button).to_be_visible()
+    page.wait_for_load_state("networkidle")
+    assert not [h for h in hosts if any(g in h for g in GOOGLE)]
+    button.click()
+    expect(page.frame_locator("iframe").get_by_text("video fals")).to_be_visible()
+    google = {h for h in hosts if any(g in h for g in GOOGLE)}
+    assert google == {"www.youtube-nocookie.com"}
