@@ -119,8 +119,6 @@ class PageDraft(models.Model):
         return str(self.page)
 
 
-
-
 class Menu(models.Model):
     """Menú de la web pública (addenda 106; decisió 034). El públic en veu 6 enllaços i la resta
     a «Més» (`menus.public_menu`)."""

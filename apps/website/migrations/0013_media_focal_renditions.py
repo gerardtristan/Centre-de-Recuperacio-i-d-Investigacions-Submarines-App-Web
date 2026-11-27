@@ -18,7 +18,7 @@ def load(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("website", "0010_tutorials"),
+        ("website", "0012_page_draft"),
         ("core", "0013_business_settings"),
     ]
 

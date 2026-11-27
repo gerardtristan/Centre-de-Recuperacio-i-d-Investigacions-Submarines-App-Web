@@ -54,7 +54,7 @@ def unload(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("website", "0010_tutorials"),
+        ("website", "0013_media_focal_renditions"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
