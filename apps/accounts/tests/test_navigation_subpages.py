@@ -23,6 +23,12 @@ STANDALONE = {
     "administration:website_pages",
     "administration:website_page_editor",
     "administration:website_page_editor_action",
+    # T-M07-06b: la vista prèvia (dins de l'editor) i les accions de l'editor, només POST.
+    "administration:website_page_preview",
+    "administration:website_page_autosave",
+    "administration:website_page_share",
+    "administration:website_page_publish",
+    "administration:website_page_revert",
 }
 
 
