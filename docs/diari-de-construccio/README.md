@@ -659,3 +659,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M07-21](T-M07-21.md) | Menús, capçalera i peu de la web pública, i WP9 (torn del nucli; part a) | 27/11/2026 22:35 | (vegeu la PR) | 29 noves | [A comprovar] |
 | [T-M07-21](T-M07-21.md) | Menús, capçalera i peu: la pantalla de l'administració (WP9; part b) | 27/11/2026 22:47 | (vegeu la PR) | 9 noves i 1 e2e | [A comprovar] |
 | [T-M07-37](T-M07-37.md) | Inventari del contingut de cris1954.cat (en part: falten les pàgines inicials de l'editor) | 27/11/2026 22:54 | 86438927 | Cap de nova | [A comprovar] |
+| [T-M07-01](T-M07-01.md) | Wireframes de l'editor de la web pública: les deu pantalles de l'encàrrec (Probador, Pregon, Fototeca) | 27/11/2026 22:28 | 602be634 | 1 nova i 1 e2e | [A comprovar] |
