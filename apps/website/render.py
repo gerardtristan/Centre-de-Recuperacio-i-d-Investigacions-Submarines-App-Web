@@ -6,7 +6,8 @@ T-M07-19) o, mentre no existeix, amb `website/blocs/_provisional/<kind>.html`, a
 - Els blocs amb `hidden` no es passen mai a cap plantilla.
 - Els camps «md» arriben com a HTML segur (`blocks.render_markdown`) amb el mateix nom.
 - Les fotos (`media`, `thumbnail`) arriben com a `Image` (`url`, `alt_text`, `width`, `height`,
-  `focal_x`, `focal_y`); una foto que ja no es pot publicar arriba com a `None`.
+  `focal_x`, `focal_y`); una foto que ja no es pot publicar, o totes amb
+  `website.public_images_enabled` apagat, arriben com a `None`.
 - Les columnes d'una secció arriben ja pintades (una cadena HTML per columna).
 - Dades: `upcoming_activities` porta `activities` (del 02), `recent_news` porta `news` i
   `faq_topic` porta `entries`.
@@ -32,6 +33,7 @@ from . import media, news
 from .models import FaqTopic, MediaAsset
 
 NOT_YET = {"featured_activities", "past_activities", "featured_trip", "video", "file"}
+IMAGES = "website.public_images_enabled"
 SWITCHES = {"newsletter": "website.newsletter_enabled", "contact_form": "website.contact_enabled"}
 
 
@@ -45,9 +47,19 @@ class Image:
     focal_y: float | None = None
 
 
+def _key(value):
+    try:
+        return uuid.UUID(value)
+    except (TypeError, ValueError, AttributeError):
+        return None
+
+
 def _images(blocks) -> dict:
-    """Les fotos que es poden publicar (RN-M07-05), en una sola consulta."""
-    keys = {uuid.UUID(k) for k in media.block_media_keys(blocks, public_only=True)}
+    """Les fotos que es poden publicar (RN-M07-05), en una sola consulta; cap amb
+    `website.public_images_enabled` apagat (com les notícies)."""
+    if not business_settings.get(IMAGES):
+        return {}
+    keys = {_key(k) for k in media.block_media_keys(blocks, public_only=True)} - {None}
     found = MediaAsset.objects.filter(key__in=keys)
     return {
         str(a.key): Image(reverse("website:media", args=[a.key]), a.alt_text)
@@ -80,7 +92,8 @@ def _data(block: dict) -> dict:
     if kind == "recent_news":
         return {"news": list(news.published()[: block.get("count") or 0])}
     if kind == "faq_topic":
-        topic = FaqTopic.objects.filter(pk=block.get("topic")).first()
+        topic_id = block.get("topic")
+        topic = FaqTopic.objects.filter(pk=topic_id).first() if topic_id else None
         return {"entries": list(faq.published_entries(topic)) if topic else []}
     return {}
 
