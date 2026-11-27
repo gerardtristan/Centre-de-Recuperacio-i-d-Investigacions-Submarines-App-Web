@@ -15,7 +15,6 @@ from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.files.storage import storages
 from django.db import transaction
-from django.db.models import Q
 from django.http import Http404
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
@@ -24,6 +23,7 @@ from apps.activities.card_photos import strip_jpeg, strip_png
 from apps.core import audit, files
 from apps.core.permissions import has_perm
 
+from . import blocks as catalog
 from .models import MediaAsset, NewsItem, Page, PageVersion, Tutorial
 
 PERMISSION = "website.media"  # WP3
@@ -114,21 +114,20 @@ def retire(asset: MediaAsset, *, actor, reason: str) -> MediaAsset:
     return asset
 
 
-def block_media_keys(blocks) -> list[str]:
-    """Claus de les fotos dels blocs d'imatge (una) i de galeria (una llista)."""
+def block_media_keys(blocks, *, public_only: bool = False) -> list[str]:
+    """Claus de les fotos dels blocs (també dins de seccions i targetes), ja validats amb
+    `blocks.validate`. `public_only`: sense els blocs amagats, que no surten a la web."""
     keys = []
-    for block in blocks:
-        if not isinstance(block, dict):
-            continue  # el rebutja `pages.validate_blocks`
-        value = block.get("media")
-        if block.get("kind") == "image":
-            if not isinstance(value, str):
-                raise ValidationError(_("Un bloc d'imatge porta una sola foto."))
-            keys.append(value)
-        elif block.get("kind") == "gallery":
-            if not isinstance(value, list) or not all(isinstance(v, str) for v in value):
-                raise ValidationError(_("Una galeria porta una llista de fotos."))
-            keys.extend(value)
+    for block in catalog.walk(blocks, public_only=public_only):
+        kind = block["kind"]
+        if kind in ("image", "image_text") and block.get("media"):
+            keys.append(block["media"])
+        elif kind == "gallery":
+            keys.extend(block.get("media") or [])
+        elif kind == "video" and block.get("thumbnail"):
+            keys.append(block["thumbnail"])
+        elif kind == "project_cards":
+            keys.extend(item["media"] for item in block.get("items") or [] if item.get("media"))
     return keys
 
 
@@ -147,20 +146,20 @@ def check_publishable(keys) -> None:
 
 
 def _is_published(asset: MediaAsset) -> bool:
-    """Surt en una notícia publicada o a la versió vigent d'una pàgina publicada. Només es miren
-    les versions que contenen aquesta clau (contenció de JSON de PostgreSQL), no totes."""
+    """Surt en una notícia publicada o en un bloc visible de la versió vigent d'una pàgina
+    publicada. Només es miren les versions que contenen el text de la clau, no totes."""
     if NewsItem.objects.filter(status=NewsItem.Status.PUBLISHED, image=asset).exists():
         return True
     if Tutorial.objects.filter(published=True, image=asset).exists():  # T-M07-10
         return True
     key = str(asset.key)
-    candidates = PageVersion.objects.filter(page__status=Page.Status.PUBLISHED).filter(
-        Q(blocks__contains=[{"kind": "image", "media": key}])
-        | Q(blocks__contains=[{"kind": "gallery", "media": [key]}])
+    candidates = PageVersion.objects.filter(
+        page__status=Page.Status.PUBLISHED, blocks__icontains=key
     )
     for version in candidates.select_related("page"):
         latest = version.page.versions.order_by("-number").values_list("number", flat=True)[0]
-        if version.number == latest:
+        visible = block_media_keys(catalog.upgrade_all(version.blocks), public_only=True)
+        if version.number == latest and key in visible:
             return True
     return False
 

@@ -31,7 +31,15 @@ def test_the_section_has_its_values_with_the_switches_off():
     settings = Setting.objects.filter(module="website")
     # L'interruptor de les fotos públiques (D2, `website/0008`) encara no té permís al catàleg del
     # nucli: ningú no el pot canviar, i no entra a les proves de rang.
-    switches = {"website.public_images_enabled": False}
+    # Els de l'editor (decisió 106, `website/0011`) també esperen el seu permís (torn del nucli);
+    # els rangs es comproven a `test_blocks_106.py`.
+    switches = {
+        "website.public_images_enabled": False,
+        "website.youtube_enabled": False,
+        "website.review_flow_enabled": False,
+        "website.autosave_seconds": 20,
+        "website.upload_max_mb": 10,
+    }
     assert {s.key: s.initial_value for s in settings} == {
         **{k: v[0] for k, v in VALUES.items()},
         **switches,
