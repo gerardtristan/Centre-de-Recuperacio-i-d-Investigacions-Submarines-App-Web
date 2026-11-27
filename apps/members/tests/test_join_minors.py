@@ -10,7 +10,6 @@ from datetime import UTC, date, datetime
 import pytest
 from django.db import IntegrityError, connection, transaction
 from django.db.utils import ProgrammingError
-from django.test import Client
 from django.urls import reverse
 
 from apps.accounts.models import EmailLinkRequest
@@ -38,6 +37,7 @@ from apps.members.tests.test_join import (  # noqa: F401 (fixtures secretary i t
     secretary,
     submit,
     texts,
+    visitor,  # noqa: E402
 )
 
 GUARDIAN = {
@@ -79,7 +79,7 @@ def nothing_created():
 def preview(client=None, url=None, **overrides):
     data = form_data(**overrides)
     data["vista_previa"] = "1"
-    return (client or Client()).post(url or reverse(PUBLIC), data).content.decode()
+    return (client or visitor()).post(url or reverse(PUBLIC), data).content.decode()
 
 
 def type_fieldset(html: str) -> str:
@@ -361,7 +361,7 @@ class TestApplicantDocument:
         assert (response.status_code == 200) is required
 
     def test_labels_follow_the_server_computed_age(self, today):
-        page = Client().get(reverse(PUBLIC)).content.decode().replace("&#x27;", "'")
+        page = visitor().get(reverse(PUBLIC)).content.decode().replace("&#x27;", "'")
         assert "Document d'identitat (DNI o NIE; obligatori per a majors d'edat)" in page
         minor = preview(birth_date="2016-04-01").replace("&#x27;", "'")
         assert 'id="etiqueta-document" hx-swap-oob="innerHTML"' in minor
@@ -370,7 +370,7 @@ class TestApplicantDocument:
         assert "Document d'identitat (DNI o NIE)</span>" in adult
 
     def test_bank_and_health_notice_is_on_no_screen(self, secretary, today):  # noqa: F811
-        public = Client().get(reverse(PUBLIC)).content.decode()
+        public = visitor().get(reverse(PUBLIC)).content.decode()
         internal = admin_client(secretary).get(reverse(IN_PERSON)).content.decode()
         for html in (public, internal):
             assert "dades bancàries" not in html and "mandat SEPA" not in html
@@ -470,7 +470,7 @@ class TestPreview:
         # 070: cap text de prorrata, de «la resta de l'any», d'any natural ni de plaços.
         for on in (date(2026, 3, 1), date(2026, 11, 15), date(2026, 12, 31)):
             today(on)
-            html = preview(birth_date=birth) if birth else Client().get(reverse(PUBLIC))
+            html = preview(birth_date=birth) if birth else visitor().get(reverse(PUBLIC))
             text = (html if birth else html.content.decode()).lower()
             for banned in (
                 "proporcional",
@@ -507,7 +507,7 @@ class TestPreview:
 
     def test_guardian_block_only_for_minors_also_without_javascript(self, today):
         # Sense data (primera càrrega, també sense JavaScript) i per a un adult: no hi és.
-        first = Client().get(reverse(PUBLIC)).content.decode().replace("&#x27;", "'")
+        first = visitor().get(reverse(PUBLIC)).content.decode().replace("&#x27;", "'")
         assert 'class="representant"' not in first and 'name="guardian_authorization"' not in first
         assert "Ple dret: a partir dels 14 anys complerts." in first
         assert 'class="representant"' not in preview(birth_date="2008-11-06")  # avui en fa 18

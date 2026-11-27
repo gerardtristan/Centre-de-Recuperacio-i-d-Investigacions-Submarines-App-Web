@@ -7,7 +7,6 @@ from datetime import date
 import pytest
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
-from django.test import Client
 from django.urls import reverse
 
 from apps.core.models import Person
@@ -15,7 +14,12 @@ from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.members import member_requests as mr
 from apps.members.fee_rules import local_today
 from apps.members.models import MemberRequest, MembershipType
-from apps.members.tests.test_join import PUBLIC, submit, texts  # noqa: F401 (fixture)
+from apps.members.tests.test_join import (  # noqa: F401 (fixture)
+    PUBLIC,
+    submit,
+    texts,
+    visitor,  # noqa: E402
+)
 from apps.members.tests.test_join_minors import GUARDIAN, nothing_created, today  # noqa: F401
 from apps.members.tests.test_member_requests import account_for, make_member
 
@@ -103,7 +107,7 @@ def test_a_full_rights_type_needs_at_least_14(db):
 class TestJoinMessages:
     def test_the_help_before_the_date_names_each_type_with_a_min_age(self):
         new_type("senior", min_age=16)
-        page = Client().get(reverse(PUBLIC)).content.decode().replace("&#x27;", "'")
+        page = visitor().get(reverse(PUBLIC)).content.decode().replace("&#x27;", "'")
         assert "Ple dret: a partir dels 14 anys complerts." in page
         assert "Senior: a partir dels 16 anys complerts." in page
         assert "només poden ser simpatitzants" not in page

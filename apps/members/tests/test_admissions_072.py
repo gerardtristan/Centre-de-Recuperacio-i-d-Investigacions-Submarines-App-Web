@@ -26,7 +26,7 @@ from apps.members.tests.test_admissions import (
     minor_request,
     readmission_request,
 )
-from apps.members.tests.test_join import form_data
+from apps.members.tests.test_join import form_data, visitor
 
 S = Member.Status
 SYSTEM = audit.system("proves")
@@ -193,7 +193,7 @@ class TestNewContact:
             contact_email="laia.antic@example.org",
             phone="600000002",
         )
-        response = client.post(
+        response = visitor().post(
             reverse("members:join"),
             form_data(contact_email="laia.nou@example.org", phone="600 000 009"),
         )
@@ -207,7 +207,7 @@ class TestNewContact:
     def test_new_person_has_no_new_contact(self, client, publisher):
         for kind in ("privacy", "membership_terms", "guardian_authorization"):
             text(kind, publisher)
-        client.post(reverse("members:join"), form_data())
+        visitor().post(reverse("members:join"), form_data())
         join_request = MemberRequest.objects.get()
         assert (join_request.new_contact_email, join_request.new_contact_phone) == ("", "")
 

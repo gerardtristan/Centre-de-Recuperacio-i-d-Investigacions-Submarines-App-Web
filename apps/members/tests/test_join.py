@@ -2,6 +2,7 @@
 P2, límit de peticions, document repetit sense revelar-ho i no fusió de persones. Només dades
 inventades (DNI i NIE de prova amb la lletra correcta, correus a example.org)."""
 
+import itertools
 import re
 import time
 from datetime import date
@@ -54,6 +55,7 @@ def form_data(**overrides):
         "accept_membership_terms": "on",
         "birth_date": "1990-05-20",
         "text_versions": join_versions(),
+        "for_whom": "other",  # T-M01-53: amb sessió; «per a mi» té proves pròpies
     }
     data.update(overrides)
     return {k: v for k, v in data.items() if v is not None}
@@ -67,6 +69,19 @@ def _client(account, area):
     session[AUTH_AT_SESSION_KEY] = time.time()
     session.save()
     return client
+
+
+_VISITORS = itertools.count(1)
+
+
+def visitor():
+    """T-M01-53 (108, C.1): «Fer-se soci» només amb la sessió d'un compte personal."""
+    n = next(_VISITORS)
+    person = Person.objects.create(first_name="Visitant", origin=Person.Origin.WEB)
+    account = Account.objects.create_personal(person, f"visitant{n}@example.org", PASSWORD)
+    Account.objects.filter(pk=account.pk).update(status=Account.Status.ACTIVE)
+    account.refresh_from_db()
+    return personal_client(account)
 
 
 def admin_client(account):
@@ -110,13 +125,13 @@ def secretary(make_admin, texts):  # noqa: F811
 
 
 def submit(client=None, **overrides):
-    return (client or Client()).post(reverse(PUBLIC), form_data(**overrides))
+    return (client or visitor()).post(reverse(PUBLIC), form_data(**overrides))
 
 
 # --- CA-M01-01 ---------------------------------------------------------------------------------
 class TestWebForm:
     def test_get_asks_for_the_birth_date_and_no_adult_declaration(self, texts):
-        response = Client().get(reverse(PUBLIC))
+        response = visitor().get(reverse(PUBLIC))
         assert response.status_code == 200
         html = response.content.decode()
         assert 'name="id_document"' in html and 'name="birth_date"' in html
@@ -174,7 +189,7 @@ class TestWebForm:
         assert "Laia" not in email.body_text and "12345678Z" not in email.body_text
 
     def test_confirmation_after_redirect_and_not_again_on_reload(self, texts):
-        client = Client()
+        client = visitor()
         submit(client)
         page = client.get(reverse(PUBLIC)).content.decode()
         assert "Sol·licitud enviada" in page and "laia.dorada@example.org" in page
@@ -223,8 +238,8 @@ class TestWebForm:
         assert counts() == before
 
     def test_without_published_texts_the_form_is_unavailable(self, db):
-        assert Client().get(reverse(PUBLIC)).status_code == 503
-        assert Client().post(reverse(PUBLIC), {}).status_code == 503
+        assert visitor().get(reverse(PUBLIC)).status_code == 503
+        assert visitor().post(reverse(PUBLIC), {}).status_code == 503
         assert MemberRequest.objects.count() == 0
 
     def test_csrf_is_required(self, texts):
@@ -233,12 +248,12 @@ class TestWebForm:
         assert MemberRequest.objects.count() == 0
 
     def test_public_form_shows_no_internal_marks_or_document_help(self, texts):
-        html = Client().get(reverse(PUBLIC)).content.decode()
+        html = visitor().get(reverse(PUBLIC)).content.decode()
         assert "A validar" not in html and "a-validar" not in html
         assert "Només el veu la secretaria" not in html
 
     def test_legal_texts_open_in_a_window_and_stay_readable_without_javascript(self, texts):
-        html = Client().get(reverse(PUBLIC)).content.decode()
+        html = visitor().get(reverse(PUBLIC)).content.decode()
         assert "<details" not in html
         assert "js/textos-legals.js" in html
         for kind in TEXT_KINDS:
@@ -257,7 +272,7 @@ class TestWebForm:
         assert 'target="_blank"' not in html
 
     def test_next_steps_follow_the_approved_order(self, texts):
-        html = Client().get(reverse(PUBLIC)).content.decode()
+        html = visitor().get(reverse(PUBLIC)).content.decode()
         steps = [
             "L'administració del C.R.I.S. revisa la sol·licitud.",
             "crea la quota pendent i t'envia una invitació per activar el compte personal.",
@@ -313,7 +328,7 @@ class TestDuplicates:
         assert entry.details["person_created"] is False and entry.details["duplicate_warning"]
 
     def test_visitor_sees_the_same_response_with_or_without_the_document(self, existing):
-        new_client, dup_client = Client(), Client()
+        new_client, dup_client = visitor(), visitor()
         new = submit(new_client, id_document="00000001R", contact_email="a@example.org")
         dup = submit(dup_client, id_document="12345678Z", contact_email="a@example.org")
         assert (new.status_code, new["Location"]) == (dup.status_code, dup["Location"])
@@ -372,7 +387,7 @@ class TestP1:
         )
 
     def test_visitor(self, texts):
-        assert Client().get(reverse(PUBLIC)).status_code == 200
+        assert visitor().get(reverse(PUBLIC)).status_code == 200
 
     def test_participant_without_membership(self, personal):
         assert personal_client(personal).get(reverse(PUBLIC)).status_code == 200
@@ -588,7 +603,7 @@ def test_no_wrong_middle_dot_in_templates_emails_or_code():
 
 
 def test_public_page_uses_the_right_middle_dot(texts):
-    html = Client().get(reverse(PUBLIC)).content.decode()
+    html = visitor().get(reverse(PUBLIC)).content.decode()
     visible = re.sub(r"<[^>]+>", " ", html)
     assert "Sol·licitud" in visible
     assert not [name for ch, name in WRONG_DOTS.items() if ch in html]

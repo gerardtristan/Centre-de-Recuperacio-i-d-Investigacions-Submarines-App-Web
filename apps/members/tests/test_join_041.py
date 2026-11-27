@@ -11,7 +11,6 @@ from datetime import date, timedelta
 import pytest
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
-from django.test import Client
 from django.urls import reverse
 
 from apps.core import consents
@@ -28,6 +27,7 @@ from apps.members.tests.test_join import (  # noqa: F401 (fixture texts)
     admin_client,
     form_data,
     texts,
+    visitor,  # noqa: E402
 )
 from apps.members.tests.test_member_requests import travel_to
 
@@ -68,7 +68,7 @@ def data(**overrides):
 
 
 def post(client=None, url=None, **overrides):
-    return (client or Client()).post(url or reverse(PUBLIC), data(**overrides))
+    return (client or visitor()).post(url or reverse(PUBLIC), data(**overrides))
 
 
 def minor(birth=UNDER14, **overrides):
@@ -91,13 +91,13 @@ def emails(template):
 # --- (1) Butlletí i imatges (Q-031) ----------------------------------------------------------
 class TestOptionalConsents:
     def test_without_published_texts_there_is_no_checkbox_and_a_posted_value_is_ignored(self):
-        html = Client().get(reverse(PUBLIC)).content.decode()
+        html = visitor().get(reverse(PUBLIC)).content.decode()
         assert 'name="accept_newsletter"' not in html and 'name="accept_images"' not in html
         assert post(accept_newsletter="on", accept_images="on").status_code == 303
         assert kinds(MemberRequest.objects.get()) == ["membership_terms", "privacy"]
 
     def test_checkboxes_are_unchecked_by_default_and_separate_from_the_required(self, optional):
-        html = Client().get(reverse(PUBLIC)).content.decode()
+        html = visitor().get(reverse(PUBLIC)).content.decode()
         for name in ("accept_newsletter", "accept_images"):
             tag = html.split(f'name="{name}"')[1].split(">")[0]
             assert "checked" not in tag
@@ -379,7 +379,7 @@ class TestCommunications:
         ],
     )
     def test_receipt(self, birth, own, expected):
-        client = Client()
+        client = visitor()
         response = client.post(
             reverse(PUBLIC), data(birth_date=birth, contact_email=own, **GUARDIAN)
         )
@@ -468,7 +468,7 @@ class TestCommunications:
 # --- (4) Passaport només a l'alta presencial (Q-017) ------------------------------------------
 class TestPassport:
     def test_web_has_no_document_type_and_rejects_a_tampered_passport(self):
-        assert 'name="id_document_kind"' not in Client().get(reverse(PUBLIC)).content.decode()
+        assert 'name="id_document_kind"' not in visitor().get(reverse(PUBLIC)).content.decode()
         response = post(id_document="PAA123456", id_document_kind="passport")
         assert response.status_code == 200
         assert "Escriu un DNI o un NIE vàlid" in response.content.decode()
