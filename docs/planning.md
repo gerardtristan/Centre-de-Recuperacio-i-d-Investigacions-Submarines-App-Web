@@ -6424,7 +6424,7 @@ No canvia cap regla del 06. Hi afegeix d'on surt la sol·licitud de la primera l
 <a id="M07"></a>
 # Mòdul 07 — Web pública i ajuda
 
-**Estat: aprovat** pel propietari el 24/11/2026 (escrit el 21/11/2026; [M07-14](#M07-14-aprovar)). És una **especificació d'una pàgina** (punt 5 de «Com es treballa» del [`CLAUDE.md`](../CLAUDE.md): contingut web), amb les 14 seccions de la [plantilla](#plantilla) en format curt. El responsable del projecte la va demanar alhora que la del [08](#M08) (21/11/2026). Cap regla d'un altre mòdul no canvia.
+**Estat: aprovat** pel propietari el 24/11/2026 (escrit el 21/11/2026; [M07-14](#M07-14-aprovar)). És una **especificació d'una pàgina** (punt 5 de «Com es treballa» del [`CLAUDE.md`](../CLAUDE.md): contingut web), amb les 14 seccions de la [plantilla](#plantilla) en format curt. El responsable del projecte la va demanar alhora que la del [08](#M08) (21/11/2026). Cap regla d'un altre mòdul no canvia. L'[addenda de la 106](#M07-addenda-106) l'amplia amb l'editor visual.
 
 **Fonts:** document de funcionalitats (F §8.2 Web pública, anuncis i butlletí; F §8.6 Preguntes freqüents, Contacte i Tutorials; processos 9.14 i 9.19), mapa de la plataforma v8 (M07a Web i M07b Ajuda, [correspondència](#numeracio)), wireframe `design/wireframes/publica.html`, pantalles «En construcció» d'`apps/previews` (`portada_publica`, T-DX-26; `editor_web`, T-DX-36; `ajuda`, T-DX-28), decisions [032](decisions/032-immersio-socis-i-centre.md) i [034](decisions/034-patrons-magic-portfolio.md) (seccions i estil), [035](decisions/035-dades-nomes-dins-ue.md) i [042](decisions/042-proveidors-substituits-pel-requisit-ue.md) (tipografies i vídeos des del servidor propi), [041](decisions/041-web-installable-i-avisos-sense-push.md) i [046](decisions/046-interficie-django-htmx-servida-des-del-vps.md) (web pública servida des del mateix VPS, sense CDN), [061](decisions/061-plataforma-preparada-per-traduir.md) (idiomes), [062](decisions/062-brevo-es-mante-com-a-proveidor-de-correu.md) (Brevo); pendents P-25, P-40, P-41, P-42, P-43 i P-49.
 
@@ -6665,6 +6665,134 @@ Unitàries (versions, format de text, recomptes, conservació); permisos (una pr
 2. Les files WP1 a WP8 de la [matriu](#rols-i-permisos-059-matriu) amb la configuració inicial de M07-4.
 3. Els supòsits S-M07-01 a 05 per començar; no bloquegen el codi.
 4. **Per obrir-la al públic** (no per començar): P-40, P-41, P-43; i, per encendre el butlletí i el contacte, P-42 i la confirmació de la P-486.
+
+<a id="M07-addenda-106"></a>
+## M07 — Addenda de la [106](decisions/106-editor-visual-de-la-web-publica.md): editor visual de la web pública
+
+Escrita el 24/11/2026 a partir de l'encàrrec del propietari ([`docs/plans/editor-web-07.md`](plans/editor-web-07.md)) i revisada el mateix dia contra el seu [«Estudi: editor visual de la web pública (M07)»](https://claude.ai/artifact/NpiWqot3HiE225xj2sqpdw) (no copiat al repositori); aprovada pel propietari el 27/11/2026 (decisió 106). **Completa** les seccions M07-4 a M07-10 anteriors: on aquesta addenda diu una altra cosa, mana l'addenda. Les fotos reals són de la [107](decisions/107-fotos-reals-del-club-per-a-plantilles-mostres-i-captures.md). Decisions del propietari: editor de blocs propi (ni Wagtail ni cap CMS extern); blocs i variants tancades (cap color, mida, tipografia ni HTML lliures); YouTube amb clic per carregar; flux de revisió disponible però apagat; permís d'editar per pàgina; vista prèvia només amb sessió i permís.
+
+**Regles que canvien o s'afegeixen**
+| ID | Regla |
+|---|---|
+| RN-M07-09 (excepció) | **YouTube amb clic per carregar.** L'única excepció a «res de tercers» és `youtube-nocookie.com`, i només després que el visitant premi el bloc de vídeo. Abans del clic, el bloc mostra la miniatura desada al nostre emmagatzematge i l'avís «En prémer, es carrega YouTube (Google)», i no es carrega res de Google (ni script, ni imatge, ni tipografia, ni galeta). Darrere de `website.youtube_enabled`, que no s'encén a producció fins que la junta validi el text de l'avís ([P-574](decisions/pendents.md)). CA-M07-14 i CA-M07-15 valen amb l'ajust apagat i, amb l'ajust encès, per a tot excepte l'`iframe` que crea el clic |
+| RN-M07-10 (concreció) | **Markdown restringit.** El text es desa en Markdown limitat a negreta, cursiva, enllaç, llistes i títols de nivell 2 i 3; es converteix amb l'HTML desactivat i el resultat s'escapa. Un enllaç només pot ser `https:`, `mailto:`, `tel:` o una pàgina interna; qualsevol altre esquema es desa com a text |
+| RN-M07-15 | **Catàleg tancat.** Cada bloc té un tipus i un esquema (camps, variants i límits) que el servidor valida en desar i en publicar; un camp o una variant que no són a l'esquema es rebutgen. La llista de tipus i variants és codi; els patrons i els blocs compartits són dades |
+| RN-M07-16 | **Esborrany per pàgina.** Cada pàgina té un sol esborrany, que es desa sol cada `website.autosave_seconds`. Si una altra persona té la mateixa pàgina oberta, l'editor ho avisa (no la bloqueja). Publicar crea la versió (RN-M07-03); dues versions es poden comparar bloc per bloc |
+| RN-M07-17 | **Publicació i retirada programades.** Es poden programar per a una data i hora; les fa la cua de tasques, amb el registre a nom de qui les va programar. Una programació es pot anul·lar fins que s'executa |
+| RN-M07-18 | **Adreces.** Canviar el `slug` d'una pàgina publicada crea una redirecció permanent (301) des de l'adreça anterior; una redirecció no pot coincidir amb una ruta existent |
+| RN-M07-19 | **Pujades.** Només JPEG, PNG i WebP (cap SVG), com a màxim `website.upload_max_mb`; el servidor en comprova el contingut i les torna a codificar amb Pillow, cosa que en treu l'EXIF i el GPS. Els PDF se serveixen com a descàrrega (`Content-Disposition: attachment`) i amb `X-Content-Type-Options: nosniff` |
+| RN-M07-20 | **CSP de la web pública.** Tot del mateix origen (`default-src 'self'`); `frame-src` només per a `https://www.youtube-nocookie.com`, i només amb `website.youtube_enabled` encès |
+| RN-M07-21 | **Activitats a la web.** Tres blocs: «Properes activitats» (automàtic, amb filtre), «Activitats destacades» (WP1a les tria i les ordena; el 07 només desa la referència, l'ordre i les dates de visibilitat, sense cap còpia) i «Activitats fetes» (crònica amb foto). Una activitat retirada al 02 desapareix a la petició següent. No hi surt cap nom de persona (RN-M07-04) |
+| RN-M07-22 | **Fotos de l'app.** El selector de fotos té dues pestanyes: «Biblioteca de la web» (`MediaAsset`) i «Fotos d'activitats», on només surten les fotos publicables amb consentiment (RN-M02-23) que dona el 02 (RP-M07-02). Mai fotos privades: ni carnets de titulació (104), ni avatars, ni documents |
+| RN-M07-23 | **Vista prèvia.** Només amb sessió i WP1a; mai per una adreça pública ni compartible. Mostra l'esborrany amb la plantilla real, a mòbil, tauleta i escriptori, en clar i en fosc (Probador, T-DX-36) |
+| RN-M07-24 | **Flux de revisió.** Amb `website.review_flow_enabled` encès, WP1a envia l'esborrany a revisió i només WP1b el publica; apagat (d'inici), qui té WP1b publica directament. Qui revisa a la pràctica és la P-43 ([P-575](decisions/pendents.md)) |
+| RN-M07-25 | **Retirar i recuperar.** Cap pàgina no s'esborra. Una pàgina retirada surt a «Retirades» i es pot recuperar: torna a esborrany amb el contingut de l'última versió i no es veu fins que es torna a publicar (RN-M07-03). Retirar i recuperar queden al registre (RN-M07-14) |
+| RN-M07-26 | **Vídeo propi.** El bloc de vídeo pot mostrar, en lloc de YouTube, un vídeo al servidor propi, amb el mateix fitxer i la mateixa validació que el vídeo dels tutorials (RN-M07-11, T-M07-10); no depèn de `website.youtube_enabled`. Els formats i la mida màxima d'un vídeo pujat són la [P-610](decisions/pendents.md): fins a la resposta, només MP4 comprovat pel contingut, i la pujada de vídeo no s'encén a producció |
+
+**Plantilles i patrons.** Plantilles de pàgina, llista tancada al codi: Portada, Secció, Article, Projecte, Galeria i Captació. Cada una porta un contingut d'exemple fet amb blocs, a partir de [`design/wireframes/publica.html`](../design/wireframes/publica.html), amb les fotos de la [107](decisions/107-fotos-reals-del-club-per-a-plantilles-mostres-i-captures.md). Els **patrons** (grups de blocs que s'insereixen d'un cop) i els **blocs compartits** (un bloc que surt a diverses pàgines i es canvia en un sol lloc) són dades: `Pattern` i `SharedBlock`, amb versions com les pàgines.
+
+**Catàleg de blocs** (RN-M07-15; contracte amb la sessió de disseny, que fa `templates/website/blocs/<tipus>.html` amb aquests noms de camp). Camps de text en Markdown restringit (RN-M07-10) on diu «md»; `media` és una referència a una imatge de la biblioteca o a una foto d'activitat (RN-M07-22). Totes les variants són llistes tancades. Tot bloc porta també `hidden` (amagat): es desa, però no surt a la web pública.
+| Grup | Tipus (`kind`) | Camps | Variants |
+|---|---|---|---|
+| Text | `heading` | `text` (≤ 120), `level` (només 2 o 3: l'`h1` és el títol de la pàgina) | — |
+| Text | `text` | `title` (opcional), `body` (md) | `width` |
+| Text | `quote` | `text` (≤ 400), `attribution` (opcional) | `background` |
+| Text | `list` | `title` (opcional), `items` (1 a 20, ≤ 200 cadascun) | `style` (punts, números, comprovació) |
+| Text | `disclosure` | `question` (≤ 200), `answer` (md) | — |
+| Text | `callout` | `title` (opcional), `body` (md) | `tone` (informació, avís; es pinten amb `avis avis-info` i `avis avis-avis`) |
+| Mitjans | `image` | `media`, `caption` (opcional) | `width` |
+| Mitjans | `gallery` | `media` (2 a 24), `caption` (opcional) | `columns` (2 a 4) |
+| Mitjans | `image_text` | `media`, `title`, `body` (md) | `image_side` (esquerra, dreta), `background` |
+| Mitjans | `video` | `source` (`youtube` o `own`), `youtube_id` (11 caràcters, amb `youtube`), `video` (vídeo propi, amb `own`, RN-M07-26), `title`, `thumbnail` (`media`; amb YouTube la desa el servidor) | `width` |
+| Mitjans | `file` | `file` (PDF de la biblioteca), `label` | — |
+| Disposició | `section` | `columns` (1 a 3 llistes de blocs, sense seccions dins de seccions) | `background`, `width` |
+| Disposició | `divider` | — | — |
+| Disposició | `spacer` | — | `size` (petit, mitjà, gran) |
+| Acció | `button` | `label` (≤ 40), `target` (pàgina interna o URL `https:`) | `style` (secundari per defecte, principal) |
+| Acció | `join_cta` | `title`, `body` (md); és l'acció principal de la plantilla Captació | `background` |
+| Acció | `newsletter` | `title` (opcional) | — (amagat amb `website.newsletter_enabled` apagat) |
+| Acció | `contact_form` | `title` (opcional) | — (amagat amb `website.contact_enabled` apagat) |
+| Dades del club | `upcoming_activities` | `title`, `filters` (tipus i departament del 02), `count` (fins a `website.home_activities_count`) | `layout` (llista, targetes) |
+| Dades del club | `featured_activities` | `title` (les activitats són `FeaturedActivity`, RN-M07-21) | `layout` |
+| Dades del club | `past_activities` | `title`, `filters`, `count` (1 a 12) | `layout` |
+| Dades del club | `recent_news` | `title`, `count` (fins a `website.news_on_home`) | `layout` |
+| Dades del club | `faq_topic` | `topic` | — |
+| Dades del club | `key_figures` | `items` (2 a 4: `value` ≤ 12, `label` ≤ 40) | `background` |
+| Dades del club | `project_cards` | `items` (1 a 6: `title`, `body` md, `media`, `target`) | `columns` (2 o 3) |
+| Dades del club | `featured_trip` | `activity` (referència al 02), `title` (opcional) | `background` |
+
+Variants comunes (només on la taula les diu): `background` (cap, suau, marí, accent), `width` (normal, ampla, completa). **Accent:** qui edita tria l'accent de la pàgina a l'editor (`Page.accent`, un dels tokens permesos, M07-6 i CA-M07-19), i la variant `accent` pinta el fons amb aquest; cap altre color. **Text alternatiu:** cap bloc no en té camp propi; és el de la foto a la biblioteca (`MediaAsset.alt_text`, obligatori en pujar-la, T-M07-07) i, per a una foto d'activitat, el que dona el 02 (RP-M07-02). El revisor de qualitat (T-M07-25) avisa si en falta. Els tipus de la llista inicial de M07-6 passen a aquest catàleg: `text` (amb `title` i `body`), `image`, `gallery`, `activities` → `upcoming_activities`, `news` → `recent_news`, `faq` → `faq_topic`, `join_button` → `join_cta`, `contact_form` i `newsletter` (la T-M07-04 en fa la migració de dades).
+
+**Entitats noves** (app `website`): `PageDraft` (`page`, `blocks`, `updated_by`, `updated_at`; una per pàgina), `ScheduledAction` (`page`, `action` publicar o retirar, `run_at`, `created_by`, `status`), `Redirect` (`from_path`, `page`), `Menu` i `MenuItem` (6 enllaços + «Més», decisió 034; submenús d'un nivell; enllaç a pàgina o extern `https:`), `SiteChrome` (capçalera i peu, amb versions), `Pattern`, `SharedBlock`, `FeaturedActivity` (`activity_ref`, `order`, `visible_from`, `visible_until`). Cap còpia de dades del 02.
+
+**Permisos** (canvien [M07-4](#M07-4-rols); configuració inicial = la de l'actual WP1: Administrador i President, i el Responsable de comunicació sense res fins a la P-43)
+| # | Permís | Abast |
+|---|---|---|
+| WP1a | Editar esborranys de pàgines i triar les activitats destacades | Tot o per pàgina |
+| WP1b | Publicar, programar, retirar i restaurar una versió | Tot o per pàgina |
+| WP9 | Menús, capçalera, peu i blocs compartits | Tot |
+| WP10 | Patrons | Tot |
+
+L'abast «per pàgina» és un abast nou del catàleg (`own_pages`, amb la llista de pàgines de cada compte com a dada); el codi `website.pages` (WP1 actual) es parteix en dos. La T-M07-02 és feta i no canvia: WP1a, WP1b, WP10 i l'abast per pàgina entren al catàleg amb la T-M07-26 (torn del nucli), i WP9 amb la T-M07-21. Fins llavors, WP1 cobreix el que seran WP1a, WP1b i WP10.
+
+**Ajustos nous** (entren a l'[apèndix](#valors-configurables) amb número VC en fusionar-se)
+| Clau | Inicial | Rang | Qui el canvia |
+|---|---|---|---|
+| `website.youtube_enabled` | No | Sí o no | Administrador; no s'encén a producció sense P-574 |
+| `website.review_flow_enabled` | No | Sí o no | Administrador |
+| `website.autosave_seconds` | 20 | 5 a 120 | Administrador |
+| `website.upload_max_mb` | 10 | 1 a 25 | Administrador |
+
+**Requisit al 02.** **RP-M07-02:** serveis de lectura `activities.public_past_list(filters)` (activitats fetes i publicades, sense noms) i `activities.publishable_photos(activity)` (només les fotos publicables amb consentiment, RN-M02-23). Tasca pròpia del 02: T-M02-53. RP-M07-01 (projectes i resultats ambientals) continua igual.
+
+**Criteris d'acceptació nous**
+- **CA-M07-23** Donat un bloc amb un camp o una variant que no són a l'esquema, quan es desa o es publica, llavors es rebutja i no es desa res.
+- **CA-M07-24** Donat un text amb `<script>`, un enllaç `javascript:` i un `[enllaç](https://exemple.cat)`, quan es mostra, llavors el primer surt escapat, el segon com a text i el tercer com a enllaç.
+- **CA-M07-25** Donat un bloc de vídeo amb `website.youtube_enabled` encès, quan un visitant obre la pàgina, llavors no hi ha cap petició a un domini de Google fins que prem el bloc; després, només a `youtube-nocookie.com`. Amb l'ajust apagat, el bloc no surt.
+- **CA-M07-26** Donat una publicació programada, quan arriba l'hora, llavors la cua la publica una sola vegada i el registre diu qui la va programar; una d'anul·lada no fa res.
+- **CA-M07-27** Donat una pàgina publicada amb el `slug` canviat, quan es demana l'adreça antiga, llavors respon amb una 301 cap a la nova.
+- **CA-M07-28** Donat un SVG, un fitxer amb una extensió falsa o un JPEG amb GPS, quan es puja, llavors els dos primers es rebutgen i el tercer es desa sense EXIF ni GPS.
+- **CA-M07-29** Donat un compte amb WP1a i WP1b només per a una pàgina, quan prova d'editar o publicar-ne una altra, llavors «no trobat».
+- **CA-M07-30** Donat una activitat destacada que el 02 retira, quan es demana la portada, llavors ja no hi surt; la web no en té cap còpia.
+- **CA-M07-31** Donat el selector de fotos, quan s'obre «Fotos d'activitats», llavors només hi surten les publicables amb consentiment, mai un carnet, un avatar ni un document.
+- **CA-M07-32** Donat dues persones que obren l'esborrany de la mateixa pàgina, quan la segona hi entra, llavors veu l'avís; el desat automàtic no esborra la feina de ningú.
+- **CA-M07-33** Donat una pàgina retirada, quan es recupera, llavors torna a esborrany amb el contingut de l'última versió i el públic continua veient «no trobat» fins que es publica; cap acció no esborra una pàgina.
+
+**Tasques que canvien** (la fila de [M07-10](#M07-10-tasques) continua; aquí només el que canvia)
+| # | Canvi | Qui |
+|---|---|---|
+| T-M07-01 | També els wireframes de l'editor: llista de pàgines, editor en pantalla partida amb Probador, biblioteca de blocs, patrons, «Revisar i publicar» amb Pregon, versions, menú, capçalera i peu, biblioteca de fotos i selector d'activitats destacades ([encàrrec de disseny](../design/encarrecs/editor-web-07.md)) | Disseny |
+| T-M07-04 | El nucli de blocs: esquema de cada tipus del catàleg (RN-M07-15) i validació, Markdown restringit (RN-M07-10), l'esborrany per pàgina (`PageDraft`, RN-M07-16), un sol renderitzador per a la web pública i la vista prèvia, i migració dels tipus de M07-6. CA-M07-23 i 24 | Pilot |
+| T-M07-06a | Editor: llista de pàgines, llista de blocs i formulari del bloc triat, arrossegar i deixar anar (SortableJS) amb alternativa de teclat, duplicar, amagar i treure un bloc, i desfer i refer dins la sessió (Ctrl+Z, Ctrl+Shift+Z) | Pilot |
+| T-M07-06b | Editor: vista prèvia en viu (RN-M07-23) a mòbil, tauleta i escriptori, en clar i en fosc; clicar un bloc a la vista prèvia el selecciona; desat automàtic de l'esborrany i avís d'edició simultània (RN-M07-16); vista prèvia de compartir. HU-M07-02; CA-M07-20 i 32 | Pilot |
+| T-M07-07 | També RN-M07-19 (Pillow, tipus i mida, PDF com a descàrrega), el punt focal de cada foto i les mides automàtiques en WebP. CA-M07-05 i 28 | Pilot |
+| T-M07-18 | La guia cobreix l'editor i com fer servir les plantilles, els patrons, els vídeos i les versions | Pilot |
+
+Són cinc tasques (la 06 es parteix en dues). La T-M07-02 (feta) no canvia: vegeu els permisos més amunt.
+
+**Tasques noves**
+| # | Tasca | Esforç | Qui | Depèn de | Feta quan |
+|---|---|---|---|---|---|
+| T-M07-19 | Catàleg visual de blocs: peça al sistema de disseny, CSS amb tokens i `templates/website/blocs/<tipus>.html` amb els camps de l'esquema (la taula del catàleg) | M | Disseny | T-M07-01 | Cada bloc a 1280 i 390 px, clar i fosc, contrast ≥ 4,5:1 |
+| T-M07-20 | Plantilles de pàgina (6) amb el contingut d'exemple, patrons i blocs compartits (`Pattern` i `SharedBlock`) | M | Pilot | T-M07-04, T-M07-19 | Una pàgina nova de cada plantilla es veu com la web actual |
+| T-M07-21 | Menús, capçalera i peu, i el permís WP9 al catàleg (torn del nucli) | M | Pilot | T-M07-04 | Menú de 6 + «Més» amb submenú i enllaç extern (només `https:`); WP9 |
+| T-M07-22 | Versions: comparar-ne dues, publicació i retirada programades per la cua, i recuperar una pàgina retirada (RN-M07-25) | M | Pilot | T-M07-04 | CA-M07-26 i 33 |
+| T-M07-23 | Bloc de vídeo: YouTube amb clic per carregar i miniatura desada, i vídeo propi (RN-M07-26) | S | Pilot | T-M07-07, T-M07-19 | CA-M07-25: cap petició a Google abans del clic (prova al navegador) |
+| T-M07-24 | SEO: `sitemap.xml` de les publicades, `robots.txt`, adreça canònica i redirecció en canviar el `slug` (RN-M07-18) | S | Pilot | T-M07-05 | CA-M07-27; cap pàgina no publicada al sitemap |
+| T-M07-25 | Revisor de qualitat abans de publicar: text alternatiu que falta, ordre dels títols, enllaços interns trencats, seccions buides, llargades i més d'un botó principal a la pàgina (regla D19) | S | Pilot | T-M07-06a | Avisos, mai bloquejos |
+| T-M07-26 | Flux de revisió (RN-M07-24) darrere de `website.review_flow_enabled` i permís per pàgina: WP1a, WP1b, WP10 i l'abast `own_pages` al catàleg i a la matriu inicial (torn del nucli) | M | Pilot | T-M07-02, T-M07-06a | Una prova per cel·la nova de la matriu; CA-M07-29; apagat: WP1b publica; encès: només WP1b, després de la revisió |
+| T-M07-27 | CSP de la web pública (RN-M07-20) i proves de seguretat de l'editor: XSS, enllaços i pujades | S | Pilot | T-M07-05 | CA-M07-14, 24, 25 i 28; cap error de CSP a la consola |
+| T-M07-28 | E2E de l'editor: crear des d'una plantilla, arrossegar, previsualitzar, programar, publicar i restaurar | M | Pilot | T-M07-20 a 27 | e2e a 1280 i 390 px |
+| T-M07-29 | Blocs d'activitats (RN-M07-21) i selector de destacades | M | Pilot | T-M07-04, T-M02-08, T-M02-53 | CA-M07-30 |
+| T-M07-30 | Selector de fotos amb les dues pestanyes (RN-M07-22) | S | Pilot | T-M07-07, T-M02-53 | CA-M07-31 |
+| T-M07-31 | Fotos reals del club (60 a 100) per a plantilles, mostres i captures ([107](decisions/107-fotos-reals-del-club-per-a-plantilles-mostres-i-captures.md)) | M | Disseny | — | Script que falla si queda EXIF o GPS; `fotos.yml`; cap PR de més de 25 MB |
+| T-M02-53 | RP-M07-02: `activities.public_past_list` i `activities.publishable_photos` | S | Pilot | T-M02-20 | Prova de contracte; cap nom ni foto privada a la sortida |
+
+La T-M07-31 es manté M i amb la regla de la 107, encara que la taula de tasques de l'estudi digui S i «sense persones reconeixibles»: la resposta del propietari a E8, al mateix estudi, substitueix aquella proposta inicial.
+
+**Dependències noves** (cadascuna en una PR `risc:alt` pròpia): Pillow (versió fixada), markdown-it-py, i SortableJS a `static/vendor/` (sense CDN, decisió 046).
+
+**Dubtes** ([pendents](decisions/pendents.md) i [tauler](decisions/tauler-preguntes.yml)): **P-574** el text de l'avís de YouTube (junta); **P-575** qui revisa abans de publicar (P-43); **P-610** formats i mida màxima d'un vídeo propi.
 
 ---
 

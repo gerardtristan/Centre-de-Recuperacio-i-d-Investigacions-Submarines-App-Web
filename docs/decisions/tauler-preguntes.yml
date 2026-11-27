@@ -1746,3 +1746,35 @@ noves:
       Encendre-ho publica fotos on poden sortir persones; és irreversible un cop vist. L'administrador
       ho fa quan la junta ho decideix, i l'opció es pot ampliar més endavant sense tocar dades.
     data: 2026-11-25
+  P-574:
+    opcions:
+      A: "«En prémer, es carrega YouTube (Google)», com diu l'encàrrec."
+      B: "El mateix, amb un enllaç a la política de privacitat del club."
+      C: "«En prémer, el vídeo es carrega des de YouTube (Google), que pot desar dades al teu navegador.»"
+      D: "Cap vídeo de YouTube: només vídeos al servidor propi."
+    recomanada: B
+    perque: >-
+      Diu el mateix en poques paraules i deixa a un clic què vol dir; fins a la resposta, el vídeo continua
+      apagat (website.youtube_enabled), i l'opció D és la més conservadora si la junta no vol cap tercer.
+    data: 2026-11-24
+  P-575:
+    opcions:
+      A: "Flux apagat; l'Administrador i el President editen i publiquen (com l'actual WP1)."
+      B: "El Responsable de comunicació edita (WP1a) i l'Administrador o el President publiquen (WP1b), amb el flux encès."
+      C: "Cada departament edita les seves pàgines (abast per pàgina) i la junta publica."
+    recomanada: A
+    perque: >-
+      És la configuració inicial que ja hi ha i no canvia res fins que la junta respongui la P-43; B o C es
+      fan des de la matriu i un ajust, sense tocar codi.
+    data: 2026-11-24
+  P-610:
+    opcions:
+      A: "Només MP4 (H.264 i AAC), comprovat pel contingut, amb la mida màxima en un ajust."
+      B: "MP4 i WebM, comprovats pel contingut, amb la mida màxima en un ajust."
+      C: "Cap pujada des de l'editor: el bloc només fa servir vídeos de tutorials ja carregats."
+      D: "Cap vídeo propi: només YouTube amb clic per carregar."
+    recomanada: A
+    perque: >-
+      L'MP4 es reprodueix a tots els navegadors i un sol format es comprova millor; fins a la resposta,
+      la pujada de vídeo no s'encén a producció, i C o D són més restrictives si no es vol cap vídeo pujat.
+    data: 2026-11-24
