@@ -166,6 +166,8 @@ class MenuItem(models.Model):
                 "Només una adreça de la plataforma que existeixi (p. ex. /noticies/) o una "
                 "adreça que comenci per https://."
             )
+        if self.pk and self.children.exclude(menu_id=self.menu_id).exists():
+            errors["menu"] = _("Aquest enllaç té un submenú: no pot canviar de menú.")
         if self.parent_id:
             if self.parent.parent_id or self.parent.menu_id != self.menu_id:
                 errors["parent"] = _("Un submenú només pot penjar d'un enllaç de dalt del menú.")
