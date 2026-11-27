@@ -95,6 +95,28 @@ class PageVersion(AppendOnlyModel):
         return f"{self.page} v{self.number}"
 
 
+class PageDraft(models.Model):
+    """L'únic esborrany d'una pàgina (RN-M07-16, decisió 106). Es reescriu a cada desat; el que
+    no es pot canviar són les versions publicades (`PageVersion`)."""
+
+    page = models.OneToOneField(
+        Page, on_delete=models.PROTECT, related_name="draft", verbose_name=_("pàgina")
+    )
+    blocks = models.JSONField(_("blocs"), default=list)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+",
+        verbose_name=_("desat per"),
+    )  # fmt: skip
+    updated_at = models.DateTimeField(_("desat el"), auto_now=True)
+
+    class Meta:
+        verbose_name = _("esborrany de pàgina")
+        verbose_name_plural = _("esborranys de pàgina")
+
+    def __str__(self):
+        return str(self.page)
+
+
 class MediaAsset(models.Model):
     """Foto de la web (M07-6, P-M07-C, RN-M07-05). El contingut és a l'emmagatzematge privat de
     la 00, amb una clau aleatòria; cap carpeta pública (P-489): el serveix una vista declarada

@@ -2,6 +2,7 @@
 
 - `save_page(page, actor, **fields)`: desa les dades de la pàgina (plantilla, accent i adreça
   de llistes tancades o lliures, CA-M07-19) i torna els avisos de compartir (RN-M07-13).
+- `save_draft(page, blocks, actor)`: l'únic esborrany de la pàgina (RN-M07-16).
 - `publish_page(page, blocks, actor, note)`: versió nova; el públic veu aquesta (RN-M07-03).
 - `revert_to(version, actor)`: publica una còpia d'una versió anterior (amb els tipus antics
   traduïts al catàleg de la 106, `blocks.upgrade_all`).
@@ -20,7 +21,7 @@ from apps.core.permissions import has_perm
 
 from . import blocks as catalog
 from . import media
-from .models import Page, PageVersion
+from .models import Page, PageDraft, PageVersion
 
 PERMISSION = "website.pages"  # WP1
 ACTION_PUBLISHED = "website.page_published"
@@ -75,6 +76,16 @@ def validate_blocks(blocks, *, publishing: bool) -> None:
     catalog.validate(blocks, publishing=publishing)
     if publishing:
         media.check_publishable(media.block_media_keys(blocks))
+
+
+def save_draft(page: Page, blocks, actor) -> PageDraft:
+    """RN-M07-16: l'únic esborrany de la pàgina, amb la validació de desar (CA-M07-23)."""
+    require(actor)
+    validate_blocks(blocks, publishing=False)
+    draft, _created = PageDraft.objects.update_or_create(
+        page=page, defaults={"blocks": blocks, "updated_by": actor}
+    )
+    return draft
 
 
 def current_version(page: Page) -> PageVersion | None:

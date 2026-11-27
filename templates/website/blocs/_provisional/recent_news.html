@@ -1,0 +1,2 @@
+{# Plantilla provisional (T-M07-04b): la definitiva és de DISSENY (T-M07-19, website/blocs/<kind>.html). #}
+<section><h2>{{ block.title }}</h2><ul>{% for item in block.news %}<li><a href="{% url 'website:news_detail' item.slug %}">{{ item.title }}</a></li>{% endfor %}</ul></section>
