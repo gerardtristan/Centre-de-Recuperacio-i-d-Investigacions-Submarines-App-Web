@@ -136,9 +136,9 @@ def forget(subscription: NewsletterSubscription, *, now=None) -> None:
 
 
 # --- Des de l'àrea del soci (T-M07-13; P-492, opció A; P-631) --------------------------------
-# La fila és la del 07, amb el correu d'entrada del compte personal (verificat, únic; P-630). Doble
-# confirmació també aquí (P-631, D2): l'enllaç va al correu i, en prémer el botó, la subscripció i
-# el consentiment de la 00 queden confirmats (`confirm`). La baixa retira el consentiment.
+# La fila és la del 07, amb el correu d'entrada del compte personal (verificat, únic; P-630).
+# Subscriure's és immediat (`subscribe_verified`; 108, C.2, substitueix la P-631). La baixa retira
+# el consentiment.
 
 
 def _member_person(email: str):
@@ -161,15 +161,6 @@ def _member_person(email: str):
 
 def member_subscription(account) -> NewsletterSubscription | None:
     return NewsletterSubscription.objects.filter(email=normalise(account.login)).first()
-
-
-def subscribe_member(account) -> tuple[NewsletterSubscription, bool]:
-    """Com `subscribe`, amb el correu d'entrada: torna si cal enviar l'enllaç (ho fa la vista,
-    amb els límits del formulari públic)."""
-    text = consents.current_text(TEXT_KIND)
-    if text is None:
-        raise ValidationError(_("Ara mateix no et pots subscriure."))
-    return subscribe(account.login, legal_text=text)
 
 
 @transaction.atomic

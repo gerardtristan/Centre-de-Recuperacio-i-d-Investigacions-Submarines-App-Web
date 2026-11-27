@@ -26,6 +26,7 @@ from apps.accounts import limits
 from apps.accounts.models import Account
 from apps.accounts.security import client_ip
 from apps.core import business_settings, consents
+from apps.core.models import Consent
 
 from . import contact, newsletter
 from .models import ContactReason
@@ -150,8 +151,8 @@ def newsletter_unsubscribe_view(request, token):
 @require_http_methods(["GET", "POST"])
 def my_newsletter_view(request):
     """Àrea del soci (T-M07-13; P-492, opció A): subscriure's o donar-se de baixa amb el compte
-    personal, amb doble confirmació (P-631); el consentiment de la 00, en confirmar-la. Sessió
-    obligatòria (no és pública)."""
+    personal. Subscriure's és immediat amb el correu d'entrada, que és verificat, i el
+    consentiment de la 00 (108, C.2, que substitueix la P-631). Sessió obligatòria."""
     account = request.user
     if getattr(account, "kind", None) != Account.Kind.PERSONAL:
         raise Http404
@@ -161,7 +162,12 @@ def my_newsletter_view(request):
             newsletter.unsubscribe_member(account, request=request)
             messages.success(request, _("T'has donat de baixa del butlletí."))
         elif request.POST.get("accept_newsletter"):
-            messages.success(request, _subscribe_member(request, account))
+            # 108 (C.2; substitueix la P-631): el correu d'entrada és verificat, subscriu ara.
+            consents.grant_accepted(
+                account.person, text, channel=Consent.Channel.WEB, by=account, request=request
+            )
+            newsletter.subscribe_verified(account, source="area", request=request)
+            messages.success(request, _("Ja reps el butlletí."))
         else:
             messages.error(request, _("Cal acceptar el text del butlletí."))
         response = redirect("website:my_newsletter")
@@ -171,20 +177,3 @@ def my_newsletter_view(request):
     status = subscription.status if subscription is not None else ""
     context = {"text": text, "status": status, "email": account.login}
     return render(request, "website/my_newsletter.html", context)
-
-
-def _subscribe_member(request, account) -> str:
-    """P-631: el límit per origen abans de res (com el formulari públic), la petició i, si cal,
-    l'enllaç a la cua amb el límit per destinatari. Torna el missatge, que no diu «enviat» si
-    no ho és."""
-    with transaction.atomic():
-        accepted = limits.start_join(client_ip(request))
-        if accepted is None:
-            return _("Ara no s'ha pogut enviar l'enllaç. Torna-ho a provar més tard.")
-        subscription, needs = newsletter.subscribe_member(account)
-        if not needs:
-            return _("Ja estàs subscrit al butlletí.")
-        if not limits.join_receipt_allowed(accepted, account.login):
-            return _("Ara no s'ha pogut enviar l'enllaç. Torna-ho a provar més tard.")
-        newsletter.send_confirmation(subscription)
-    return _("T'hem enviat un correu per confirmar la subscripció.")
