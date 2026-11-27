@@ -108,6 +108,8 @@ class PageDraft(models.Model):
         verbose_name=_("desat per"),
     )  # fmt: skip
     updated_at = models.DateTimeField(_("desat el"), auto_now=True)
+    # Puja a cada desat: una acció feta sobre una revisió antiga es rebutja (CA-M07-32).
+    revision = models.PositiveIntegerField(_("revisió"), default=0)
 
     class Meta:
         verbose_name = _("esborrany de pàgina")

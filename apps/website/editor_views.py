@@ -14,9 +14,10 @@ from django.views.decorators.http import require_http_methods, require_POST
 from apps.core import business_settings
 from apps.core.permissions import require_perm
 
+from . import blocks as catalog
 from . import editor, pages
 from .editor_forms import GROUPS, KINDS, BlockForm, summary
-from .models import Page, PageDraft
+from .models import Page, PageDraft, PageVersion
 
 NewPageForm = forms.modelform_factory(Page, fields=["title", "slug", "template"])
 
@@ -31,13 +32,17 @@ def pages_view(request):
         page, _warnings = pages.save_page(None, actor=request.user, **form.cleaned_data)
         messages.success(request, _("Pàgina creada en esborrany."))
         return redirect("administration:website_page_editor", page.pk)
-    drafts = set(PageDraft.objects.values_list("page_id", flat=True))
-    rows = [(page, page.pk in drafts) for page in Page.objects.all()]
+    # «Amb canvis sense publicar»: l'esborrany (que es queda en publicar) no és l'última versió.
+    drafts = dict(PageDraft.objects.values_list("page_id", "blocks"))
+    latest = PageVersion.objects.order_by("page_id", "-number").distinct("page_id")
+    published = {v.page_id: catalog.upgrade_all(v.blocks) for v in latest}
+    rows = [(page, page.pk in drafts and drafts[page.pk] != published.get(page.pk))
+            for page in Page.objects.all()]  # fmt: skip
     return render(request, "website/admin/pages.html", {"rows": rows, "form": form})
 
 
 def _editor(request, page, *, form=None, selected=None, status=200):
-    blocks = editor.editing_blocks(page)
+    blocks, revision = pages.draft_state(page)
     if selected is None:
         bloc = request.GET.get("bloc", "")
         selected = int(bloc) if bloc.isdigit() and int(bloc) < len(blocks) else None
@@ -58,6 +63,7 @@ def _editor(request, page, *, form=None, selected=None, status=200):
         "theme": "fosc" if request.GET.get("tema") == "fosc" else "clar",
         "versions": page.versions.order_by("-number")[:10],
         "share_warnings": pages.share_warnings(page),
+        "revision": revision,
     }
     return render(request, "website/admin/page_editor.html", context, status=status)
 
@@ -69,24 +75,34 @@ def editor_view(request, pk):
     return _editor(request, get_object_or_404(Page, pk=pk))
 
 
-def save_block(request, page, blocks: list, index: int) -> tuple[BlockForm, int]:
-    """Desa el formulari del bloc `index`. 200: desat; 400: no és vàlid (no es desa res); 409:
-    algú altre ha canviat aquest bloc des que es va obrir (CA-M07-32: no se li esborra)."""
+def revision_of(request) -> int:
+    """La revisió de l'esborrany que té la pantalla; sense, una que no coincideix mai."""
+    value = request.POST.get("revision", "")
+    return int(value) if value.isdigit() else -1
+
+
+def save_block(request, page, blocks: list, index: int) -> tuple[BlockForm, int, int | None]:
+    """Desa el formulari del bloc `index`. Estat 200: desat; 400: no és vàlid; 409: algú altre ha
+    canviat o mogut aquest bloc des que es va obrir (CA-M07-32: no se li esborra res). La revisió
+    nova només torna si la pantalla estava al dia (si no, l'ha de tornar a carregar)."""
     if not 0 <= index < len(blocks):
         raise IndexError(index)
     form = BlockForm(blocks[index]["kind"], request.POST, block=blocks[index])
-    if request.POST.get("base", "") not in ("", editor.fingerprint(blocks[index])):
-        form.add_error(None, _("Una altra persona ha canviat aquest bloc. Torna a obrir-lo."))
-        return form, 409
     if not form.is_valid():
-        return form, 400
+        return form, 400, None
+    base = request.POST.get("base", "")
+
+    def compute(current):
+        if index >= len(current) or base != editor.fingerprint(current[index]):
+            raise pages.DraftConflict
+        return editor.apply(current, "update", index, block=form.to_block(current[index]))
+
     try:
-        editor.change(request, page, editor.apply(blocks, "update", index,
-                                                  block=form.to_block(blocks[index])))  # fmt: skip
-    except ValidationError as error:
+        draft, before = editor.change(request, page, compute, revision=None)
+    except ValidationError as error:  # també `DraftConflict`
         form.add_error(None, error)
-        return form, 400
-    return form, 200
+        return form, 409 if isinstance(error, pages.DraftConflict) else 400, None
+    return form, 200, draft.revision if before == revision_of(request) else None
 
 
 def _target(action: str, index: int) -> int | None:
@@ -103,29 +119,34 @@ def editor_action_view(request, pk):
     page = get_object_or_404(Page, pk=pk)
     action = request.POST.get("action", "")
     url = reverse("administration:website_page_editor", args=[page.pk])
-    if action in ("undo", "redo"):
-        if not editor.step(request, page, action):
-            messages.error(request, _("No hi ha res per desfer o refer."))
-        return redirect(url)
-    blocks = editor.editing_blocks(page)
     try:
+        if action in ("undo", "redo"):
+            if not editor.step(request, page, action, revision=revision_of(request)):
+                messages.error(request, _("No hi ha res per desfer o refer."))
+            return redirect(url)
         index = int(request.POST.get("index", "-1"))
         order = [int(i) for i in request.POST.get("order", "").split(",") if i != ""]
         if action == "update":
-            form, status = save_block(request, page, blocks, index)
-            if status != 200:
+            form, status, _revision = save_block(request, page, editor.editing_blocks(page), index)
+            if status == 400:
                 return _editor(request, page, form=form, selected=index, status=status)
+            if status == 409:  # el formulari, de nou amb el bloc tal com és ara
+                messages.error(request, " ".join(form.non_field_errors()))
+                return redirect(f"{url}?bloc={index}")
             new = editor.editing_blocks(page)
         else:
-            new = editor.apply(blocks, action, index, kind=request.POST.get("kind", ""),
-                               order=order)  # fmt: skip
-            editor.change(request, page, new)
+
+            def compute(current):
+                return editor.apply(current, action, index, kind=request.POST.get("kind", ""),
+                                    order=order)  # fmt: skip
+
+            new = editor.change(request, page, compute, revision=revision_of(request))[0].blocks
     except (ValueError, IndexError):
         messages.error(request, _("Aquesta acció no es pot fer amb aquest bloc."))
         return redirect(url)
-    except ValidationError as error:
+    except ValidationError as error:  # sobretot `DraftConflict`: ara amb l'esborrany actual
         messages.error(request, " ".join(error.messages))
-        return redirect(url)
+        return _editor(request, page, status=409 if isinstance(error, pages.DraftConflict) else 400)
     messages.success(request, _("Esborrany desat."))
     target = _target(action, index)
     return redirect(f"{url}?bloc={target}" if target is not None and target < len(new) else url)
