@@ -1,2 +1,2 @@
 {# Plantilla provisional (T-M07-04b): la definitiva és de DISSENY (T-M07-19, website/blocs/<kind>.html). #}
-<section>{% for entry in block.entries %}<details><summary>{{ entry.question }}</summary>{{ entry.answer|linebreaks }}</details>{% endfor %}</section>
+<section>{% if block.topic_name %}<h2>{{ block.topic_name }}</h2>{% endif %}{% for item in block.questions %}<details><summary>{{ item.question }}</summary>{{ item.answer }}</details>{% endfor %}</section>

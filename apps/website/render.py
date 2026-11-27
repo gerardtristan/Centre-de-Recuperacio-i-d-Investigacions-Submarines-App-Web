@@ -9,12 +9,15 @@ T-M07-19) o, mentre no existeix, amb `website/blocs/_provisional/<kind>.html`, a
   `focal_x`, `focal_y`); una foto que ja no es pot publicar, o totes amb
   `website.public_images_enabled` apagat, arriben com a `None`.
 - Les columnes d'una secció arriben ja pintades (una cadena HTML per columna).
-- Dades: `upcoming_activities` porta `activities` (del 02), `recent_news` porta `news` i
-  `faq_topic` porta `entries`.
+- Dades del club, `block.items` ja resolt i sense noms de persones: les activitats (properes,
+  destacades i fetes), `{title, url, start, kind_label, price_cents, photo, places_left}`; les
+  notícies, `{title, url, date, photo}`. `faq_topic` porta `topic_name` i `questions`
+  (`{question, answer}`, la resposta com a Markdown segur) i `featured_trip`, `block.activity`
+  (o `None`). Sense dades, `items` buit: la plantilla pinta l'estat buit. Les destacades i les
+  fetes són buides fins a la T-M07-29.
 
-No es pinten encara: `featured_activities`, `past_activities` i `featured_trip` (necessiten
-serveis del 02, T-M07-29), `video` (T-M07-23) i `file` (els PDF, T-M07-07). El butlletí i el
-contacte, només amb el seu ajust encès.
+No es pinten encara: `video` (T-M07-23) i `file` (els PDF, T-M07-07). El butlletí i el contacte,
+només amb el seu ajust encès.
 """
 
 import uuid
@@ -32,7 +35,7 @@ from . import help as faq
 from . import media, news
 from .models import FaqTopic, MediaAsset
 
-NOT_YET = {"featured_activities", "past_activities", "featured_trip", "video", "file"}
+NOT_YET = {"video", "file"}
 IMAGES = "website.public_images_enabled"
 SWITCHES = {"newsletter": "website.newsletter_enabled", "contact_form": "website.contact_enabled"}
 
@@ -61,11 +64,7 @@ def _images(blocks) -> dict:
         return {}
     keys = {_key(k) for k in media.block_media_keys(blocks, public_only=True)} - {None}
     found = MediaAsset.objects.filter(key__in=keys)
-    return {
-        str(a.key): Image(reverse("website:media", args=[a.key]), a.alt_text)
-        for a in found
-        if a.publishable
-    }
+    return {str(a.key): _image(a) for a in found if a.publishable}
 
 
 def _fields(schema: dict, data: dict, images: dict) -> dict:
@@ -84,17 +83,44 @@ def _fields(schema: dict, data: dict, images: dict) -> dict:
     return out
 
 
+def _image(asset) -> Image:
+    return Image(reverse("website:media", args=[asset.key]), asset.alt_text)
+
+
+def _activity(a) -> dict:
+    """Contracte amb DISSENY: només dades de l'activitat, cap nom de persona (RN-M07-21)."""
+    return {"title": a.title, "url": reverse("activities:public_detail", args=[a.pk]),
+            "start": a.starts_on, "kind_label": a.kind_label, "places_left": a.free_places,
+            "price_cents": None, "photo": None}  # fmt: skip  # P-683: el 02 no dona cèntims ni foto
+
+
 def _data(block: dict) -> dict:
-    kind = block["kind"]
+    kind, count = block["kind"], block.get("count") or 0
     if kind == "upcoming_activities":
-        kind_filter = (block.get("filters") or {}).get("type", "")
-        return {"activities": activities.public_list(kind=kind_filter)[: block.get("count") or 0]}
+        found = activities.public_list(kind=(block.get("filters") or {}).get("type", ""))
+        return {"items": [_activity(a) for a in found[:count]]}
+    if kind in ("featured_activities", "past_activities"):
+        return {"items": []}  # shortcut: sense serveis del 02 fins a la T-M07-29
+    if kind == "featured_trip":
+        try:
+            activity = _activity(activities.get_activity(block.get("activity")))
+        except activities.NotFound:
+            return {"activity": None, "items": []}
+        return {"activity": activity, "items": [activity]}
     if kind == "recent_news":
-        return {"news": list(news.published()[: block.get("count") or 0])}
+        on = business_settings.get(IMAGES)
+        return {"items": [
+            {"title": n.title, "url": reverse("website:news_detail", args=[n.slug]),
+             "date": n.date, "photo": _image(n.image) if on and n.image and n.image.publishable
+             else None} for n in news.published()[:count]
+        ]}  # fmt: skip
     if kind == "faq_topic":
         topic_id = block.get("topic")
         topic = FaqTopic.objects.filter(pk=topic_id).first() if topic_id else None
-        return {"entries": list(faq.published_entries(topic)) if topic else []}
+        entries = faq.published_entries(topic) if topic else []
+        questions = [{"question": e.question, "answer": catalog.render_markdown(e.answer)}
+                     for e in entries]  # fmt: skip
+        return {"topic_name": topic.name if topic else "", "questions": questions}
     return {}
 
 

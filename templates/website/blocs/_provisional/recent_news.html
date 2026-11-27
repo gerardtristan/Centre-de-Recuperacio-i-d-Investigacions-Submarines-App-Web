@@ -1,2 +1,2 @@
 {# Plantilla provisional (T-M07-04b): la definitiva és de DISSENY (T-M07-19, website/blocs/<kind>.html). #}
-<section><h2>{{ block.title }}</h2><ul>{% for item in block.news %}<li><a href="{% url 'website:news_detail' item.slug %}">{{ item.title }}</a></li>{% endfor %}</ul></section>
+{% load i18n %}<section><h2>{{ block.title }}</h2><ul>{% for item in block.items %}<li>{% if item.photo %}<img src="{{ item.photo.url }}" alt="{{ item.photo.alt_text }}" loading="lazy"> {% endif %}<a href="{{ item.url }}">{{ item.title }}</a> · <time datetime="{{ item.date|date:'Y-m-d' }}">{{ item.date|date:'d/m/Y' }}</time></li>{% empty %}<li>{% translate "Encara no hi ha cap notícia." %}</li>{% endfor %}</ul></section>

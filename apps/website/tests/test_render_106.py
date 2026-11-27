@@ -4,7 +4,10 @@ CA-M07-23 i 24). WP1 amb la matriu inicial de la T-M07-02. Només dades inventad
 import pytest
 from django.core.exceptions import ValidationError
 from django.http import Http404
+from django.urls import reverse
 
+from apps.activities.models import Activity
+from apps.activities.tests.helpers import an_outing
 from apps.core import business_settings
 from apps.core.models import Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
@@ -69,7 +72,8 @@ def test_ca_m07_24_markdown_fields_are_shown_safe_and_plain_fields_escaped(page)
 
 def test_every_kind_renders_with_a_provisional_template(page):
     html = render.render_blocks([block(kind) for kind in VALID], page)
-    assert "Qui som" in html and "Fes-te soci" in html and "Fetes" not in html
+    assert "Qui som" in html and "Fes-te soci" in html and "Fetes" in html
+    assert "Ara no hi ha cap activitat per mostrar." in html  # destacades i fetes, buides
 
 
 def test_initial_kinds_render_translated_and_switches_hide_forms(page, editor):
@@ -95,7 +99,7 @@ def test_faq_topic_and_recent_news_bring_their_data(page):
     FaqEntry.objects.create(topic=topic, question="Quan es paga?", answer="Al gener.",
                             published=True)  # fmt: skip
     html = render.render_blocks([block("faq_topic", topic=topic.pk), block("recent_news")], page)
-    assert "Quan es paga?" in html and "Notícies" in html
+    assert "Quan es paga?" in html and "Quotes inventades" in html and "Notícies" in html
 
 
 def test_review_photos_follow_the_public_images_switch_and_skip_empty_keys(page, editor):
@@ -110,3 +114,22 @@ def test_review_photos_follow_the_public_images_switch_and_skip_empty_keys(page,
 
 def test_review_an_old_faq_block_without_topic_renders_nothing(page):
     assert "<details" not in render.render_blocks([{"kind": "faq"}], page)
+
+
+def test_club_data_blocks_bring_resolved_items_without_names(page, make_admin):  # noqa: F811
+    manager = make_admin(R.COURSES_MANAGER)
+    outing = an_outing(manager, title="Sortida a les Medes (inventada)")
+    Activity.objects.filter(pk=outing.pk).update(status=Activity.Status.OPEN)
+    draft_only = an_outing(manager, title="Esborrany inventat")
+    data = render._data(block("upcoming_activities", filters={"type": "outing"}))
+    (item,) = data["items"]
+    assert set(item) == {"title", "url", "start", "kind_label", "price_cents", "photo",
+                         "places_left"}  # fmt: skip
+    assert item["title"] == "Sortida a les Medes (inventada)" and item["photo"] is None
+    assert item["url"] == reverse("activities:public_detail", args=[outing.pk])
+    assert render._data(block("featured_trip", activity=outing.pk))["activity"] == item
+    assert render._data(block("featured_trip", activity=draft_only.pk)) == {
+        "activity": None, "items": [],
+    }  # fmt: skip
+    html = render.render_blocks([block("upcoming_activities", filters={})], page)
+    assert "Sortida a les Medes (inventada)" in html and "Esborrany inventat" not in html

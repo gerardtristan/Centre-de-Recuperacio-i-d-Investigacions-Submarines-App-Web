@@ -1440,6 +1440,16 @@ opcions:
       És el que cap en una PR petita sense decidir la interacció; B és la bona a la llarga i
       depèn del wireframe de l'editor (T-M07-01), i C canviaria el catàleg aprovat a la 106.
     data: 2026-11-27
+  P-683:
+    opcions:
+      A: "Preu i foto a None fins que el servei públic del 02 doni els cèntims i una foto publicable."
+      B: "Mostrar el preu ja formatat que dona el 02 (soci i no soci) en lloc dels cèntims."
+      C: "Llegir el preu directament del model del 02 des del 07."
+    recomanada: A
+    perque: >-
+      Respecta que una app no llegeix els models d'una altra (C no) i el contracte en cèntims;
+      B obligaria DISSENY a pintar dos preus en text. El 02 ho pot afegir a la T-M02-53.
+    data: 2026-11-27
 noves:
   P-412:
     opcions:
