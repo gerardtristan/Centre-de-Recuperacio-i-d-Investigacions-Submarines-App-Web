@@ -133,3 +133,8 @@ def test_club_data_blocks_bring_resolved_items_without_names(page, make_admin): 
     }  # fmt: skip
     html = render.render_blocks([block("upcoming_activities", filters={})], page)
     assert "Sortida a les Medes (inventada)" in html and "Esborrany inventat" not in html
+
+
+def test_review_an_invalid_photo_key_is_ignored(editor):
+    business_settings.change("website.public_images_enabled", True, editor, "Prova")
+    assert render._images([{"kind": "image", "media": "no-és-una-clau"}]) == {}

@@ -27,13 +27,10 @@ def pages_view(request):
     require_perm(request, pages.PERMISSION, write=True)
     form = NewPageForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        try:
-            page, _warnings = pages.save_page(None, actor=request.user, **form.cleaned_data)
-        except ValidationError as error:
-            form.add_error(None, error)
-        else:
-            messages.success(request, _("Pàgina creada en esborrany."))
-            return redirect("administration:website_page_editor", page.pk)
+        # El formulari ja ha fet la validació del model (adreça única i sense xocar amb cap ruta).
+        page, _warnings = pages.save_page(None, actor=request.user, **form.cleaned_data)
+        messages.success(request, _("Pàgina creada en esborrany."))
+        return redirect("administration:website_page_editor", page.pk)
     drafts = set(PageDraft.objects.values_list("page_id", flat=True))
     rows = [(page, page.pk in drafts) for page in Page.objects.all()]
     return render(request, "website/admin/pages.html", {"rows": rows, "form": form})
