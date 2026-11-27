@@ -1,0 +1,62 @@
+/* Blocs de la web pública (T-M07-19, decisió 106, design-system §6.27): el catàleg tancat de RN-M07-15.
+   Cada bloc és `templates/website/blocs/<kind>.html` i les variants són classes (`bloc-fons-*`, `bloc-amplada-*`):
+   qui edita tria la variant, mai el color, la mida ni la tipografia. Només tokens. */
+/* Columna amb línies amb nom: la mesura es calcula al contenidor (els «ch» d'un títol gran serien més amples) */
+.blocs-pagina {
+  --mesura: min(100%, var(--amplada-text));
+  --marge-ample: min(max(0px, (var(--amplada-max) - var(--amplada-text)) / 2), (100% - var(--mesura)) / 2);
+  display: grid; row-gap: var(--e-6); min-inline-size: 0;
+  grid-template-columns:
+    [full-start] minmax(0, 1fr) [wide-start] var(--marge-ample) [text-start]
+    var(--mesura) [text-end] var(--marge-ample) [wide-end] minmax(0, 1fr) [full-end];
+}
+.blocs-pagina > * { grid-column: text; }
+.blocs-pagina > .bloc-amplada-wide { grid-column: wide; }
+.blocs-pagina > .bloc-amplada-full { grid-column: full; }
+.bloc { margin: 0; min-inline-size: 0; }
+.bloc h2, .bloc h3 { margin: 0; text-wrap: balance; }
+.bloc-heading { text-wrap: balance; }
+.bloc-text, .bloc-list { display: grid; gap: var(--e-3); }
+
+/* Text en Markdown restringit: paràgrafs, llistes, enllaços i títols de nivell 2 i 3 */
+.bloc-prosa { display: grid; gap: var(--e-3); text-wrap: pretty; }
+.bloc-prosa > * { margin: 0; }
+.bloc-prosa h2 { font-size: var(--t-xl); }
+.bloc-prosa h3 { font-size: var(--t-l); }
+.bloc-prosa ul, .bloc-prosa ol, .bloc-llista { margin: 0; padding-inline-start: var(--e-5); display: grid; gap: var(--e-1); }
+.bloc-llista.es-comprovacio { list-style-type: "✓  "; }
+.bloc-llista.es-comprovacio ::marker { color: var(--c-mari-text); font-weight: var(--p-negreta); }
+
+/* Fons tancats (none, soft, marine, accent). L'accent és el de la pàgina (Page.accent): `pagina-accent-*` */
+.bloc-fons-soft, .bloc-fons-marine, .bloc-fons-accent { padding: var(--e-5); border-radius: var(--r-l); }
+.bloc-fons-soft { background: var(--c-superficie-2); color: var(--c-text); }
+.bloc-fons-marine { background: var(--c-mari); color: var(--c-mari-sobre); }
+.bloc-fons-accent { background: var(--bloc-accent, var(--c-accent)); color: var(--bloc-accent-text, var(--c-accent-text)); }
+.bloc-fons-marine a, .bloc-fons-accent a { color: inherit; }
+.pagina-accent-accent { --bloc-accent: var(--c-accent); --bloc-accent-text: var(--c-accent-text); }
+.pagina-accent-mari { --bloc-accent: var(--c-mari); --bloc-accent-text: var(--c-mari-sobre); }
+.pagina-accent-info { --bloc-accent: var(--c-info-fons); --bloc-accent-text: var(--c-info-text); }
+
+/* Cita: la frase gran amb la tipografia de títol, l'autoria a sota */
+.bloc-quote { display: grid; gap: var(--e-2); }
+.bloc-quote blockquote { margin: 0; padding-inline-start: var(--e-4); border-inline-start: var(--v-activa) solid currentColor; }
+.bloc-quote blockquote p { margin: 0; font-family: var(--f-titol); font-size: var(--t-xl); line-height: 1.25; text-wrap: balance; }
+.bloc-quote figcaption { font-size: var(--t-s); }
+.bloc-quote figcaption::before { content: "— "; }
+
+/* Pregunta desplegable: com les de l'ajuda (Recoveco), sense JavaScript */
+.bloc-disclosure { border-block-end: var(--v-fina) solid var(--c-linia); }
+.bloc-disclosure summary {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--e-3); min-block-size: var(--tactil);
+  padding-block: var(--e-2); font-weight: var(--p-semi); cursor: pointer; list-style: none;
+}
+.bloc-disclosure summary::-webkit-details-marker { display: none; }
+.bloc-disclosure summary::after { content: "+"; font-size: var(--t-l); color: var(--c-text-2); }
+.bloc-disclosure[open] summary::after { content: "−"; }
+.bloc-disclosure > .bloc-prosa { padding-block-end: var(--e-3); }
+
+/* Avís destacat: el component `avis` amb el to escrit */
+.bloc-callout { display: grid; gap: var(--e-2); }
+.bloc-callout > p { margin: 0; }
+.bloc-callout-to { font-size: var(--t-xs); font-weight: var(--p-semi); letter-spacing: var(--ll-etiqueta); text-transform: uppercase; }
+.bloc-callout-titol { font-weight: var(--p-negreta); }
