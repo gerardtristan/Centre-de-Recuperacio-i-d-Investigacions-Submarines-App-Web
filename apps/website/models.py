@@ -18,11 +18,13 @@ class Page(models.Model):
     """Pàgina de la web. El que veu el públic és la seva última `PageVersion` (RN-M07-03)."""
 
     class Template(models.TextChoices):
-        # P-590: la llista de plantilles; les tres últimes són les de l'editor (T-DX-36).
-        BASIC = "basica", _("Bàsica")
+        # Decisió 106 (addenda M07): llista tancada; el contingut d'exemple és a `page_templates`.
         HOME = "portada", _("Portada")
-        LIST = "llista", _("Activitats")
-        BLOG = "blog", _("Notícies")
+        SECTION = "seccio", _("Secció")
+        ARTICLE = "article", _("Article")
+        PROJECT = "projecte", _("Projecte")
+        GALLERY = "galeria", _("Galeria")
+        JOIN = "captacio", _("Captació")
 
     class Accent(models.TextChoices):
         # Només tokens de `tokens.css` (els de l'editor, T-DX-36).
@@ -38,7 +40,7 @@ class Page(models.Model):
     slug = models.SlugField(_("adreça"), max_length=60, unique=True)
     title = models.CharField(_("títol"), max_length=120)
     template = models.CharField(
-        _("plantilla"), max_length=20, choices=Template.choices, default=Template.BASIC
+        _("plantilla"), max_length=20, choices=Template.choices, default=Template.SECTION
     )
     accent = models.CharField(
         _("color d'accent"), max_length=20, choices=Accent.choices, default=Accent.ACCENT

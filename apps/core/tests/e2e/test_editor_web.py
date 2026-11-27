@@ -8,7 +8,7 @@ import pytest
 from django.urls import reverse
 from playwright.sync_api import expect
 
-from apps.website.models import PageDraft
+from apps.website.models import Page, PageDraft
 
 from .conftest import login_admin, make_admin
 
@@ -29,6 +29,11 @@ def test_the_president_edits_the_blocks_of_a_page(page, live_server, transaction
     page.get_by_label("Adreça").fill("sortides-inventada")
     page.get_by_role("button", name="Crea l'esborrany").click()
     expect(page.get_by_role("heading", name="Editor: Sortides (inventada)")).to_be_visible()
+    # Comença amb l'exemple de la plantilla (T-M07-20b): aquí, des d'una pàgina buida.
+    from apps.website import pages
+
+    pages.save_draft(Page.objects.get(slug="sortides-inventada"), [], president)
+    page.reload()
 
     for kind in ("Títol", "Text"):
         page.get_by_label("Bloc nou").select_option(label=kind)
@@ -139,3 +144,20 @@ def test_ca_m07_25_no_request_to_google_before_the_click(
     expect(page.frame_locator("iframe").get_by_text("video fals")).to_be_visible()
     google = {h for h in hosts if any(g in h for g in GOOGLE)}
     assert google == {"www.youtube-nocookie.com"}
+
+
+def test_a_new_page_from_a_template_starts_with_its_example(
+    page, live_server, transactional_db, review
+):
+    """T-M07-20b: una pàgina nova amb la plantilla Portada obre l'editor amb el seu exemple."""
+    president = make_admin("presidencia.prova", "president")
+    login_admin(page, live_server.url, president.login)
+    page.goto(f"{live_server.url}{reverse('administration:website_pages')}")
+    page.get_by_label("Títol").fill("Inici (inventada)")
+    page.get_by_label("Adreça").fill("inici-inventada")
+    page.get_by_label("Plantilla").select_option(label="Portada")
+    page.get_by_role("button", name="Crea l'esborrany").click()
+    blocks = page.locator("[data-editor-blocs]")
+    expect(blocks.get_by_text("Imatge amb text · Qui som")).to_be_visible()
+    expect(blocks.get_by_text("Crida «Fes-te soci» · Fes-te soci")).to_be_visible()
+    review("editor-plantilla-portada")

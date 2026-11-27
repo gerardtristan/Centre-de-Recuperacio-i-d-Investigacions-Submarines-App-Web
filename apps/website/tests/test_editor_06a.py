@@ -85,7 +85,7 @@ def test_the_editor_starts_from_the_last_version_with_old_kinds_translated(page,
 
 def test_wp1_creates_a_page_and_edits_its_blocks_with_undo_and_redo(page, president):
     client = admin_client(president)
-    response = client.post(LIST, {"title": "Nova", "slug": "nova-inventada", "template": "basica"})
+    response = client.post(LIST, {"title": "Nova", "slug": "nova-inventada", "template": "seccio"})
     new = Page.objects.get(slug="nova-inventada")
     assert response["Location"] == reverse("administration:website_page_editor", args=[new.pk])
     post(client, page, {"action": "add", "index": "-1", "kind": "heading"})
@@ -158,7 +158,7 @@ def test_the_form_of_each_kind_gives_back_the_same_block(kind):
 def test_screens_and_edge_cases_of_the_editor(page, president):
     client = admin_client(president)
     assert "Editor" in client.get(LIST).content.decode()
-    taken = client.post(LIST, {"title": "Xoca", "slug": "en-construccio", "template": "basica"})
+    taken = client.post(LIST, {"title": "Xoca", "slug": "en-construccio", "template": "seccio"})
     assert taken.status_code == 200 and not Page.objects.filter(title="Xoca").exists()
     pages.save_draft(page, [block("list")], president)
     editor_url = reverse("administration:website_page_editor", args=[page.pk])

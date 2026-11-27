@@ -15,7 +15,7 @@ from apps.core import business_settings
 from apps.core.permissions import require_perm
 
 from . import blocks as catalog
-from . import editor, library, pages, review, video
+from . import editor, library, page_templates, pages, review, video
 from .editor_forms import GROUPS, KINDS, BlockForm, summary
 from .models import Page, PageDraft, PageVersion, Pattern, SharedBlock
 
@@ -30,6 +30,8 @@ def pages_view(request):
     if request.method == "POST" and form.is_valid():
         # El formulari ja ha fet la validació del model (adreça única i sense xocar amb cap ruta).
         page, _warnings = pages.save_page(None, actor=request.user, **form.cleaned_data)
+        # «Pàgina nova des d'una plantilla» (T-M07-20b): l'esborrany comença amb el seu exemple.
+        pages.save_draft(page, page_templates.example(page.template), request.user)
         messages.success(request, _("Pàgina creada en esborrany."))
         return redirect("administration:website_page_editor", page.pk)
     # «Amb canvis sense publicar»: l'esborrany (que es queda en publicar) no és l'última versió.
