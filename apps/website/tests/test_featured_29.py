@@ -116,7 +116,8 @@ def test_past_activities_block_brings_done_and_published_ones(manager):
     an_activity(manager, "Oberta inventada")
     items = render._data(block("past_activities", filters={"type": "outing"}, count=5))["items"]
     assert [i["title"] for i in items] == ["Feta inventada"] and NAME not in repr(items)
-    assert items[0]["url"] == reverse("activities:public_detail", args=[done.pk])
+    # Revisió: el detall públic d'una activitat acabada és «no trobat»: cap enllaç.
+    assert items[0]["url"] is None and reverse("activities:public_detail", args=[done.pk])
 
 
 def test_the_selector_screen(login_as, editor, manager, make_admin):  # noqa: F811

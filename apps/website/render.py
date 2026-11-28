@@ -11,6 +11,7 @@ T-M07-19) o, mentre no existeix, amb `website/blocs/_provisional/<kind>.html`, a
 - Les columnes d'una secció arriben ja pintades (una cadena HTML per columna).
 - Dades del club, `block.items` ja resolt i sense noms de persones: les activitats (properes,
   destacades i fetes), `{title, url, start, kind_label, price, photo, places_left}`
+  (`url` és `None` a les fetes: el seu detall públic ja no hi és)
   (`price`, text ja formatat com a la fitxa pública, «30,00 €», o `None`; `places_left` 0 vol
   dir «Places exhaurides»); les
   notícies, `{title, url, date, photo}`. `faq_topic` porta `topic_name` i `questions`
@@ -111,7 +112,9 @@ def _data(block: dict) -> dict:
     if kind == "featured_activities":
         return {"items": [_activity(a) for a in featured.items()]}
     if kind == "past_activities":
-        return {"items": [_activity(a) for a in activities.public_past_list(filters)[:count]]}
+        # El detall públic d'una activitat acabada és «no trobat»: cap enllaç (revisió).
+        done = activities.public_past_list(filters)[:count]
+        return {"items": [{**_activity(a), "url": None} for a in done]}
     if kind == "featured_trip":
         try:
             activity = _activity(activities.get_activity(block.get("activity")))
