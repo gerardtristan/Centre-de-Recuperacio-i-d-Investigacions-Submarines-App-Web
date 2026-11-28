@@ -730,6 +730,7 @@ img { max-width: 100%; display: block; }
 .avis-avis    { border-left-color: var(--c-avis);    background: var(--c-avis-fons); color: var(--c-avis-text); }
 .avis-error   { border-left-color: var(--c-error);   background: var(--c-error-fons); color: var(--c-error-text); }
 .avis-sistema { border-left-color: var(--c-sistema); background: var(--c-sistema-fons); color: var(--c-sistema-text); }
+.avis-info    { border-left-color: var(--c-info);    background: var(--c-info-fons);    color: var(--c-info-text); }  /* T-M07-19: avís destacat de la web */
 
 .xip {
   display: inline-flex; align-items: center;

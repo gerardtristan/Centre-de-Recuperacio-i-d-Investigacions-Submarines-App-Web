@@ -50,7 +50,7 @@ Dissenyar i construir, per mòduls prioritzats i validats amb la junta, una plat
 /config/                       projecte Django: settings per entorn (base, dev, prod, test) i URL
 /apps/                         core (base comuna, 00), accounts (comptes), members (socis, 01)
 /templates/                    plantilles de Django
-/static/                       fitxers estàtics; vendor/htmx servit des del VPS (046)
+/static/                       fitxers estàtics; vendor/htmx i vendor/sortablejs servits des del VPS (046, 106)
 /.github/workflows/ci.yml      pipeline: lint, migracions, proves, check --deploy, gitleaks
 ```
 

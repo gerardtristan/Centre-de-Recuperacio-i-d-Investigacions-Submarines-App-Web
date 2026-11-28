@@ -1,0 +1,49 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M07-21 (WP9; addenda 106, decisió 034): els enllaços del menú principal de la web i, a sota, la capçalera i el peu. WP9 només té l'abast «Tot»: qui hi entra hi pot escriure (el servidor ho comprova a cada vista). #}
+{% block title %}{% translate "Menú, capçalera i peu" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Web pública" %}</p>
+    <h1>{% translate "Menú, capçalera i peu" %}</h1>
+    <p class="text-2">{% translate "A la web es veuen sis enllaços i la resta a «Més». Una pàgina sense publicar, un grup sense enllaços i el contacte o el butlletí apagats no hi surten." %}</p>
+    <div class="accions"><a class="boto boto-principal" href="{% url 'administration:website_menu_item_add' %}">{% translate "Enllaç nou" %}</a></div>
+  </header>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
+  <table class="taula">
+    <caption>{% translate "Menú principal" %}</caption>
+    <thead><tr><th scope="col">{% translate "Enllaç" %}</th><th scope="col">{% translate "Destí" %}</th><th scope="col">{% translate "Dins de" %}</th><th scope="col">{% translate "Ordre" %}</th><th scope="col">{% translate "Acció" %}</th></tr></thead>
+    <tbody>
+      {% for item in items %}
+        <tr>
+          <th scope="row" class="cel-nom"><a href="{% url 'administration:website_menu_item_edit' item.pk %}">{{ item.label }}</a></th>
+          <td data-etiqueta="{% translate 'Destí' %}">{% if item.page %}{% blocktranslate with title=item.page.title %}Pàgina «{{ title }}»{% endblocktranslate %}{% if item.page.status != "published" %} <span class="estat estat-neutre"><span aria-hidden="true">■</span> {% translate "No publicada" %}</span>{% endif %}{% elif item.url %}{{ item.url }}{% else %}{% translate "Grup" %}{% endif %}</td>
+          <td data-etiqueta="{% translate 'Dins de' %}">{{ item.parent.label|default:"—" }}</td>
+          <td data-etiqueta="{% translate 'Ordre' %}">{{ item.order }}</td>
+          <td data-etiqueta="{% translate 'Acció' %}">
+            <form method="post" action="{% url 'administration:website_menu_item_remove' item.pk %}">
+              {% csrf_token %}
+              <button class="boto" type="submit">{% blocktranslate with label=item.label %}Treu «{{ label }}»{% endblocktranslate %}</button>
+            </form>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5">{% translate "Encara no hi ha cap enllaç." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <section class="targeta" aria-labelledby="titol-capcalera">
+    <h2 id="titol-capcalera">{% translate "Capçalera i peu" %}</h2>
+    {% if chrome %}<p class="text-2">{% blocktranslate with n=chrome.number date=chrome.saved_at|date:"d/m/Y H:i" %}Versió {{ n }}, desada el {{ date }}. Desar-la en fa una de nova; les anteriors no canvien.{% endblocktranslate %}</p>
+    {% else %}<p class="text-2">{% translate "Encara no s'ha desat cap capçalera ni cap peu." %}</p>{% endif %}
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% include "_errata.html" %}
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Desa la capçalera i el peu" %}</button></div>
+    </form>
+  </section>
+{% endblock %}
