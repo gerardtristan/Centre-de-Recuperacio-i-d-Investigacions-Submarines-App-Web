@@ -37,7 +37,10 @@ def _update_shared(request, page, blocks, index):
     if not form.is_valid():
         raise ValidationError(" ".join(str(e) for errors in form.errors.values() for e in errors))
     library.save_shared(shared, form.to_block(content), request.user)
-    return _("Bloc compartit desat: canvia a totes les pàgines on surt.")
+    return _(
+        "Bloc compartit desat: canvia l'esborrany de totes les pàgines on surt; a la web, "
+        "quan es torni a publicar cada pàgina."
+    )
 
 
 @never_cache

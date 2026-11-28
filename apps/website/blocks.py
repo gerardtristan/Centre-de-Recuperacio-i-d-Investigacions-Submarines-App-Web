@@ -118,7 +118,8 @@ CATALOG = {
     "featured_trip": {"activity": Field("int", min=1), "title": OPTIONAL_TITLE,
                       "background": variant(*BACKGROUND)},
     # Referència a un bloc compartit (`SharedBlock`, T-M07-20a; P-688): el contingut és el seu.
-    "shared": {"shared": Field("int", min=1)},
+    # En publicar, la versió del compartit queda fixada a la referència (`version`).
+    "shared": {"shared": Field("int", min=1), "version": Field("int", min=1, required=False)},
 }  # fmt: skip
 COMMON = {"kind", "hidden"}
 EMPTY = (None, "", [], {})
