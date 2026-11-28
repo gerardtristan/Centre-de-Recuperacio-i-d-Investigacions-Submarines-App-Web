@@ -2,7 +2,7 @@
 {% load i18n static %}
 {# T-M07-06a (WP1, decisió 106; RN-M07-15 i 16): blocs de la pàgina, formulari del bloc triat, afegir, moure, duplicar, amagar, treure, desfer i refer. Arrossegar (SortableJS) és una drecera: «Amunt» i «Avall» fan el mateix amb el teclat. Cada canvi desa l'esborrany al servidor, que valida l'esquema i torna a demanar WP1. La vista prèvia és la T-M07-06b. #}
 {% block title %}{% blocktranslate with title=page.title %}Editor: {{ title }}{% endblocktranslate %} · C.R.I.S.{% endblock %}
-{% block estils %}<script src="{% static 'vendor/sortablejs/Sortable.min.js' %}" defer></script><script src="{% static 'js/editor-web.js' %}" defer></script>{% endblock %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/editor-web.css' %}"><script src="{% static 'vendor/sortablejs/Sortable.min.js' %}" defer></script><script src="{% static 'js/editor-web.js' %}" defer></script>{% endblock %}
 {% block content %}
   <header class="capcalera-pagina">
     <p class="etiqueta-seccio"><a href="{% url 'administration:website_pages' %}">{% translate "Pàgines" %}</a></p>
@@ -18,13 +18,14 @@
     {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
     {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
   {% endfor %}
+  <div class="editor-partit">{# T-DX-160: pantalla partida (design-system §6.28) #}
   <section class="targeta" aria-labelledby="titol-blocs">
     <h2 id="titol-blocs">{% translate "Blocs de la pàgina" %}</h2>
     <p class="ajuda" id="ajuda-blocs">{% translate "Tria un bloc per editar-lo. Per canviar-ne l'ordre, arrossega'l per la nansa o fes servir «Amunt» i «Avall»." %}</p>
-    <ol data-editor-blocs aria-describedby="ajuda-blocs">
+    <ol class="editor-blocs" data-editor-blocs aria-describedby="ajuda-blocs">
       {% for index, block, name in items %}
         <li data-index="{{ index }}"{% if index == selected %} aria-current="true"{% endif %}>
-          <span data-nansa aria-hidden="true">⋮⋮</span>
+          <span class="editor-nansa" data-nansa aria-hidden="true">⋮⋮</span>
           <a href="?bloc={{ index }}">{{ name }}</a>
           {% if block.hidden %}<span class="estat estat-neutre">{% translate "Amagat" %}</span>{% endif %}
           {% if index == selected %}
@@ -73,4 +74,5 @@
       </form>
     </section>
   {% endif %}
+  </div>
 {% endblock %}

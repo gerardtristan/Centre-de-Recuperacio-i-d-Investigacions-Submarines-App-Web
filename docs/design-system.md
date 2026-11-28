@@ -671,6 +671,12 @@ El catàleg tancat de l'[addenda de la 106](planning.md#M07-addenda-106) (RN-M07
 - **Catàleg:** `/en-construccio/blocs-web/` pinta cada bloc amb la seva plantilla real i contingut d'exemple; les proves comunes de §16 en fan les captures.
 - **Del recurs no s'hi fa:** res de Probador ni de Pregon (són de l'editor, T-DX-114): aquí només es veu el resultat públic.
 
+### 6.28 Editor de la web: la pantalla partida (T-DX-160, decisió 106)
+Del wireframe de l'editor (`design/wireframes/editor-web.html`, T-M07-01) a la pantalla real del pilot (`administration:website_page_editor`, T-M07-06a).
+- **Peça:** `static/css/editor-web.css`. `editor-partit` posa les dues targetes de l'editor una al costat de l'altra a partir de 1024 px (5/12 els blocs i 7/12 el formulari del bloc triat, que es queda fix en baixar); al mòbil, una sota l'altra. Quan hi hagi la vista prèvia (T-M07-06b, Probador, T-DX-114), la columna de la dreta serà la vista prèvia i el formulari passarà sota els blocs, com al wireframe.
+- **La llista de blocs:** `editor-blocs`, una fila per bloc amb el número (comptador CSS, xifres tabulars), el nom com a enllaç i, si cal, l'`estat` «Amagat». La nansa (`editor-nansa`, amb `data-nansa` per a SortableJS) té 44 × 44 px (B14) i el cursor d'agafar; és només per al ratolí i el dit, perquè «Amunt» i «Avall» fan el mateix amb el teclat. El bloc triat (`aria-current="true"`) porta la vora d'accent més gruixuda a l'esquerra i el fons del pou, i les seves accions a sota, dins de la mateixa fila.
+- **Seguretat:** és només presentació. Cada acció és un formulari amb CSRF que el servidor valida (esquema tancat i WP1); arrossegar només envia el nou ordre.
+
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.
 - El **selector de tema** és un control segmentat de tres opcions, **Sistema / Clar / Fosc** (◐ ○ ●), fet amb botons de ràdio dins d'un `fieldset` amb la llegenda «Tema». Funciona amb el teclat (Tab i fletxes). Cada opció es veu de 32 px d'alt, però té una àrea tàctil de 44 × 44 px (§4). Als prototips, al mòbil només es veuen les icones (el text continua disponible per al lector de pantalla) i a partir de tauleta, la icona i el text. **A la plataforma (T-M01-45), la capçalera de comptes, socis i administració mostra la icona i el text a totes les mides**, com demana la revisió de pantalles; a 320 px el selector passa a la seva fila (`comptes.css`).
