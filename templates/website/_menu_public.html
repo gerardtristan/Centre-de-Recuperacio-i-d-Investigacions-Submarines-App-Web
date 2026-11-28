@@ -1,9 +1,10 @@
-{% load i18n %}{# T-M07-21 (addenda 106; decisió 034): el menú de la web pública, desat amb WP9. Fins a 6 enllaços i la resta a «Més»; submenús d'un nivell amb <details>, sense JavaScript. Cap pàgina sense publicar. Classes existents: la capçalera pública l'inclou i el pinta DISSENY (T-DX-170). #}{% if menu.links %}
-<nav class="navegacio-compte" aria-label="{% translate 'Navegació principal' %}">
-  <ul>
-    {% for item in menu.links %}<li>{% include "website/_menu_item.html" %}</li>
-    {% endfor %}{% if menu.more %}<li><details><summary>{% translate "Més" %}</summary><ul>
-      {% for item in menu.more %}<li>{% include "website/_menu_item.html" %}</li>
+{% load i18n %}{# T-M07-21 (addenda 106; decisió 034) i T-DX-170 (design-system §6.1 i §6.29): el menú de la web pública, desat amb WP9. La pastilla mostra 6 enllaços i «Més» a partir de 1024 px; al mòbil, 3 i la resta a «Més» (`nav-escriptori` / `nav-no-escriptori`: cada enllaç es veu i es llegeix una sola vegada). Submenús d'un nivell i «Més» amb <details>, sense JavaScript. Cap pàgina sense publicar. #}{% if menu.links %}
+<nav class="menu-public" aria-label="{% translate 'Navegació principal' %}">
+  <ul class="nav-llista">
+    {% for item in menu.links %}<li{% if forloop.counter > 3 %} class="nav-escriptori"{% endif %}>{% include "website/_menu_item.html" %}</li>
+    {% endfor %}{% if menu.more or menu.links|length > 3 %}<li class="nav-mes{% if not menu.more %} nav-no-escriptori{% endif %}"><details><summary>{% translate "Més" %}</summary><ul class="nav-sub">
+      {% for item in menu.links %}{% if forloop.counter > 3 %}<li class="nav-no-escriptori">{% include "website/_menu_item.html" %}</li>
+      {% endif %}{% endfor %}{% for item in menu.more %}<li>{% include "website/_menu_item.html" %}</li>
       {% endfor %}</ul></details></li>{% endif %}
   </ul>
 </nav>{% endif %}

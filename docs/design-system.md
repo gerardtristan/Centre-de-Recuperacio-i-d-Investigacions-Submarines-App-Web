@@ -671,6 +671,13 @@ El catàleg tancat de l'[addenda de la 106](planning.md#M07-addenda-106) (RN-M07
 - **Catàleg:** `/en-construccio/blocs-web/` pinta cada bloc amb la seva plantilla real i contingut d'exemple; les proves comunes de §16 en fan les captures.
 - **Del recurs no s'hi fa:** res de Probador ni de Pregon (són de l'editor, T-DX-114): aquí només es veu el resultat públic.
 
+### 6.29 Menú de la web pública (T-DX-170, decisió 034)
+La pastilla de §6.1 amb el menú que desa WP9 (T-M07-21): `{% menu_public %}` a la capçalera de `base.html`, només per a qui no ha entrat (amb sessió, el compte té la seva navegació). Una pantalla el pot treure amb `{% block menu_public %}{% endblock %}`.
+- **Peça:** `static/css/menu-public.css` i `templates/website/_menu_public.html`. A partir de 1024 px, la pastilla al mig de la capçalera amb 6 enllaços i «Més»; fins a 1023 px, sota la marca, amb els 3 primers i la resta dins de «Més». Els enllaços 4 a 6 porten `nav-escriptori` i les seves còpies dins de «Més», `nav-no-escriptori`: cada enllaç es veu i es llegeix una sola vegada a cada mida. Si no hi ha res més enllà del sisè, «Més» només surt al mòbil.
+- **«Més» i els submenús** són `details` (clic, Intro o Espai, sense JavaScript), amb el desplegable a `--c-superficie-flotant` (C6). Dins de «Més», un submenú es desplega a sota i sagnat, sense una altra capa flotant.
+- **Enllaç actual:** `aria-current="page"`, fons del pou, negreta i la ratlla daurada a sota (al desplegable, a l'esquerra).
+- **Encara no:** el text de la capçalera i el peu desats (`menus.current_chrome()`), que necessiten una etiqueta de plantilla del 07.
+
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.
 - El **selector de tema** és un control segmentat de tres opcions, **Sistema / Clar / Fosc** (◐ ○ ●), fet amb botons de ràdio dins d'un `fieldset` amb la llegenda «Tema». Funciona amb el teclat (Tab i fletxes). Cada opció es veu de 32 px d'alt, però té una àrea tàctil de 44 × 44 px (§4). Als prototips, al mòbil només es veuen les icones (el text continua disponible per al lector de pantalla) i a partir de tauleta, la icona i el text. **A la plataforma (T-M01-45), la capçalera de comptes, socis i administració mostra la icona i el text a totes les mides**, com demana la revisió de pantalles; a 320 px el selector passa a la seva fila (`comptes.css`).

@@ -662,3 +662,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M07-01](T-M07-01.md) | Wireframes de l'editor de la web pública: les deu pantalles de l'encàrrec (Probador, Pregon, Fototeca) | 27/11/2026 22:28 | 602be634 | 1 nova i 1 e2e | [A comprovar] |
 | [T-M07-19a](T-M07-19a.md) | Blocs de la web pública: grup Text (títol, text, cita, llista, pregunta i avís) i catàleg | 27/11/2026 22:49 | 570ef7e0 | 2 noves | [A comprovar] |
 | [T-M07-19b](T-M07-19b.md) | Blocs de la web pública: Disposició i Acció (secció, separador, espai, botó, «Fes-te soci», butlletí i contacte) | 27/11/2026 23:20 | 42bd3f19 | 3 noves | [A comprovar] |
+| [T-DX-170](T-DX-170.md) | Menú de la web pública a la capçalera, amb la pastilla de 034 (part 1) | 28/11/2026 01:33 | 2e2b0066 | 3 noves i 1 e2e | [A comprovar] |
