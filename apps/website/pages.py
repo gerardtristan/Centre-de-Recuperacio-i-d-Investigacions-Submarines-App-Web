@@ -126,6 +126,10 @@ def current_version(page: Page) -> PageVersion | None:
 def publish_page(page: Page, blocks, actor, note: str = "") -> PageVersion:
     """RN-M07-03: crea la versió següent i deixa la pàgina publicada. Cap versió no canvia."""
     require(actor)
+    from .library import pin  # la versió dels blocs compartits que es publica (T-M07-20a)
+
+    catalog.validate(blocks, publishing=True)  # abans de fixar res, que sigui una llista bona
+    blocks = pin(blocks)
     validate_blocks(blocks, publishing=True)
     page = Page.objects.select_for_update().get(pk=page.pk)
     previous = page.versions.aggregate(n=Max("number"))["n"] or 0
@@ -156,7 +160,9 @@ def publish_draft(page: Page, actor, note: str = "", *, revision: int | None = N
     blocks, current = draft_state(page)
     if revision is not None and revision != current:
         raise DraftConflict
-    return publish_page(page, blocks, actor, note)
+    from .library import pin  # l'esborrany publica la versió vigent de cada compartit
+
+    return publish_page(page, pin(blocks, repin=True), actor, note)
 
 
 @transaction.atomic

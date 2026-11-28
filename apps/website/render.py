@@ -169,7 +169,8 @@ def _served(key: str) -> bool:
 def render_blocks(blocks, page, *, preview: bool = False) -> str:
     """`blocks`: els d'una versió o els de l'esborrany, tal com es van desar. `preview`: cada bloc
     dins d'un `data-bloc` amb el seu número (clic per triar-lo, RN-M07-23)."""
-    blocks = library.resolve(catalog.upgrade_all(blocks))  # els compartits, amb el seu contingut
+    # Els compartits: la versió fixada en publicar; a la vista prèvia de l'esborrany, la vigent.
+    blocks = library.resolve(catalog.upgrade_all(blocks), latest=preview)
     images = _images(blocks)
     if not preview:
         return _render(blocks, page, images)

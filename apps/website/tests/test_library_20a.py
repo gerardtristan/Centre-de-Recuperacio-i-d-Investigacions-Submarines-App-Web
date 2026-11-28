@@ -96,9 +96,8 @@ def test_a_shared_block_changes_in_one_place_for_every_page(page, admin):
     post(client, other, {"action": "insert_shared", "shared": shared.pk, "index": "-1"})
     editor_html = client.get(reverse("administration:website_page_editor", args=[other.pk])
                              + "?bloc=0").content.decode()  # fmt: skip
-    assert (
-        "Bloc compartit: Títol comú" in editor_html and "canvia a totes les pàgines" in editor_html
-    )
+    assert "Bloc compartit: Títol comú" in editor_html
+    assert "canvia l'esborrany de totes les pàgines" in editor_html
     data = {"action": "update_shared", "index": "0", "text": "Dos (comú)", "level": "2"}
     assert post(client, other, {**data, "base": "antiga"}).status_code == 409
     wrong = {**data, "level": "9", "base": editor.fingerprint(H2)}
@@ -145,3 +144,26 @@ def test_without_wp1_the_library_is_not_found(page, make_admin):  # noqa: F811
     response = post(admin_client(make_admin(R.SECRETARY)), page, {"action": "save_pattern",
                                                                   "name": "X"})  # fmt: skip
     assert response.status_code == 404 and not Pattern.objects.exists()
+
+
+def test_review_a_published_page_keeps_its_shared_version_until_it_is_published_again(page, admin):
+    """Revisió de la 20a: canviar un compartit no canvia la web fins que es torna a publicar la
+    pàgina; tornar a una versió recupera el contingut d'aleshores."""
+    version = library.save_shared("Cita", block("quote", text="Primera"), admin)
+    ref = {"kind": "shared", "shared": version.shared_id}
+    first = pages.publish_page(page, [ref], admin)
+    assert first.blocks == [{**ref, "version": 1}]
+    library.save_shared(SharedBlock.objects.get(), block("quote", text="Segona"), admin)
+    assert "Primera" in render.render_blocks(first.blocks, page)  # la web, com abans
+    assert "Segona" in render.render_blocks([ref], page, preview=True)  # l'esborrany, la nova
+    pages.save_draft(page, [ref], admin)
+    second = pages.publish_draft(page, admin)
+    assert "Segona" in render.render_blocks(second.blocks, page)
+    third = pages.revert_to(first, admin)
+    assert "Primera" in render.render_blocks(third.blocks, page)
+
+
+def test_review_a_shared_block_cannot_hold_a_reference_inside_a_section(admin):
+    inner = block("section", columns=[[{"kind": "shared", "shared": 1}]])
+    with pytest.raises(ValidationError):
+        library.save_shared("Amb secció", inner, admin)

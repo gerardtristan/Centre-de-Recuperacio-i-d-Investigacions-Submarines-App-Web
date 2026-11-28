@@ -72,7 +72,7 @@
   </section>
   <section class="targeta" aria-labelledby="titol-biblioteca">
     <h2 id="titol-biblioteca">{% translate "Patrons i blocs compartits" %}</h2>
-    <p class="ajuda">{% translate "Un patró posa una còpia dels seus blocs a la pàgina. Un bloc compartit és el mateix a totes les pàgines on surt: si el canvies, canvia a totes." %}</p>
+    <p class="ajuda">{% translate "Un patró posa una còpia dels seus blocs a la pàgina. Un bloc compartit és el mateix a totes les pàgines on surt: si el canvies, canvia a l'esborrany de totes, i a la web quan es torna a publicar cada pàgina." %}</p>
     {% if patterns %}<form class="formulari" method="post" action="{% url 'administration:website_page_library' page.pk %}">
       {% csrf_token %}<input type="hidden" name="revision" value="{{ revision }}"><input type="hidden" name="action" value="insert_pattern"><input type="hidden" name="index" value="{% if selected is not None %}{{ selected }}{% else %}{{ last }}{% endif %}">
       <div class="camp"><label for="patro">{% translate "Patró" %}</label><select id="patro" name="pattern">{% for pattern in patterns %}<option value="{{ pattern.pk }}">{{ pattern.name }}</option>{% endfor %}</select></div>
@@ -92,7 +92,7 @@
   {% if form %}
     <section class="targeta" aria-labelledby="titol-bloc">
       <h2 id="titol-bloc">{{ selected_kind }}</h2>
-      {% if shared_selected %}<p class="avis avis-avis">{% translate "És un bloc compartit: el que desis aquí canvia a totes les pàgines on surt." %}</p>{% endif %}
+      {% if shared_selected %}<p class="avis avis-avis">{% translate "És un bloc compartit: el que desis aquí canvia l'esborrany de totes les pàgines on surt; a la web, cada pàgina el mostra quan es torna a publicar." %}</p>{% endif %}
       <form class="formulari" method="post" action="{% if shared_selected %}{% url 'administration:website_page_library' page.pk %}{% else %}{% url 'administration:website_page_editor_action' page.pk %}{% endif %}" novalidate{% if not shared_selected %} data-desat-auto{% endif %}>
         {% csrf_token %}<input type="hidden" name="revision" value="{{ revision }}">
         <input type="hidden" name="action" value="{% if shared_selected %}update_shared{% else %}update{% endif %}"><input type="hidden" name="index" value="{{ selected }}"><input type="hidden" name="base" value="{{ base }}">
