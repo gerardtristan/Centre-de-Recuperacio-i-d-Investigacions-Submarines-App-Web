@@ -1,0 +1,76 @@
+{% extends "base_admin.html" %}
+{% load i18n static %}
+{# T-M07-06a (WP1, decisió 106; RN-M07-15 i 16): blocs de la pàgina, formulari del bloc triat, afegir, moure, duplicar, amagar, treure, desfer i refer. Arrossegar (SortableJS) és una drecera: «Amunt» i «Avall» fan el mateix amb el teclat. Cada canvi desa l'esborrany al servidor, que valida l'esquema i torna a demanar WP1. La vista prèvia és la T-M07-06b. #}
+{% block title %}{% blocktranslate with title=page.title %}Editor: {{ title }}{% endblocktranslate %} · C.R.I.S.{% endblock %}
+{% block estils %}<script src="{% static 'vendor/sortablejs/Sortable.min.js' %}" defer></script><script src="{% static 'js/editor-web.js' %}" defer></script>{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio"><a href="{% url 'administration:website_pages' %}">{% translate "Pàgines" %}</a></p>
+    <h1>{% blocktranslate with title=page.title %}Editor: {{ title }}{% endblocktranslate %}</h1>
+    <p class="text-2"><span class="codi">/{{ page.slug }}/</span> · {{ page.get_status_display }}</p>
+    <form class="accions" method="post" action="{% url 'administration:website_page_editor_action' page.pk %}">
+      {% csrf_token %}
+      <button class="boto" type="submit" name="action" value="undo" id="editor-desfes" aria-keyshortcuts="Control+Z"{% if not history.undo %} disabled aria-disabled="true"{% endif %}>{% translate "Desfés" %}</button>
+      <button class="boto" type="submit" name="action" value="redo" id="editor-refes" aria-keyshortcuts="Control+Shift+Z"{% if not history.redo %} disabled aria-disabled="true"{% endif %}>{% translate "Refés" %}</button>
+    </form>
+  </header>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
+  <section class="targeta" aria-labelledby="titol-blocs">
+    <h2 id="titol-blocs">{% translate "Blocs de la pàgina" %}</h2>
+    <p class="ajuda" id="ajuda-blocs">{% translate "Tria un bloc per editar-lo. Per canviar-ne l'ordre, arrossega'l per la nansa o fes servir «Amunt» i «Avall»." %}</p>
+    <ol data-editor-blocs aria-describedby="ajuda-blocs">
+      {% for index, block, name in items %}
+        <li data-index="{{ index }}"{% if index == selected %} aria-current="true"{% endif %}>
+          <span data-nansa aria-hidden="true">⋮⋮</span>
+          <a href="?bloc={{ index }}">{{ name }}</a>
+          {% if block.hidden %}<span class="estat estat-neutre">{% translate "Amagat" %}</span>{% endif %}
+          {% if index == selected %}
+            <form class="accions" method="post" action="{% url 'administration:website_page_editor_action' page.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="index" value="{{ index }}">
+              {% if index > 0 %}<button class="boto boto-petit" type="submit" name="action" value="up">{% translate "Amunt" %}<span class="visualment-amagat">: {{ name }}</span></button>{% endif %}
+              {% if index < last %}<button class="boto boto-petit" type="submit" name="action" value="down">{% translate "Avall" %}<span class="visualment-amagat">: {{ name }}</span></button>{% endif %}
+              <button class="boto boto-petit" type="submit" name="action" value="duplicate">{% translate "Duplica" %}<span class="visualment-amagat">: {{ name }}</span></button>
+              <button class="boto boto-petit" type="submit" name="action" value="hide">{% if block.hidden %}{% translate "Mostra" %}{% else %}{% translate "Amaga" %}{% endif %}<span class="visualment-amagat">: {{ name }}</span></button>
+              <button class="boto boto-petit boto-text" type="submit" name="action" value="remove">{% translate "Treu" %}<span class="visualment-amagat">: {{ name }}</span></button>
+            </form>
+          {% endif %}
+        </li>
+      {% empty %}
+        <li>{% translate "Aquesta pàgina encara no té cap bloc." %}</li>
+      {% endfor %}
+    </ol>
+    <form id="editor-ordre" method="post" action="{% url 'administration:website_page_editor_action' page.pk %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="reorder"><input type="hidden" name="order" value="">
+    </form>
+    <form class="formulari" method="post" action="{% url 'administration:website_page_editor_action' page.pk %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add">
+      <input type="hidden" name="index" value="{% if selected is not None %}{{ selected }}{% else %}{{ last }}{% endif %}">
+      <div class="camp">
+        <label for="editor-tipus">{% translate "Bloc nou" %}</label>
+        <select id="editor-tipus" name="kind">
+          {% for label, kinds in groups %}<optgroup label="{{ label }}">{% for kind, kind_label in kinds %}<option value="{{ kind }}">{{ kind_label }}</option>{% endfor %}</optgroup>{% endfor %}
+        </select>
+        <div class="ajuda">{% if selected is not None %}{% translate "S'afegeix després del bloc triat." %}{% else %}{% translate "S'afegeix al final." %}{% endif %}</div>
+      </div>
+      <div class="accions"><button class="boto" type="submit">{% translate "Afegeix el bloc" %}</button></div>
+    </form>
+  </section>
+  {% if form %}
+    <section class="targeta" aria-labelledby="titol-bloc">
+      <h2 id="titol-bloc">{{ selected_kind }}</h2>
+      <form class="formulari" method="post" action="{% url 'administration:website_page_editor_action' page.pk %}" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update"><input type="hidden" name="index" value="{{ selected }}">
+        {% include "_errata.html" %}
+        {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+        <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Desa el bloc" %}</button></div>
+      </form>
+    </section>
+  {% endif %}
+{% endblock %}

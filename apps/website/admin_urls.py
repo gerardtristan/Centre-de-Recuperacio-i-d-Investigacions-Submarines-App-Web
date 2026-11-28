@@ -4,11 +4,21 @@ dins de l'espai de noms `administration`. Totes demanen sessió i permís."""
 from django.urls import path
 
 from . import admin_views as views
+from . import editor_views
 from . import help_admin_views as help_views
+from . import menu_admin_views as menu_views
 from . import news_admin_views as news_views
 from . import tutorial_admin_views as tutorial_views
 
 urlpatterns = [
+    # T-M07-06a (WP1): pàgines i editor de blocs.
+    path("web/pagines/", editor_views.pages_view, name="website_pages"),
+    path("web/pagines/<int:pk>/", editor_views.editor_view, name="website_page_editor"),
+    path(
+        "web/pagines/<int:pk>/accio/",
+        editor_views.editor_action_view,
+        name="website_page_editor_action",
+    ),
     path("web/contacte/", views.inbox_view, name="website_contact"),
     path("web/contacte/<int:pk>/", views.message_view, name="website_contact_message"),
     path("web/contacte/<int:pk>/respon/", views.reply_view, name="website_contact_reply"),
@@ -48,5 +58,14 @@ urlpatterns = [
         "web/tutorials/<int:pk>/publica/",
         tutorial_views.admin_publish_view,
         name="website_tutorial_publish",
+    ),
+    # T-M07-21 (WP9): menú, capçalera i peu.
+    path("web/menu/", menu_views.admin_menu_view, name="website_menu"),
+    path("web/menu/nou/", menu_views.admin_item_view, name="website_menu_item_add"),
+    path("web/menu/<int:pk>/", menu_views.admin_item_view, name="website_menu_item_edit"),
+    path(
+        "web/menu/<int:pk>/treu/",
+        menu_views.admin_item_remove_view,
+        name="website_menu_item_remove",
     ),
 ]

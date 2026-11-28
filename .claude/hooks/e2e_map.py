@@ -314,6 +314,14 @@ MAP = {
         "apps/core/management/commands/seed_demo_data.py",
         "templates/dashboard/*",
     ),
+    "test_editor_web.py": (
+        "apps/website/editor.py",
+        "apps/website/editor_forms.py",
+        "apps/website/editor_views.py",
+        "apps/website/admin_urls.py",
+        "static/js/editor-web.js",
+        "templates/website/admin/page*.html",
+    ),
     "test_web_admin_continguts.py": (
         "apps/website/news_admin_views.py",
         "apps/website/help_admin_views.py",
@@ -362,6 +370,11 @@ MAP = {
         "templates/website/tutorial.html",
         "templates/website/_mira_com_es_fa.html",
         "templates/payments/charge.html",
+    ),
+    "test_web_menu.py": (
+        "apps/website/menu_admin_views.py",
+        "apps/website/menus.py",
+        "templates/website/admin/menu*.html",
     ),
     "test_tutorials_admin.py": (
         "apps/website/tutorial_admin_views.py",
@@ -557,6 +570,7 @@ MAP = {
         "static/css/oleaje.css",
     ),
     "test_previews.py": ("apps/previews/*", "templates/previews/*"),
+    "test_wireframes_editor_web.py": ("design/wireframes/editor-web.html",),
     "test_vigencia.py": (
         "apps/members/templatetags/vigencia.py",
         "templates/members/_vigencia.html",

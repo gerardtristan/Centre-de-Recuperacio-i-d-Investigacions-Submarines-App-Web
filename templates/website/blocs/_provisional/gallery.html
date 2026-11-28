@@ -1,0 +1,2 @@
+{# Plantilla provisional (T-M07-04b): la definitiva és de DISSENY (T-M07-19, website/blocs/<kind>.html). #}
+{% if block.media %}<figure><ul>{% for image in block.media %}<li class="caixa-imatge"><img src="{{ image.url }}" alt="{{ image.alt_text }}" loading="lazy"></li>{% endfor %}</ul>{% if block.caption %}<figcaption>{{ block.caption }}</figcaption>{% endif %}</figure>{% endif %}

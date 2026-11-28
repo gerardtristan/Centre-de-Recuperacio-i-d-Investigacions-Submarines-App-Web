@@ -7,33 +7,57 @@
 - `public_asset(key)` i `open_content(asset)`: per a la vista pública declarada (P-489). Una foto
   retirada, o que no surt a la versió vigent de cap pàgina publicada ni a cap notícia publicada,
   és «no trobat» a la petició següent, sense cap memòria cau.
+
+**Pujades (RN-M07-19, addenda M07 de la 106, amb la P-633 A de la 108; CA-M07-28; T-M07-07b):**
+només JPEG i PNG (cap WebP ni SVG) i PDF, fins a `website.upload_max_mb`. El tipus surt del
+contingut i l'extensió hi ha de correspondre (`core.files.validate_upload`); Pillow ha de poder
+obrir la imatge com a aquest format i la torna a codificar, cosa que en treu l'EXIF, el GPS, els
+comentaris i qualsevol altra metadada (la rotació de l'EXIF s'aplica abans). Es desen també les
+mides en WebP (les fa el servidor, P-633 A) de `RENDITION_WIDTHS` més petites que l'original. El
+punt focal (`focal_x`, `focal_y`, en %) s'edita amb `update_details`. Els PDF no es tornen a
+codificar: la vista pública els serveix com a descàrrega. Com que un PDF pot portar el nom de
+qui l'ha fet (Author, Creator), la pujada de PDF és darrere de `website.pdf_uploads_enabled`,
+apagat fins a la P-691 (D2).
 """
 
+import io
 import uuid
+import warnings
 
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.files.storage import storages
 from django.db import transaction
-from django.db.models import Q
 from django.http import Http404
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
+from PIL import Image, ImageOps
 
-from apps.activities.card_photos import strip_jpeg, strip_png
-from apps.core import audit, files
+from apps.core import audit, business_settings, files
+from apps.core.models import Setting
 from apps.core.permissions import has_perm
 
+from . import blocks as catalog
 from .models import MediaAsset, NewsItem, Page, PageVersion, Tutorial
 
 PERMISSION = "website.media"  # WP3
 ACTION_CHANGED = "website.media_changed"
 ACTION_RETIRED = "website.media_retired"
-# Només formats que mostra qualsevol navegador i dels quals es poden treure les metadades sense cap
-# biblioteca nova (el HEIC de la 00, no; el WebP, tampoc: P-633).
+# RN-M07-19 amb la P-633 A (108): només JPEG i PNG (cap WebP, HEIC ni SVG) i els PDF. Les mides
+# automàtiques, en canvi, les fa el servidor en WebP.
+PDF = "application/pdf"
 WEB_IMAGE_TYPES = frozenset({"image/jpeg", "image/png"})
-_STRIP = {"image/jpeg": strip_jpeg, "image/png": strip_png}
-DETAIL_FIELDS = ("alt_text", "author", "licence_note", "shows_people", "people_consent", "credit")
+UPLOAD_TYPES = WEB_IMAGE_TYPES | {PDF}
+_PIL_FORMAT = {"image/jpeg": "JPEG", "image/png": "PNG"}
+MAX_MB_KEY = "website.upload_max_mb"
+PDF_SWITCH = "website.pdf_uploads_enabled"  # P-691: apagat
+MAX_MB_FALLBACK = 10  # shortcut: fins que el carril E creï la clau (`website/0011`); llavors fora
+RENDITION_WIDTHS = (480, 960, 1600)  # format de les mides automàtiques, no un valor de negoci
+DETAIL_FIELDS = (
+    "alt_text", "author", "licence_note", "shows_people", "people_consent", "credit",
+    "focal_x", "focal_y",
+)  # fmt: skip
+NOT_AN_IMAGE = gettext_lazy("El fitxer no és una imatge vàlida.")
 NOT_PUBLISHABLE = gettext_lazy(
     "Una foto no té autor, permís d'ús o text alternatiu, s'hi veuen persones sense el seu "
     "consentiment, o és retirada."
@@ -52,11 +76,15 @@ def upload(uploaded, *, actor, alt_text, shows_people, **details) -> MediaAsset:
     unknown = set(details) - set(DETAIL_FIELDS)
     if unknown:
         raise ValueError(f"Camps desconeguts: {sorted(unknown)}")
-    content_type = files.validate_upload(uploaded, allowed=WEB_IMAGE_TYPES)
+    _check_size(uploaded)
+    content_type = files.validate_upload(uploaded, allowed=UPLOAD_TYPES)
+    if content_type == PDF and not business_settings.get(PDF_SWITCH):
+        raise ValidationError(_("Ara mateix no es poden pujar PDF a la web."), code="type")
     uploaded.seek(0)
-    # Sense metadades (EXIF amb el GPS, número de sèrie, propietari, comentaris): el mateix mètode
-    # que les fotos dels carnets (T-M02-42), sense cap biblioteca nova.
-    clean = ContentFile(_STRIP[content_type](uploaded.read()))
+    data, renditions = uploaded.read(), {}
+    if content_type != PDF:
+        data, renditions = _reencode(data, content_type)
+    clean = ContentFile(data)
     asset = MediaAsset(
         content_type=content_type,
         size_bytes=clean.size,
@@ -67,13 +95,67 @@ def upload(uploaded, *, actor, alt_text, shows_people, **details) -> MediaAsset:
     )
     asset.full_clean(exclude=["storage_key", "uploaded_by"])
     storage = storages["private"]
-    asset.storage_key = storage.save(uuid.uuid4().hex, clean)
+    saved = []
     try:
+        asset.storage_key = storage.save(uuid.uuid4().hex, clean)
+        saved.append(asset.storage_key)
+        for width, content in renditions.items():
+            saved.append(storage.save(uuid.uuid4().hex, ContentFile(content)))
+            asset.renditions[str(width)] = saved[-1]
         asset.save()
     except Exception:
-        storage.delete(asset.storage_key)
+        for key in saved:
+            storage.delete(key)
         raise
     return asset
+
+
+def _check_size(uploaded) -> None:
+    try:
+        max_mb = business_settings.get(MAX_MB_KEY)
+    except Setting.DoesNotExist:
+        max_mb = MAX_MB_FALLBACK
+    if uploaded.size > max_mb * 1024 * 1024:
+        raise ValidationError(
+            _("El fitxer supera la mida màxima de %(mb)s MB.") % {"mb": max_mb}, code="too_large"
+        )
+
+
+def _reencode(data: bytes, content_type: str) -> tuple[bytes, dict[int, bytes]]:
+    """La imatge codificada de nou, sense cap metadada, i les mides en WebP. Una imatge que Pillow
+    no obre com al format detectat, o massa gran (bomba de descompressió), es rebutja."""
+    fmt = _PIL_FORMAT[content_type]
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", Image.DecompressionBombWarning)
+            with Image.open(io.BytesIO(data), formats=[fmt]) as source:
+                source.load()
+                icc = source.info.get("icc_profile")
+                image = ImageOps.exif_transpose(source)
+    except (OSError, ValueError, SyntaxError, Image.DecompressionBombError,
+            Image.DecompressionBombWarning):  # fmt: skip
+        raise ValidationError(NOT_AN_IMAGE, code="type") from None
+    # Pillow torna a escriure algunes metadades de `info` (el comentari del JPEG, l'XMP): fora totes
+    # menys la transparència.
+    image.info = {k: v for k, v in image.info.items() if k == "transparency"}
+    out = io.BytesIO()
+    options = {"icc_profile": icc} if icc else {}  # el perfil de color no és cap dada personal
+    if fmt == "JPEG":
+        options["quality"] = 90
+    image.save(out, fmt, **options)
+    if image.mode not in ("RGB", "RGBA"):
+        alpha = "transparency" in image.info or "A" in image.mode
+        image = image.convert("RGBA" if alpha else "RGB")
+    renditions = {}
+    for width in RENDITION_WIDTHS:
+        if width >= image.width:
+            break
+        copy = image.copy()
+        copy.thumbnail((width, image.height), Image.Resampling.LANCZOS)
+        rendition = io.BytesIO()
+        copy.save(rendition, "WEBP", quality=80)
+        renditions[width] = rendition.getvalue()
+    return out.getvalue(), renditions
 
 
 @transaction.atomic
@@ -114,22 +196,31 @@ def retire(asset: MediaAsset, *, actor, reason: str) -> MediaAsset:
     return asset
 
 
-def block_media_keys(blocks) -> list[str]:
-    """Claus de les fotos dels blocs d'imatge (una) i de galeria (una llista)."""
+def block_media_keys(blocks, *, public_only: bool = False) -> list[str]:
+    """Claus de les fotos dels blocs (també dins de seccions i targetes), ja validats amb
+    `blocks.validate`. `public_only`: sense els blocs amagats, que no surten a la web."""
     keys = []
-    for block in blocks:
-        if not isinstance(block, dict):
-            continue  # el rebutja `pages.validate_blocks`
-        value = block.get("media")
-        if block.get("kind") == "image":
-            if not isinstance(value, str):
-                raise ValidationError(_("Un bloc d'imatge porta una sola foto."))
-            keys.append(value)
-        elif block.get("kind") == "gallery":
-            if not isinstance(value, list) or not all(isinstance(v, str) for v in value):
-                raise ValidationError(_("Una galeria porta una llista de fotos."))
-            keys.extend(value)
+    for block in catalog.walk(blocks, public_only=public_only):
+        kind = block["kind"]
+        if kind in ("image", "image_text") and block.get("media"):
+            keys.append(block["media"])
+        elif kind == "gallery":
+            keys.extend(k for k in block.get("media") or [] if k)  # un forat de l'esborrany, no
+        elif kind == "video" and block.get("thumbnail"):
+            keys.append(block["thumbnail"])
+        elif kind == "project_cards":
+            keys.extend(item["media"] for item in block.get("items") or [] if item.get("media"))
     return keys
+
+
+def block_file_keys(blocks, *, public_only: bool = False) -> list[str]:
+    """Claus dels PDF dels blocs de fitxer (catàleg de la 106), també dins de seccions; ja
+    validats amb `blocks.validate`. Només poden ser PDF (`check_publishable(kind="file")`)."""
+    return [
+        block["file"]
+        for block in catalog.walk(blocks, public_only=public_only)
+        if block["kind"] == "file" and block.get("file")
+    ]
 
 
 def _as_uuids(keys) -> set[uuid.UUID]:
@@ -139,28 +230,34 @@ def _as_uuids(keys) -> set[uuid.UUID]:
         raise ValidationError(NOT_PUBLISHABLE) from None
 
 
-def check_publishable(keys) -> None:
+def check_publishable(keys, *, kind: str = "image") -> None:
+    """Cada clau és publicable i del tipus del camp: `image` (imatges) o `file` (PDF)."""
     wanted = _as_uuids(keys)
-    ok = {a.key for a in MediaAsset.objects.filter(key__in=wanted) if a.publishable}
+    assets = MediaAsset.objects.filter(key__in=wanted)
+    assets = assets.filter(content_type=PDF) if kind == "file" else assets.exclude(content_type=PDF)
+    ok = {a.key for a in assets if a.publishable}
     if wanted - ok:
         raise ValidationError(NOT_PUBLISHABLE)
 
 
 def _is_published(asset: MediaAsset) -> bool:
-    """Surt en una notícia publicada o a la versió vigent d'una pàgina publicada. Només es miren
-    les versions que contenen aquesta clau (contenció de JSON de PostgreSQL), no totes."""
+    """Surt en una notícia publicada o en un bloc visible de la versió vigent d'una pàgina
+    publicada. Només es miren les versions que contenen el text de la clau, no totes."""
     if NewsItem.objects.filter(status=NewsItem.Status.PUBLISHED, image=asset).exists():
         return True
     if Tutorial.objects.filter(published=True, image=asset).exists():  # T-M07-10
         return True
     key = str(asset.key)
-    candidates = PageVersion.objects.filter(page__status=Page.Status.PUBLISHED).filter(
-        Q(blocks__contains=[{"kind": "image", "media": key}])
-        | Q(blocks__contains=[{"kind": "gallery", "media": [key]}])
+    candidates = PageVersion.objects.filter(
+        page__status=Page.Status.PUBLISHED, blocks__icontains=key
     )
     for version in candidates.select_related("page"):
         latest = version.page.versions.order_by("-number").values_list("number", flat=True)[0]
-        if version.number == latest:
+        blocks = catalog.upgrade_all(version.blocks)
+        visible = block_media_keys(blocks, public_only=True) + block_file_keys(
+            blocks, public_only=True
+        )
+        if version.number == latest and key in visible:
             return True
     return False
 
@@ -178,5 +275,7 @@ def public_asset(key: str) -> MediaAsset:
     return asset
 
 
-def open_content(asset: MediaAsset):
-    return storages["private"].open(asset.storage_key, "rb")
+def open_content(asset: MediaAsset, width: str = ""):
+    """El contingut; amb `width`, la mida en WebP si n'hi ha (si no, l'original)."""
+    key = asset.renditions.get(width) or asset.storage_key
+    return storages["private"].open(key, "rb")

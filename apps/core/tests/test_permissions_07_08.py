@@ -28,6 +28,7 @@ MATRIX = {
     "website.newsletter": WP1,  # WP6
     "website.subscribers": ADMIN,  # WP7
     "website.contact_reasons": ADMIN,  # WP8
+    "website.chrome": WP1,  # WP9 (addenda 106, T-M07-21)
     "settings.section.website": (N, N, N, N, N, N, CONS, CONS, N),
     "settings.edit.website.home_activities_count": WP1,
     "settings.edit.website.news_on_home": WP1,

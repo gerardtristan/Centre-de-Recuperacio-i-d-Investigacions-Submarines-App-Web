@@ -40,8 +40,18 @@ def public_detail_view(request, slug):
 @switched_on(IMAGES)
 @require_GET
 def media_view(request, key):
-    """La foto d'una pàgina o d'una notícia publicades (CA-M07-05; P-489)."""
+    """La foto d'una pàgina o d'una notícia publicades (CA-M07-05; P-489). `?w=480` dona la mida
+    en WebP si n'hi ha. Un PDF, sempre com a descàrrega (RN-M07-19)."""
     asset = media.public_asset(str(key))
-    response = FileResponse(media.open_content(asset), content_type=asset.content_type)
+    width = request.GET.get("w", "")
+    if asset.content_type == media.PDF:
+        response = FileResponse(
+            media.open_content(asset), content_type=media.PDF, as_attachment=True,
+            filename="document.pdf",
+        )  # fmt: skip
+    elif width in asset.renditions:
+        response = FileResponse(media.open_content(asset, width), content_type="image/webp")
+    else:
+        response = FileResponse(media.open_content(asset), content_type=asset.content_type)
     response["X-Content-Type-Options"] = "nosniff"
     return response

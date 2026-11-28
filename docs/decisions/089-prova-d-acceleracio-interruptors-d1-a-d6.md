@@ -1,7 +1,7 @@
 # 089. Prova d'acceleració: sis decisions amb interruptor (D1 a D6)
 
 - **Data:** 13/11/2026
-- **Estat:** Acceptada com a **prova de dues setmanes** (propietari, instrucció escrita del 13/11/2026). Inici: 13/11/2026. Revisió: 27/11/2026; llavors el propietari decideix si es manté.
+- **Estat:** Acceptada com a **prova de dues setmanes** (propietari, instrucció escrita del 13/11/2026). Inici: 13/11/2026. Revisió: 27/11/2026; llavors el propietari decideix si es manté. El 27/11/2026 el propietari l'allarga fins al final de la fase 2 (registre d'estat).
 - **Origen:** [pla d'acceleració](../plans/pla-acceleracio.md), apartat 9 (PR 8). El propietari n'aprova les sis decisions amb l'opció recomanada a cadascuna.
 - **Numeració:** els números 087 i 088 no es fan servir a `master` perquè ja els té la branca aparcada del mòdul 02 (D6). Aquesta branca també té un 086 propi, diferent de la [086](086-tauler-de-preguntes-pendents.md) de `master`; s'haurà de renumerar quan torni.
 
@@ -60,6 +60,8 @@ Només s'hi afegeixen files.
 | 16/11/2026 | D4 | Les `risc:alt` també les fusiona Claude, amb condicions; fins a tres carrils sense confirmació per tasca ([094](094-fusio-de-les-risc-alt-i-tres-carrils.md)) | Instrucció escrita del propietari |
 | 19/11/2026 | D4 | Fins al 27/11/2026, les `risc:alt` es fusionen soles amb condicions; esperen el sí del propietari les de producció o dades i diners reals, `CLAUDE.md`, D1 a D6, rebaixar el CI i secrets o xifratge ([100](100-risc-alt-es-fusionen-soles-fins-al-final-de-la-prova.md); modifica la [098](098-risc-alt-nomes-amb-el-si-escrit-del-propietari.md)) | Instrucció escrita del propietari |
 | 20/11/2026 | D6 | Es compleix la condició: la llesca del primer cobrament existeix (fase 1 tancada amb el proveïdor i el banc ficticis, [092](092-carril-extern-amb-proveidor-i-banc-ficticis.md)). La branca `feature/t-m02-activitats` no es fusiona sencera: se'n porten les peces en PR petites des de `master` ([estat del 02](../estat/M02.md)). No s'esborra ni la branca ni l'etiqueta. El text de la D6 a `CLAUDE.md` no es toca | Instrucció escrita del propietari (inici de la fase 2) |
+| 27/11/2026 | D1 a D5 | Continuen actives fins al final de la fase 2; llavors el propietari ho torna a decidir. Si no diu res, la D4 torna a la [098](098-risc-alt-nomes-amb-el-si-escrit-del-propietari.md). La [100](100-risc-alt-es-fusionen-soles-fins-al-final-de-la-prova.md) té la mateixa vigència i les mateixes excepcions. Al `CLAUDE.md` només canvien les dates i la vigència | Instrucció escrita del propietari (sí del 25/11/2026, donat el 27/11/2026) |
+| 27/11/2026 | D6 | Complerta: la branca del 02 ja està portada a `master` per peces ([estat del 02](../estat/M02.md)). La branca `feature/t-m02-activitats` i l'etiqueta no s'esborren | Instrucció escrita del propietari (sí del 25/11/2026, donat el 27/11/2026) |
 
 ## Conseqüències
 

@@ -1,0 +1,2 @@
+{# T-M07-19 (RN-M07-15): títol de secció. `level` només 2 o 3 (l'h1 és el títol de la pàgina). #}
+{% if block.level == 3 %}<h3 class="bloc bloc-heading">{{ block.text }}</h3>{% else %}<h2 class="bloc bloc-heading">{{ block.text }}</h2>{% endif %}

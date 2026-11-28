@@ -5,8 +5,9 @@
   titulació d'una agència diferent de la de destinació (VC-55). Amb VC-56 apagat, es rebutja tot.
 - **Què:** una imatge (JPEG o PNG) o un PDF per cara, comprovat amb `core.validate_upload` (mida
   màxima tècnica, al codi). Les metadades de les imatges (EXIF, XMP, IPTC, comentaris i els
-  fragments de text del PNG) es treuen aquí, sense cap biblioteca nova (sí del 24/11). La imatge
-  no es redueix: sense una biblioteca d'imatge no es pot (D2, P-551).
+  fragments de text del PNG) es treuen aquí, sense cap biblioteca nova (sí del 24/11). Amb Pillow
+  (decisió 108, P-551 A; T-M02-55), una imatge amb el costat llarg de més de `MAX_SIDE` px es
+  redueix a aquesta mida (tècnica, al codi: RN-M02-47). Un PDF es desa tal qual.
 - **Com es desa:** xifrada a l'aplicació (`core.files`, tipus `certification_photo`), amb el
   titular com a propietari: només l'obren ell i qui té AC24, per la vista amb registre.
 
@@ -16,12 +17,14 @@ dia per la cua): T-M02-47.
 """
 
 import calendar
+import io
 import struct
 
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from PIL import Image
 
 from apps.core import audit, business_settings, files
 from apps.core.models import PrivateFile
@@ -36,6 +39,8 @@ EXPIRED = "activities.card_photo.expired"
 RETENTION_KEY = "activities.card_photo_retention_months"  # VC-57
 PHOTO_TYPES = frozenset({"image/jpeg", "image/png", "application/pdf"})
 _EXTENSION = {"image/jpeg": "jpg", "image/png": "png", "application/pdf": "pdf"}
+_PIL_FORMAT = {"image/jpeg": "JPEG", "image/png": "PNG"}
+MAX_SIDE = 2000  # px del costat llarg: prou per llegir el carnet (mida tècnica, RN-M02-47)
 
 # JPEG: APP1 (EXIF i XMP), APP13 (IPTC) i COM (comentaris). PNG: fragments de text, EXIF i data.
 _JPEG_DROP = {0xE1, 0xED, 0xFE}
@@ -86,6 +91,23 @@ def strip_png(data: bytes) -> bytes:
 _STRIP = {"image/jpeg": strip_jpeg, "image/png": strip_png}
 
 
+def shrink(data: bytes, content_type: str) -> bytes:
+    """CA-M02-49: el costat llarg com a màxim `MAX_SIDE`; si ja hi cap, la imatge no es toca.
+    Pillow torna a codificar la reduïda sense cap metadada."""
+    fmt = _PIL_FORMAT[content_type]
+    try:
+        with Image.open(io.BytesIO(data), formats=[fmt]) as image:
+            if max(image.size) <= MAX_SIDE:
+                return data
+            image.thumbnail((MAX_SIDE, MAX_SIDE), Image.Resampling.LANCZOS)
+            image.info = {k: v for k, v in image.info.items() if k == "transparency"}
+            out = io.BytesIO()
+            image.save(out, fmt, **({"quality": 90} if fmt == "JPEG" else {}))
+    except (OSError, ValueError, SyntaxError, Image.DecompressionBombError):
+        raise _broken() from None
+    return out.getvalue()
+
+
 @transaction.atomic
 def upload(certification, side: str, uploaded, *, by, request=None) -> CertificationCardPhoto:
     """RN-M02-47: desa la foto d'una cara del carnet, xifrada i sense metadades."""
@@ -102,7 +124,8 @@ def upload(certification, side: str, uploaded, *, by, request=None) -> Certifica
     content_type = files.validate_upload(uploaded, allowed=PHOTO_TYPES)
     uploaded.seek(0)
     content = uploaded.read()
-    content = _STRIP.get(content_type, bytes)(content)
+    if content_type in _STRIP:
+        content = shrink(_STRIP[content_type](content), content_type)
     file = files.store(
         content,
         owner=certification.person,

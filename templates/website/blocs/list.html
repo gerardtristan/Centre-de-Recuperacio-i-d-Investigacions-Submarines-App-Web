@@ -1,0 +1,6 @@
+{# T-M07-19 (RN-M07-15): llista d'1 a 20 elements; `style` bullets, numbers o checks. #}
+<section class="bloc bloc-list">
+  {% if block.title %}<h2>{{ block.title }}</h2>{% endif %}
+  {% if block.style == "numbers" %}<ol class="bloc-llista">{% for item in block.items %}<li>{{ item }}</li>{% endfor %}</ol>
+  {% else %}<ul class="bloc-llista{% if block.style == 'checks' %} es-comprovacio{% endif %}">{% for item in block.items %}<li>{{ item }}</li>{% endfor %}</ul>{% endif %}
+</section>
