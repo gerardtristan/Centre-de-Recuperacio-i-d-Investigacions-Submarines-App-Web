@@ -647,3 +647,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [dep-markdown-it-py](dep-markdown-it-py.md) | markdown-it-py per al Markdown restringit (decisió 106) | 27/11/2026 22:14 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [dep-sortablejs](dep-sortablejs.md) | SortableJS per arrossegar blocs (decisió 106) | 27/11/2026 22:14 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [dep-pillow](dep-pillow.md) | Pillow per a les pujades de la web (decisió 106) | 27/11/2026 22:14 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [T-M09-33](T-M09-33.md) | Còpia emmascarada només amb dades bancàries d'una persona (P-550, decisió 108; carril B) | 28/11/2026 01:06 | (vegeu la PR) | 5 noves i 2 e2e | [A comprovar] |
