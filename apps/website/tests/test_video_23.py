@@ -7,6 +7,7 @@ import io
 import pytest
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.http import Http404
 from django.urls import reverse
 
 from apps.core import business_settings
@@ -100,14 +101,14 @@ def test_the_download_goes_only_to_the_thumbnail_address(monkeypatch):
         opened.append((url, timeout))
         return Response(PNG)
 
-    monkeypatch.setattr(video.urllib.request, "urlopen", fake_open)
+    monkeypatch.setattr(video._opener, "open", fake_open)
     assert video._download("dQw4w9WgXcQ") == PNG
     assert opened == [("https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg", 5)]
 
     def broken(url, timeout):
         raise OSError("sense xarxa")
 
-    monkeypatch.setattr(video.urllib.request, "urlopen", broken)
+    monkeypatch.setattr(video._opener, "open", broken)
     assert video._download("dQw4w9WgXcQ") is None
 
 
@@ -167,3 +168,49 @@ def test_rn_m07_26_an_own_video_is_shown_when_it_can_be_published(page, admin, v
     business_settings.change("website.public_images_enabled", True, admin, "Prova")
     html = render.render_blocks([own], page)
     assert f'src="/web/fotos/{asset.key}/"' in html and "<video" in html
+
+
+def test_review_saving_twice_keeps_the_same_thumbnail(page, admin, youtube_on, downloads):
+    """Revisió de la 23: el segon desat no torna a baixar la miniatura ni en crea una altra."""
+    url = reverse("administration:website_page_editor_action", args=[page.pk])
+    pages.save_draft(page, [block("video", title="")], admin)
+    for title in ("Primer", "Segon"):
+        blocks_, revision = pages.draft_state(page)
+        admin_client(admin).post(url, {
+            "action": "update", "index": "0", "source": "youtube", "youtube_id": "dQw4w9WgXcQ",
+            "title": title, "width": "normal", "revision": str(revision),
+            "base": editor.fingerprint(blocks_[0]),
+        })  # fmt: skip
+    assert MediaAsset.objects.count() == 1 and len(downloads) == 1
+    assert PageDraft.objects.get().blocks[0]["title"] == "Segon"
+
+
+def test_review_an_invalid_id_is_never_requested(admin, youtube_on, downloads):
+    assert video.with_thumbnail(block("video", youtube_id="../../x?y=1"), admin)["kind"] == "video"
+    assert downloads == []
+
+
+def test_review_no_redirects_and_nothing_at_the_size_limit(monkeypatch):
+    class Response(io.BytesIO):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    monkeypatch.setattr(
+        video._opener, "open", lambda url, timeout: Response(b"x" * (video.MAX_BYTES + 1))
+    )
+    assert video._download("dQw4w9WgXcQ") is None
+    assert video._NoRedirect().redirect_request(None, None, 302, "", {}, "https://x") is None
+    assert not any(
+        isinstance(h, video.urllib.request.HTTPRedirectHandler)
+        and not isinstance(h, video._NoRedirect)
+        for h in video._opener.handlers
+    )
+
+
+def test_review_storing_an_image_needs_wp3(make_admin):  # noqa: F811
+    with pytest.raises(Http404):
+        media.store_image(PNG, actor=make_admin(Role.Code.SECRETARY), alt_text="x",
+                          shows_people=False)  # fmt: skip
