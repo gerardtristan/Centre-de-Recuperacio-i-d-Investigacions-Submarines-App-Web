@@ -1,4 +1,4 @@
-{% load static i18n %}<!DOCTYPE html>
+{% load static i18n website_menu %}<!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
   <meta charset="utf-8">
@@ -24,6 +24,7 @@
   <link rel="stylesheet" href="{% static 'css/deposito.css' %}">
   <link rel="stylesheet" href="{% static 'css/oleaje.css' %}">
   <link rel="stylesheet" href="{% static 'css/monograma.css' %}">
+  <link rel="stylesheet" href="{% static 'css/menu-public.css' %}">
   <script src="{% static 'vendor/htmx/htmx.min.js' %}" defer></script>
   <script src="{% static 'js/errata.js' %}" defer></script>
   <script src="{% static 'js/eclipse.js' %}" defer></script>
@@ -50,6 +51,8 @@
     {# El botó només es mostra amb JavaScript (menu-admin.js); sense, la barra lateral es veu sempre. #}
     {% if admin_nav %}<button class="boto boto-petit boto-menu" type="button" aria-expanded="false" aria-controls="barra-lateral" hidden><span aria-hidden="true">☰</span> {% translate "Menú" %}</button>{% endif %}
     {# Tema (decisió del propietari del 16/11/2026): a la part pública, l'interruptor Eclipse; amb sessió, el tema és a la configuració del compte (T-DX-05b). #}
+    {# Menú de la web pública (T-DX-170): el que desa WP9, per a qui no ha entrat. Una pantalla el pot treure amb el bloc buit. #}
+    {% if not user.is_authenticated %}{% block menu_public %}{% menu_public %}{% endblock %}{% endif %}
     {% if not user.is_authenticated %}{% include "_eclipse.html" %}{% endif %}
     {% if user.is_authenticated and user.kind == "personal" %}{% include "members/_personal_nav.html" %}{% endif %}
   </header>

@@ -569,6 +569,7 @@ MAP = {
         "templates/core/home.html",
         "static/css/oleaje.css",
     ),
+    "test_menu_public.py": ("static/css/menu-public.css", "templates/website/_menu_public.html"),
     "test_previews.py": ("apps/previews/*", "templates/previews/*"),
     "test_wireframes_editor_web.py": ("design/wireframes/editor-web.html",),
     "test_vigencia.py": (
