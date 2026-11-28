@@ -15,7 +15,7 @@ import copy
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Max
+from django.db.models import Max, Q
 from django.utils.translation import gettext as _
 
 from apps.core import audit
@@ -59,7 +59,8 @@ def save_pattern(name: str, blocks: list, actor) -> PatternVersion:
 @transaction.atomic
 def save_shared(shared, block: dict, actor) -> SharedBlockVersion:
     require(actor)
-    if not isinstance(block, dict) or block.get("kind") == "shared":
+    if not isinstance(block, dict) or any(b.get("kind") == "shared"
+                                          for b in catalog.walk([block])):  # fmt: skip
         raise ValidationError(_("Un bloc compartit no pot ser una referència a un altre."))
     block = {k: v for k, v in block.items() if k != "hidden"}  # amagar-lo és de cada pàgina
     catalog.validate([block], publishing=False)
@@ -77,30 +78,68 @@ def pattern_blocks(pattern: Pattern) -> list:
     return copy.deepcopy(version.blocks) if version else []
 
 
+def _latest(ids):
+    return SharedBlockVersion.objects.filter(shared_id__in=set(ids)).order_by(
+        "shared_id", "-number").distinct("shared_id")  # fmt: skip
+
+
 def current_shared(ids) -> dict:
     """{id: bloc} amb l'última versió de cada bloc compartit."""
-    latest = SharedBlockVersion.objects.filter(shared_id__in=set(ids)).order_by(
-        "shared_id", "-number").distinct("shared_id")  # fmt: skip
-    return {v.shared_id: v.block for v in latest}
+    return {v.shared_id: v.block for v in _latest(ids)}
 
 
 def _refs(blocks):
-    for block in catalog.walk(blocks):
-        if block.get("kind") == "shared":
-            yield block.get("shared")
+    return [b for b in catalog.walk(blocks) if b.get("kind") == "shared"]
 
 
-def resolve(blocks: list) -> list:
-    """Les referències, amb el contingut vigent; la llista i les posicions no canvien."""
-    contents = current_shared(_refs(blocks))
+def _map(blocks, one):
+    """`one` a cada bloc, també dins de les seccions; la llista i les posicions no canvien."""
+
+    def each(block):
+        if block.get("kind") == "section":
+            columns = [[each(b) for b in column] for column in block.get("columns") or []]
+            return one({**block, "columns": columns})
+        return one(block)
+
+    return [each(block) for block in blocks]
+
+
+def pin(blocks: list, *, repin: bool = False) -> list:
+    """En publicar: cada referència queda amb la versió del compartit que es publica (la
+    vigent). `repin`: també les que ja en tenien una (publicar l'esborrany); sense, es conserven
+    (tornar a una versió anterior en recupera el contingut d'aleshores)."""
+    newest = {v.shared_id: v.number for v in _latest(r.get("shared") for r in _refs(blocks))}
 
     def one(block):
-        if block.get("kind") == "shared":
-            content = contents.get(block.get("shared"), MISSING)
-            return {**content, "hidden": block.get("hidden", False) or content.get("hidden", False)}
-        if block.get("kind") == "section":
-            columns = [[one(b) for b in column] for column in block.get("columns") or []]
-            return {**block, "columns": columns}
-        return block
+        if block.get("kind") != "shared" or block.get("shared") not in newest:
+            return block
+        if block.get("version") and not repin:
+            return block
+        return {**block, "version": newest[block["shared"]]}
 
-    return [one(block) for block in blocks]
+    return _map(blocks, one)
+
+
+def resolve(blocks: list, *, latest: bool = False) -> list:
+    """Les referències, amb el seu contingut: la versió fixada en publicar o, a l'esborrany
+    (`latest`) i a les referències sense versió, la vigent. Conserven el seu `hidden`."""
+    refs = _refs(blocks)
+    newest = current_shared(r.get("shared") for r in refs)
+    wanted = {(r.get("shared"), r.get("version")) for r in refs if r.get("version")}
+    pinned = {}
+    if wanted and not latest:
+        query = Q()
+        for shared, number in wanted:
+            query |= Q(shared_id=shared, number=number)
+        pinned = {(v.shared_id, v.number): v.block
+                  for v in SharedBlockVersion.objects.filter(query)}  # fmt: skip
+
+    def one(block):
+        if block.get("kind") != "shared":
+            return block
+        key = (block.get("shared"), block.get("version"))
+        content = pinned.get(key) if key in pinned else newest.get(block.get("shared"))
+        content = content or MISSING
+        return {**content, "hidden": block.get("hidden", False) or content.get("hidden", False)}
+
+    return _map(blocks, one)
