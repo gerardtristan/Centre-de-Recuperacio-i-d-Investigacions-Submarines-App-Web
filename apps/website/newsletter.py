@@ -128,6 +128,9 @@ def unsubscribe(token: str, *, now=None) -> None:
         forget(subscription, now=now)
         if person is not None:
             consents.withdraw(person, TEXT_KIND, channel=Consent.Channel.WEB)
+            # T-M07-34: la baixa en substitueix el correu; sense això l'avís tornaria a sortir.
+            for account in person.accounts.filter(kind="personal"):
+                dismiss_member_notice(account)
 
 
 def forget(subscription: NewsletterSubscription, *, now=None) -> None:
@@ -185,6 +188,7 @@ def unsubscribe_member(account, *, request=None) -> None:
         forget(subscription)
     consents.withdraw(account.person, TEXT_KIND, channel=Consent.Channel.WEB, by=account,
                       request=request)  # fmt: skip
+    dismiss_member_notice(account)  # T-M07-34: qui es dona de baixa no torna a veure l'avís
 
 
 def show_member_notice(account) -> bool:

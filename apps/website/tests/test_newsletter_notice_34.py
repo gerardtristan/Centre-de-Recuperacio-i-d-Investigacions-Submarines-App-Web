@@ -55,7 +55,21 @@ def test_the_notice_shows_and_closing_it_is_remembered_for_the_account(
     assert not NewsletterSubscription.objects.exists()
 
 
-@pytest.mark.parametrize("status", [S.PENDING, S.CONFIRMED, S.UNSUBSCRIBED])
+def test_not_shown_again_after_a_real_unsubscribe_from_the_area(member, client, enabled, text):
+    """Revisió: la baixa substitueix el correu i la subscripció ja no es troba pel correu."""
+    newsletter.subscribe(member.login, legal_text=text)
+    newsletter.unsubscribe_member(member)
+    assert NOTICE not in client.get(HOME).content.decode()
+
+
+def test_not_shown_again_after_unsubscribing_with_the_email_link(member, client, enabled, text):
+    subscription, _send = newsletter.subscribe(member.login, legal_text=text)
+    newsletter.confirm(subscription.token)
+    newsletter.unsubscribe(subscription.token)
+    assert NOTICE not in client.get(HOME).content.decode()
+
+
+@pytest.mark.parametrize("status", [S.PENDING, S.CONFIRMED])
 def test_not_shown_to_who_already_asked_is_subscribed_or_left(
     member, client, enabled, text, status
 ):
