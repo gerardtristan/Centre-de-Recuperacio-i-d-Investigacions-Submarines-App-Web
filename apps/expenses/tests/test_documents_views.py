@@ -130,3 +130,26 @@ def test_without_mg1_or_mg2_not_found(expense, make_admin, role):  # noqa: F811
 def test_a_missing_expense_is_not_found(treasurer):
     missing = reverse("administration:expense_documents", args=[999999])
     assert admin_client(treasurer).get(missing).status_code == 404
+
+
+def test_t_m09_33_the_treasurer_says_no_copy_is_needed_and_can_undo_it(expense, treasurer):
+    client = admin_client(treasurer)
+    post(client, expense, PROOF, "attach", fitxer=pdf("comprovant.pdf"))
+    html = main_of(post(client, expense, PROOF, "not_needed").content.decode())
+    assert "El paquet de justificació portarà l&#x27;original" in html
+    assert "No cal còpia emmascarada" in html and "Sense còpia emmascarada" not in html
+    expense.refresh_from_db()
+    assert documents.masking_status(expense, PROOF) == "not_needed"
+    post(client, expense, PROOF, "needed")
+    expense.refresh_from_db()
+    assert documents.masking_status(expense, PROOF) == "not_detected"
+
+
+def test_t_m09_33_only_the_treasurer_marks_it(expense, uploader):
+    client = admin_client(uploader)
+    post(client, expense, INVOICE, "attach", fitxer=pdf())
+    html = main_of(client.get(url(expense)).content.decode())
+    assert "No cal: no porta dades bancàries" not in html
+    post(client, expense, INVOICE, "not_needed")
+    expense.refresh_from_db()
+    assert documents.masking_status(expense, INVOICE) == "not_detected"

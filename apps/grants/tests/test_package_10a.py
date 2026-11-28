@@ -129,3 +129,13 @@ def test_only_a_granted_application_without_a_sent_justification(granted, treasu
 def test_without_aj7_and_aj12_not_found(granted, make_admin, role):  # noqa: F811
     with pytest.raises(Http404):
         p.build_package(granted, make_admin(role))
+
+
+def test_t_m09_33_without_a_persons_bank_details_the_original_goes_in(granted, treasurer):
+    """P-550 (108): el compte del club o d'una empresa no s'emmascara; hi va l'original."""
+    item = linked(granted, treasurer, 50000, "F-1", masked=False)
+    for document in (INVOICE, PROOF):
+        documents.set_masking_not_needed(item, document, by=treasurer)
+    package = p.build_package(granted, treasurer)
+    assert package.excluded == [] and package.masked
+    assert b"invoice F-1" in unzip(package, treasurer)[f"despesa-{item.pk}/factura.pdf"]

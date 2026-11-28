@@ -1,8 +1,11 @@
 """Documents de justificació d'una despesa (T-M09-25b; 051; RN-M09-23, 25 i 27; M09-6).
 
 Factura (MG1) i comprovant del banc (MG2), desats xifrats (T-M09-25a): només els obren el
-tresorer i la junta (C5). Còpia emmascarada: sense biblioteca de PDF ni d'imatge no es troba
-l'IBAN; tots queden «not_detected» i el tresorer en puja la còpia a mà (D2, P-550; CA-M09-24).
+tresorer i la junta (C5). Còpia emmascarada (RN-M09-23 precisada per la 108, P-550; T-M09-33):
+només cal quan el document porta dades bancàries d'un soci o d'una altra persona física, i la puja
+el tresorer a mà (CA-M09-24). Si porta el compte del club o d'una empresa, el tresorer marca que no
+cal («not_needed») i el paquet de justificació porta l'original. Fins que fa una cosa o l'altra, el
+document queda «not_detected» i a `pending_masking`.
 «Il·legible»: una `DocumentIllegibleMark` (mai s'escriu a `Expense`), amb avís sense enllaç a qui
 l'havia pujat; el document nou la tanca. Tot queda al registre de la marca (RN-M09-27)."""
 
@@ -25,6 +28,7 @@ OPEN_DOCUMENTS = "expenses.documents.open"  # C5
 ILLEGIBLE_TEMPLATE = "avis-document-illegible"
 DOCUMENT_ATTACHED = "expenses.document_attached"
 MASKED_COPY_ATTACHED = "expenses.masked_copy_attached"
+MASKING_NOT_NEEDED = "expenses.masking_not_needed"
 MARKED_ILLEGIBLE = "expenses.document_marked_illegible"
 DOCUMENT_REPLACED = "expenses.document_replaced"
 
@@ -75,6 +79,7 @@ def attach(expense: Expense, document: str, uploaded, *, by, request=None) -> Pr
     ha un de vigent i llegible, es rebutja: no se substitueix cap justificant sense la marca."""
     kind, permission, name = _FIELDS[document]
     file_field, masked_field = f"{document}_file", f"{document}_masked_file"
+    not_needed_field = f"{document}_masking_not_needed"
     _require(by, permission)
     expense = Expense.objects.select_for_update().get(pk=expense.pk)
     if expense.status == Expense.Status.ANNULLED:
@@ -85,7 +90,8 @@ def attach(expense: Expense, document: str, uploaded, *, by, request=None) -> Pr
     file = _store(by, expense, uploaded, kind, name)
     setattr(expense, file_field, file)
     setattr(expense, masked_field, None)  # el document nou necessita la seva còpia
-    expense.save(update_fields=[file_field, masked_field, "updated_at"])
+    setattr(expense, not_needed_field, False)  # i que el tresorer el torni a mirar (T-M09-33)
+    expense.save(update_fields=[file_field, masked_field, not_needed_field, "updated_at"])
     details = {"document": document, "file": str(file.pk)}
     if mark is None:
         audit.record(DOCUMENT_ATTACHED, actor=by, target=expense, details=details, request=request)
@@ -111,6 +117,26 @@ def attach_masked_copy(expense: Expense, document: str, uploaded, *, by, request
     details = {"document": document, "file": str(file.pk)}
     audit.record(MASKED_COPY_ATTACHED, actor=by, target=expense, details=details, request=request)
     return file
+
+
+@transaction.atomic
+def set_masking_not_needed(
+    expense: Expense, document: str, *, value: bool = True, by, request=None
+):
+    """T-M09-33 (P-550): el tresorer diu que el document vigent no porta dades bancàries de cap
+    persona física (o ho desfà). Amb el valor anterior al registre."""
+    _treasurer(by)
+    field = f"{document}_masking_not_needed"
+    expense = Expense.objects.select_for_update().get(pk=expense.pk)
+    if getattr(expense, f"{document}_file") is None:
+        raise ExpenseRejected(_("Primer cal el document original."))
+    old = getattr(expense, field)
+    if old != value:
+        setattr(expense, field, value)
+        expense.save(update_fields=[field, "updated_at"])
+        audit.record(MASKING_NOT_NEEDED, actor=by, target=expense, field=field, old=old,
+                     new=value, details={"document": document}, request=request)  # fmt: skip
+    return expense
 
 
 @transaction.atomic
@@ -196,10 +222,27 @@ def pending_masking() -> list[tuple[Expense, str]]:
         (expense, document)
         for expense in rows.order_by("pk")
         for document in _FIELDS
-        if getattr(expense, f"{document}_file_id") and masking_status(expense, document) != "masked"
+        if getattr(expense, f"{document}_file_id")
+        and masking_status(expense, document) == "not_detected"
     ]
 
 
 def masking_status(expense: Expense, document: str) -> str:
-    """«masked» o «not_detected» (M09-6). «no_iban» arribarà amb la detecció (P-550)."""
-    return "masked" if getattr(expense, f"{document}_masked_file_id") else "not_detected"
+    """«masked» (hi ha la còpia), «not_needed» (el tresorer diu que no porta dades bancàries de
+    cap persona física, T-M09-33) o «not_detected» (encara per fer)."""
+    if getattr(expense, f"{document}_masked_file_id"):
+        return "masked"
+    if getattr(expense, f"{document}_masking_not_needed"):
+        return "not_needed"
+    return "not_detected"
+
+
+def shareable_file(expense: Expense, document: str):
+    """El fitxer que pot sortir en una còpia compartible (RN-M09A-11): la còpia emmascarada o,
+    si no cal, l'original; `None` si encara falta la còpia."""
+    status = masking_status(expense, document)
+    if status == "masked":
+        return getattr(expense, f"{document}_masked_file")
+    if status == "not_needed":
+        return getattr(expense, f"{document}_file")
+    return None

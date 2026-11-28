@@ -109,6 +109,15 @@ class Expense(models.Model):
         related_name="+",
         verbose_name=_("comprovant emmascarat"),
     )
+    # RN-M09-23 precisada (108, P-550; T-M09-33): el tresorer marca que el document no porta dades
+    # bancàries de cap persona física (el compte del club o d'una empresa): no cal còpia
+    # emmascarada i el paquet de justificació porta l'original. Un document nou ho torna a demanar.
+    invoice_masking_not_needed = models.BooleanField(
+        _("la factura no necessita còpia emmascarada"), default=False
+    )
+    payment_proof_masking_not_needed = models.BooleanField(
+        _("el comprovant no necessita còpia emmascarada"), default=False
+    )
     status = models.CharField(
         _("estat"), max_length=8, choices=Status.choices, default=Status.TO_PAY
     )

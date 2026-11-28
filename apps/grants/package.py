@@ -3,10 +3,12 @@
 `build_package(application, actor, requirement=None)`: de les despeses lligades vigents, només hi
 entren les que tenen factura i comprovant del banc llegibles (RN-M09-25); la resta surten a
 «excloses» amb el motiu. El ZIP porta les còpies amb l'IBAN emmascarat, excepte si la convocatòria
-diu que no les accepta (`accepts_masked_proofs = no`): llavors, els originals (051). Una despesa
-sense la còpia emmascarada que cal també queda exclosa: cap IBAN no surt sense que la convocatòria
-ho demani (P-593). El ZIP es desa xifrat (GRANT_PACKAGE) i cada document llegit queda al registre
-(`files.opened`); si n'hi ha d'excloses, el responsable i el tresorer en reben l'avís.
+diu que no les accepta (`accepts_masked_proofs = no`): llavors, els originals (051). Un document
+que el tresorer ha marcat que no porta dades bancàries de cap persona física (el compte del club o
+d'una empresa) hi va en original (RN-M09-23 precisada per la 108, P-550; T-M09-33). Una despesa
+sense la còpia emmascarada que cal també queda exclosa: cap IBAN d'una persona no surt sense que la
+convocatòria ho demani (P-593). El ZIP es desa xifrat (GRANT_PACKAGE) i cada document llegit queda
+al registre (`files.opened`); si n'hi ha d'excloses, el responsable i el tresorer en reben l'avís.
 
 `submit_package_version` (T-M09A-10b; RN-M09A-18 i 21; CA-M09A-16 i 20): la versió 1 passa la
 sol·licitud a «justificada» i en queda el paquet congelat (`submitted_package`); les següents,
@@ -58,7 +60,7 @@ def _exclusion(expense, masked) -> str | None:
             return _("Sense %(document)s") % {"document": label.lower()}
         if documents.illegible(expense, document):
             return _("%(document)s il·legible") % {"document": label}
-        if masked and getattr(expense, f"{document}_masked_file_id") is None:
+        if masked and documents.shareable_file(expense, document) is None:
             return _("%(document)s sense còpia emmascarada") % {"document": label}
     return None
 
@@ -89,8 +91,11 @@ def build_package(application, actor, requirement=None) -> JustificationPackage:
                 continue
             hashes = {}
             for document, name in _NAMES.items():
-                field = f"{document}_masked_file" if masked else f"{document}_file"
-                file = getattr(expense, field)
+                file = (
+                    documents.shareable_file(expense, document)
+                    if masked
+                    else getattr(expense, f"{document}_file")
+                )
                 content = files.open_decrypted(actor, file)
                 hashes[document] = hashlib.sha256(content).hexdigest()
                 extension = file.download_name.rsplit(".", 1)[-1]

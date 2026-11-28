@@ -293,3 +293,36 @@ def test_ca_m09_32_amb_replaced_at_buit_nomes_sacepta_omplir_lo_una_vegada(with_
     _sql("UPDATE expenses_documentillegiblemark SET replaced_at = now() WHERE id = %s", [mark.pk])
     mark.refresh_from_db()
     assert mark.replaced_at is not None and mark.reason == "Borrosa"
+
+
+def test_t_m09_33_no_copy_needed_without_a_persons_bank_details(
+    with_invoice,
+    uploader,
+    treasurer,
+    make_admin,  # noqa: F811
+):
+    """P-550 (108): el compte del club o d'una empresa no s'emmascara; el tresorer ho marca i el
+    document surt de «per emmascarar». Un document nou ho torna a demanar."""
+    with pytest.raises(Http404):
+        documents.set_masking_not_needed(with_invoice, INVOICE, by=uploader)
+    documents.set_masking_not_needed(with_invoice, INVOICE, by=treasurer)
+    expense = Expense.objects.get(pk=with_invoice.pk)
+    assert documents.masking_status(expense, INVOICE) == "not_needed"
+    assert documents.pending_masking() == []
+    assert documents.shareable_file(expense, INVOICE) == expense.invoice_file
+    entry = AuditEntry.objects.get(action=documents.MASKING_NOT_NEEDED)
+    assert (entry.old_value, entry.new_value) == (False, True)
+    documents.set_masking_not_needed(expense, INVOICE, value=False, by=treasurer)  # desfer
+    expense.refresh_from_db()
+    assert documents.masking_status(expense, INVOICE) == "not_detected"
+    assert documents.shareable_file(expense, INVOICE) is None
+    with pytest.raises(services.ExpenseRejected):
+        documents.set_masking_not_needed(expense, PROOF, by=treasurer)  # sense original
+
+
+def test_t_m09_33_a_new_document_asks_again(with_invoice, uploader, treasurer):
+    documents.set_masking_not_needed(with_invoice, INVOICE, by=treasurer)
+    documents.mark_illegible(with_invoice, INVOICE, reason="Borrosa", by=treasurer)
+    documents.attach(with_invoice, INVOICE, pdf("nova.pdf"), by=uploader)
+    expense = Expense.objects.get(pk=with_invoice.pk)
+    assert documents.masking_status(expense, INVOICE) == "not_detected"

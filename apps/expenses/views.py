@@ -156,6 +156,8 @@ UPLOAD_PERMISSION = {Document.INVOICE: services.RECORD, Document.PAYMENT_PROOF: 
 DONE = {
     "attach": gettext_lazy("Document desat. Només l'obren el tresorer i la junta."),
     "masked": gettext_lazy("Còpia emmascarada desada."),
+    "not_needed": gettext_lazy("Desat. El paquet de justificació portarà l'original."),
+    "needed": gettext_lazy("Desat. Aquest document necessita la còpia emmascarada."),
     "illegible": gettext_lazy("Document marcat com a il·legible. Qui l'havia pujat en rep l'avís."),
 }
 
@@ -166,7 +168,10 @@ def _post_documents(request, expense):
         raise Http404
     uploaded = request.FILES.get("fitxer")
     try:
-        if action == "illegible":
+        if action in ("not_needed", "needed"):  # T-M09-33 (P-550)
+            documents.set_masking_not_needed(expense, document, value=action == "not_needed",
+                                             by=request.user, request=request)  # fmt: skip
+        elif action == "illegible":
             reason = request.POST.get("motiu", "")
             documents.mark_illegible(expense, document, reason=reason, by=request.user,
                                      request=request)  # fmt: skip
@@ -206,7 +211,7 @@ def documents_view(request, pk):
             "label": Document(document).label,
             "file": file,
             "illegible": illegible,
-            "masked": file is not None and documents.masking_status(expense, document) == "masked",
+            "masking": documents.masking_status(expense, document) if file is not None else "",
             "can_upload": live and can[permission] and (file is None or illegible),
         })  # fmt: skip
     context = {
